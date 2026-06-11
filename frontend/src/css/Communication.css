@@ -1,0 +1,75 @@
+.communication-container {
+  padding: 30px;
+}
+
+.communication-container h1 {
+  color: #4f7df3;
+}
+
+.communication-subtitle {
+  color: #6b7280;
+  margin-bottom: 25px;
+}
+
+.support-section {
+
+  display: flex;
+
+  gap: 20px;
+
+  margin-bottom: 30px;
+}
+
+.support-card {
+
+  flex: 1;
+
+  background: white;
+
+  padding: 25px;
+
+  border-radius: 18px;
+
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.support-card button {
+
+  margin-top: 15px;
+
+  width: 100%;
+
+  padding: 14px;
+
+  border: none;
+
+  border-radius: 12px;
+
+  background: #4f7df3;
+
+  color: white;
+
+  cursor: pointer;
+}
+
+.messages-card {
+
+  background: white;
+
+  padding: 25px;
+
+  border-radius: 18px;
+
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.message-row {
+
+  padding: 15px 0;
+
+  border-bottom: 1px solid #eee;
+}
+
+.message-row:last-child {
+  border-bottom: none;
+}
