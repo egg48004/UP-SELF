@@ -1,0 +1,33 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: up-self
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/up_self?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Kuala_Lumpur
+    username: root
+    password: ${DB_PASSWORD:root}
+
+# MyBatis-Plus 配置
+mybatis-plus:
+  # Mapper XML 文件位置
+  mapper-locations: classpath*:/mapper/**/*.xml
+
+  # Entity 实体类所在包
+  type-aliases-package: com.upself.domain
+
+  configuration:
+    # 数据库下划线字段自动映射为 Java 驼峰字段
+    # 例如 student_id -> studentId
+    map-underscore-to-camel-case: true
+
+    # 开发阶段打印 SQL，方便调试
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+  global-config:
+    db-config:
+      # 主键策略：数据库自增
+      id-type: auto
