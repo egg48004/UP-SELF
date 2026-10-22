@@ -69,3 +69,32 @@ export function mediaUrl(path: string) {
     throw new ApiError(400, "Invalid media address.");
   return "/api" + path;
 }
+
+// Binary requests keep the same authenticated client and business-error handling.
+export async function download(url: string): Promise<Blob> {
+  try {
+    const response = await client.request<Blob>({
+      url,
+      responseType: "blob",
+      headers: session.token
+        ? { Authorization: "Bearer " + session.token }
+        : {},
+    });
+    const mime = String(
+      response.headers["content-type"] || response.data.type || "",
+    );
+    if (mime.includes("application/json")) {
+      assertSuccess(JSON.parse(await response.data.text()));
+      throw new ApiError(500, "The file could not be downloaded.");
+    }
+    if (response.status < 200 || response.status >= 300)
+      throw new ApiError(response.status, "The file could not be downloaded.");
+    return response.data;
+  } catch (e) {
+    if (e instanceof ApiError) {
+      if (e.code === 401) unauthorized();
+      throw e;
+    }
+    throw new ApiError(0, "Connection lost. Please try again.");
+  }
+}

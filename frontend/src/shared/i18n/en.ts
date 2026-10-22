@@ -1,4 +1,8 @@
+import assignment from "../../features/assignments/messages";
+import dashboard from "../../features/dashboard/messages";
 export default {
+  assignment,
+  dashboard,
   mainNavigation: "Main navigation",
   invalidValue: "Please check the format and length of this field.",
   loginTitle: "One small step. A new possibility.",
@@ -123,7 +127,7 @@ export default {
   disabled: "Disabled",
   createAccount: "Create account",
   student: "Student",
-  platformAdmin: "Platform administrator",
+  platformAdmin: "Administrator",
   maintenance: "Maintenance administrator",
   initialPassword: "Initial password",
   resetPassword: "Reset password",

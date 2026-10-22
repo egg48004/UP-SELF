@@ -60,6 +60,12 @@ watch(() => route.params.id, load, { immediate: true });
             <p>{{ course.description }}</p>
           </div>
         </div>
+        <RouterLink
+          class="button-link"
+          :to="{ path: '/student/assignments', query: { courseId: course.id } }"
+        >
+          📝 {{ t("assignment.myWork") }}
+        </RouterLink>
         <div class="learning-tabs">
           <el-button
             :type="tab === 'chapters' ? 'primary' : 'default'"

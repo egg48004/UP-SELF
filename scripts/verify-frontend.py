@@ -20,9 +20,11 @@ extra=sys.argv[1:]
 out=work/('frontend-e2e-extra.log' if extra else 'frontend-e2e.log')
 with out.open('w',encoding='utf-8') as log:
  r=subprocess.run([runtime+'\\node.exe',str(root/'frontend/node_modules/@playwright/test/cli.js'),'test',*extra],cwd=root/'frontend',env=env,stdout=log,stderr=subprocess.STDOUT)
+assignment_file=work/'e2e-assignments.json'
 extra_file=work/'e2e-extra.json'
 main_file=work/'e2e-generated.json'
 records=[]
+if assignment_file.exists():records.append((json.loads(assignment_file.read_text(encoding='utf-8')), 'Assignment UI check %'))
 if extra_file.exists(): records.append((json.loads(extra_file.read_text()), 'UI action check %'))
 if main_file.exists(): records.append((json.loads(main_file.read_text()), 'Learning together %'))
 for generated, title_pattern in records:
@@ -31,11 +33,18 @@ for generated, title_pattern in records:
   rows=auth.sql('SELECT storage_key FROM learning_resource WHERE chapter_id IN(SELECT id FROM learning_chapter WHERE course_id='+str(cid)+')')
   # Only IDs recorded by this invocation and matching its fixture prefix may be cleaned.
   if auth.sql('SELECT COUNT(*) FROM learning_course WHERE id='+str(cid)+" AND title LIKE '"+title_pattern+"'")!='1': continue
+  assignment_ids='SELECT id FROM assignment_submission WHERE assignment_id IN(SELECT id FROM assignment WHERE course_id='+str(cid)+')'
+  assignment_keys=auth.sql('SELECT storage_key FROM assignment_file WHERE submission_id IN('+assignment_ids+')')
+  auth.sql('DELETE FROM assignment_file WHERE submission_id IN('+assignment_ids+');DELETE FROM assignment_attempt WHERE submission_id IN('+assignment_ids+');DELETE FROM assignment_submission WHERE assignment_id IN(SELECT id FROM assignment WHERE course_id='+str(cid)+');DELETE FROM assignment WHERE course_id='+str(cid)+';')
+  for key in assignment_keys.splitlines():
+   base=(root/'.local/uploads/assignments').resolve();file=(base/key).resolve()
+   if base in file.parents and file.is_file():file.unlink()
   auth.sql('UPDATE learning_resource SET caption_resource_id=NULL WHERE chapter_id IN(SELECT id FROM learning_chapter WHERE course_id='+str(cid)+');DELETE FROM learning_resource WHERE chapter_id IN(SELECT id FROM learning_chapter WHERE course_id='+str(cid)+');DELETE FROM learning_post WHERE course_id='+str(cid)+';DELETE FROM learning_chapter WHERE course_id='+str(cid)+';DELETE FROM learning_enrollment WHERE course_id='+str(cid)+';DELETE FROM learning_course WHERE id='+str(cid)+';')
   for key in rows.splitlines():
    file=(root/'.local/uploads'/key).resolve();base=(root/'.local/uploads').resolve()
    if base in file.parents and file.is_file():file.unlink()
  for uid in generated.get('users',[]):auth.sql('DELETE FROM sys_user WHERE id='+str(int(uid))+" AND user_name LIKE 'ui_%';")
+assignment_file.unlink(missing_ok=True)
 extra_file.unlink(missing_ok=True)
 main_file.unlink(missing_ok=True)
 shutil.rmtree(cpdir)

@@ -137,6 +137,16 @@ watch(id, load, { immediate: true });
               {{ t("courseManage") }}
             </p>
             <h1>{{ course.title }}</h1>
+            <RouterLink
+              v-if="auth.isMentor"
+              class="button-link"
+              :to="{
+                path: '/mentor/assignments',
+                query: { courseId: course.id },
+              }"
+            >
+              {{ t("assignment.teaching") }} →
+            </RouterLink>
             <span :class="['status', course.status.toLowerCase()]">{{
               t(course.status.toLowerCase())
             }}</span>
@@ -208,9 +218,7 @@ watch(id, load, { immediate: true });
               required
               maxlength="150"
             /><el-button native-type="submit" type="primary" :loading="busy">
-              {{
-                t("createChapter")
-              }}
+              {{ t("createChapter") }}
             </el-button>
           </form>
           <ul class="content-list">
@@ -362,10 +370,7 @@ watch(id, load, { immediate: true });
           destroy-on-close
           @update:model-value="preview = undefined"
         >
-          <CourseReader
-            v-if="preview"
-            :chapter="preview"
-          />
+          <CourseReader v-if="preview" :chapter="preview" />
         </el-dialog>
       </template>
     </AsyncState>

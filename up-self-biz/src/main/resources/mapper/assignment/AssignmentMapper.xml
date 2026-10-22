@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.upself.biz.assignment.mapper.AssignmentMapper">
+ <select id="list" resultType="com.upself.biz.assignment.domain.Assignment">
+ SELECT a.*,c.title AS course_title,c.status AS course_status,s.status AS my_status,
+ CASE WHEN #{role}='mentor' THEN (SELECT COUNT(*) FROM assignment_submission p WHERE p.assignment_id=a.id AND p.status='SUBMITTED') ELSE NULL END AS pending_count
+ FROM assignment a JOIN learning_course c ON c.id=a.course_id
+ LEFT JOIN assignment_submission s ON s.assignment_id=a.id AND s.student_id=#{userId}
+ WHERE c.deleted=0
+ <choose><when test="role == 'student'">AND a.status='PUBLISHED' AND c.status='PUBLISHED' AND EXISTS(SELECT 1 FROM learning_enrollment e WHERE e.course_id=c.id AND e.student_id=#{userId} AND e.active=1)</when>
+ <otherwise>AND c.mentor_id=#{userId} AND #{role}='mentor'</otherwise></choose>
+ <if test="keyword != null and keyword != ''">AND LOCATE(#{keyword},a.title)&gt;0</if>
+ <if test="courseId != null">AND a.course_id=#{courseId}</if>
+ <if test="pending">AND EXISTS(SELECT 1 FROM assignment_submission p WHERE p.assignment_id=a.id AND p.status='SUBMITTED')</if>
+ ORDER BY a.id DESC
+ </select>
+ <select id="assignment" resultType="com.upself.biz.assignment.domain.Assignment">SELECT a.*,c.title AS course_title,c.status AS course_status FROM assignment a JOIN learning_course c ON c.id=a.course_id WHERE a.id=#{id} AND c.deleted=0</select>
+ <select id="lockAssignment" resultType="com.upself.biz.assignment.domain.Assignment">SELECT * FROM assignment WHERE id=#{id} FOR UPDATE</select>
+ <insert id="insertAssignment" useGeneratedKeys="true" keyProperty="id">INSERT INTO assignment(course_id,title,instructions,status,due_at,max_score,language_code,created_by) VALUES(#{courseId},#{title},#{instructions},#{status},#{dueAt},#{maxScore},#{languageCode},#{createdBy})</insert>
+ <update id="updateAssignment">UPDATE assignment SET title=#{title},instructions=#{instructions},status=#{status},due_at=#{dueAt},max_score=#{maxScore},language_code=#{languageCode},version=version+1 WHERE id=#{id} AND version=#{version}</update>
+ <sql id="submissionColumns">s.*,u.nick_name AS student_name,u.user_name AS student_username</sql>
+ <select id="submission" resultType="com.upself.biz.assignment.domain.Submission">SELECT <include refid="submissionColumns"/> FROM assignment_submission s JOIN sys_user u ON u.id=s.student_id WHERE s.assignment_id=#{assignmentId} AND s.student_id=#{studentId}</select>
+ <select id="lockSubmission" resultType="com.upself.biz.assignment.domain.Submission">SELECT * FROM assignment_submission WHERE assignment_id=#{assignmentId} AND student_id=#{studentId} FOR UPDATE</select>
+ <select id="submissionById" resultType="com.upself.biz.assignment.domain.Submission">SELECT <include refid="submissionColumns"/> FROM assignment_submission s JOIN sys_user u ON u.id=s.student_id WHERE s.id=#{id}</select>
+ <insert id="createDraft" useGeneratedKeys="true" keyProperty="id">INSERT IGNORE INTO assignment_submission(assignment_id,student_id,answer_text) VALUES(#{assignmentId},#{studentId},'')</insert>
+ <update id="updateSubmission">UPDATE assignment_submission SET answer_text=#{answerText},status=#{status},attempt_no=#{attemptNo},version=version+1 WHERE id=#{id} AND version=#{version}</update>
+ <select id="submissions" resultType="com.upself.biz.assignment.domain.Submission">SELECT <include refid="submissionColumns"/> FROM assignment_submission s JOIN sys_user u ON u.id=s.student_id JOIN assignment a ON a.id=s.assignment_id JOIN learning_course c ON c.id=a.course_id WHERE s.assignment_id=#{assignmentId} AND s.attempt_no&gt;0 AND c.mentor_id=#{mentorId} AND c.deleted=0 ORDER BY CASE WHEN s.status='SUBMITTED' THEN 0 ELSE 1 END,s.update_time DESC,s.id</select>
+ <select id="attempts" resultType="com.upself.biz.assignment.domain.Attempt">SELECT * FROM assignment_attempt WHERE submission_id=#{submissionId} ORDER BY attempt_no DESC</select>
+ <select id="attemptByKey" resultType="com.upself.biz.assignment.domain.Attempt">SELECT * FROM assignment_attempt WHERE submission_id=#{submissionId} AND request_key=#{requestKey}</select>
+ <insert id="insertAttempt" useGeneratedKeys="true" keyProperty="id">INSERT INTO assignment_attempt(submission_id,attempt_no,request_key,answer_text,late,submitted_at,max_score) VALUES(#{submissionId},#{attemptNo},#{requestKey},#{answerText},#{late},#{submittedAt},#{maxScore})</insert>
+ <update id="reviewAttempt">UPDATE assignment_attempt SET status=#{status},score=#{score},feedback=#{feedback},reviewed_by=#{reviewedBy},reviewed_at=#{reviewedAt} WHERE submission_id=#{submissionId} AND attempt_no=#{attemptNo} AND status='SUBMITTED'</update>
+ <select id="files" resultType="com.upself.biz.assignment.domain.SubmissionFile">SELECT * FROM assignment_file WHERE submission_id=#{submissionId} AND deleted=0 <choose><when test="attemptNo != null">AND attempt_no=#{attemptNo}</when><otherwise>AND attempt_no IS NULL</otherwise></choose> ORDER BY id</select>
+ <select id="file" resultType="com.upself.biz.assignment.domain.SubmissionFile">SELECT * FROM assignment_file WHERE id=#{id} AND deleted=0</select>
+ <insert id="insertFile" useGeneratedKeys="true" keyProperty="id">INSERT INTO assignment_file(submission_id,storage_key,original_name,mime_type,file_size) VALUES(#{submissionId},#{storageKey},#{originalName},#{mimeType},#{fileSize})</insert>
+ <update id="removeFile">UPDATE assignment_file SET deleted=1 WHERE id=#{id} AND attempt_no IS NULL</update>
+ <update id="attachFiles">UPDATE assignment_file SET attempt_no=#{attemptNo} WHERE submission_id=#{submissionId} AND attempt_no IS NULL AND deleted=0</update>
+</mapper>

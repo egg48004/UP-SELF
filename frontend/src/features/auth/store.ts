@@ -12,6 +12,19 @@ export const useAuthStore = defineStore("auth", () => {
     totpEnabled = ref(false);
   let pending: Promise<void> | null = null;
   const isStudent = computed(() => user.value?.roleKey === "student");
+  const isMentor = computed(() => user.value?.roleKey === "mentor");
+  const isMaintenance = computed(() => user.value?.roleKey === "admin");
+  const homePath = computed(
+    () =>
+      (
+        ({
+          student: "/student/home",
+          mentor: "/mentor/home",
+          platform_admin: "/admin/home",
+          admin: "/internal/home",
+        }) as Record<string, string>
+      )[user.value?.roleKey || ""] || "/login",
+  );
   const can = (p: string) => hasPermission(permissions.value, p);
   function clear() {
     session.clear();
@@ -59,6 +72,9 @@ export const useAuthStore = defineStore("auth", () => {
     totpEnabled,
     loading,
     isStudent,
+    isMentor,
+    isMaintenance,
+    homePath,
     can,
     clear,
     restore,

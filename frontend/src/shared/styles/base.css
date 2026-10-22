@@ -742,3 +742,153 @@ html[data-motion="true"] *:after {
     scroll-behavior: auto !important;
   }
 }
+
+/* Role workspaces and assignment controls share the existing reading tokens. */
+.role-badge {
+  display: inline-block;
+  padding: 0.35rem 0.7rem;
+  border: 1px solid var(--primary);
+  border-radius: 2rem;
+  color: var(--primary);
+  background: var(--tint);
+  font-weight: 700;
+  white-space: nowrap;
+}
+.management-shell .app-header {
+  border-top: 5px solid var(--primary);
+}
+.role-platform_admin .role-badge {
+  border-style: double;
+  border-width: 3px;
+}
+.role-admin .role-badge {
+  border-style: dashed;
+}
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+.dashboard-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--border-soft);
+  text-decoration: none;
+}
+.dashboard-row span {
+  color: var(--muted);
+}
+.dashboard-grid .course-card {
+  margin-bottom: 1rem;
+}
+.assignment-list {
+  display: grid;
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+.assignment-card {
+  padding: 1.4rem;
+  border: 1px solid var(--border-soft);
+  border-radius: 1rem;
+  background: var(--surface);
+}
+.assignment-card h2 {
+  margin: 0.3rem 0;
+}
+.assignment-card p {
+  margin: 0.5rem 0;
+}
+.plain-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.work-files {
+  list-style: none;
+  padding: 0;
+}
+.work-files li {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid var(--border-soft);
+}
+.work-files .el-button {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: left;
+  height: auto;
+  min-height: 44px;
+}
+.review-grid {
+  display: grid;
+  grid-template-columns: minmax(15rem, 1fr) minmax(0, 2fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+.submission-choice {
+  width: 100%;
+  display: block;
+  padding: 1rem;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  margin-bottom: 0.7rem;
+  text-align: left;
+  cursor: pointer;
+}
+.submission-choice[aria-pressed="true"] {
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
+}
+.feedback-pane {
+  border-left: 4px solid var(--primary);
+  padding: 1rem;
+  background: var(--tint);
+}
+.attempt-card {
+  border: 1px solid var(--border-soft);
+  border-radius: 0.7rem;
+  padding: 1.3rem;
+  margin: 1rem 0;
+  background: var(--surface);
+}
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  margin: 1rem 0;
+}
+.panel textarea {
+  width: 100%;
+  min-height: 8rem;
+  resize: vertical;
+  padding: 0.8rem;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  font: inherit;
+  line-height: 1.7;
+}
+.panel input[type="file"] {
+  width: 100%;
+  padding: 0.7rem 0;
+}
+@media (max-width: 760px) {
+  .dashboard-grid,
+  .review-grid {
+    grid-template-columns: 1fr;
+  }
+  .account-nav {
+    flex-wrap: wrap;
+  }
+  .dashboard-row {
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+}

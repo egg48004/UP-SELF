@@ -3,29 +3,53 @@ import { useAuthStore } from "../features/auth/store";
 import { session } from "../shared/auth/session";
 import AppLayout from "./layouts/AppLayout.vue";
 import { ApiError } from "../shared/http/client";
+const login = () => import("../features/auth/pages/LoginPage.vue");
 export const router = createRouter({
   history: createWebHashHistory(),
   routes: [
-    {
-      path: "/login",
-      component: () => import("../features/auth/pages/LoginPage.vue"),
-    },
+    { path: "/login", component: login },
+    { path: "/internal/login", component: login, meta: { internal: true } },
     {
       path: "/",
       component: AppLayout,
       children: [
-        { path: "", redirect: "/student/courses" },
+        {
+          path: "",
+          component: () =>
+            import("../features/dashboard/pages/StudentHome.vue"),
+        },
+        {
+          path: "student/home",
+          component: () =>
+            import("../features/dashboard/pages/StudentHome.vue"),
+          meta: { roles: ["student"] },
+        },
+        {
+          path: "mentor/home",
+          component: () => import("../features/dashboard/pages/MentorHome.vue"),
+          meta: { roles: ["mentor"] },
+        },
+        {
+          path: "admin/home",
+          component: () => import("../features/dashboard/pages/AdminHome.vue"),
+          meta: { roles: ["platform_admin"] },
+        },
+        {
+          path: "internal/home",
+          component: () => import("../features/dashboard/pages/AdminHome.vue"),
+          meta: { roles: ["admin"] },
+        },
         {
           path: "student/courses",
           component: () =>
             import("../features/learning/pages/StudentCoursesPage.vue"),
-          meta: { student: true },
+          meta: { roles: ["student"] },
         },
         {
           path: "student/courses/:id",
           component: () =>
             import("../features/learning/pages/StudentCoursePage.vue"),
-          meta: { student: true },
+          meta: { roles: ["student"] },
         },
         {
           path: "manage/courses",
@@ -49,7 +73,31 @@ export const router = createRouter({
           path: "manage/accounts",
           component: () =>
             import("../features/accounts/pages/AccountListPage.vue"),
-          meta: { permission: "system:user:list", management: true },
+          meta: { management: true, permission: "system:user:list" },
+        },
+        {
+          path: "student/assignments",
+          component: () =>
+            import("../features/assignments/pages/AssignmentsPage.vue"),
+          meta: { roles: ["student"] },
+        },
+        {
+          path: "student/assignments/:id",
+          component: () =>
+            import("../features/assignments/pages/StudentAssignmentPage.vue"),
+          meta: { roles: ["student"] },
+        },
+        {
+          path: "mentor/assignments",
+          component: () =>
+            import("../features/assignments/pages/AssignmentsPage.vue"),
+          meta: { roles: ["mentor"] },
+        },
+        {
+          path: "mentor/assignments/:id",
+          component: () =>
+            import("../features/assignments/pages/MentorAssignmentPage.vue"),
+          meta: { roles: ["mentor"] },
         },
         {
           path: "preferences",
@@ -71,7 +119,7 @@ export const router = createRouter({
 });
 router.beforeEach(async (to) => {
   const auth = useAuthStore();
-  if (to.path === "/login") return true;
+  if (to.path === "/login" || to.path === "/internal/login") return true;
   if (!session.token) return "/login";
   try {
     if (!auth.user) await auth.restore();
@@ -79,7 +127,12 @@ router.beforeEach(async (to) => {
     if (e instanceof ApiError && e.code === 401) return "/login";
     return false;
   }
-  if (to.meta.student && !auth.isStudent) return "/manage/courses";
+  if (to.path === "/") return auth.homePath;
+  if (
+    to.meta.roles &&
+    !(to.meta.roles as string[]).includes(auth.user?.roleKey || "")
+  )
+    return "/403";
   if (to.meta.management && auth.isStudent) return "/403";
   if (to.meta.permission && !auth.can(String(to.meta.permission)))
     return "/403";

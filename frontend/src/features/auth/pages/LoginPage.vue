@@ -1,13 +1,15 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import { useRouter } from "vue-router";
+import { ref, computed } from "vue";
+import { useRouter, useRoute } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { useAuthStore } from "../store";
-import type { Channel } from "../../../shared/auth/session";
+
 const { t } = useI18n(),
   auth = useAuthStore(),
   router = useRouter();
-const channel = ref<Channel>("student"),
+const route = useRoute();
+const internal = computed(() => route.meta.internal === true);
+const entry = ref("student"),
   username = ref(""),
   password = ref(""),
   busy = ref(false),
@@ -16,11 +18,26 @@ async function submit() {
   busy.value = true;
   error.value = "";
   try {
-    await auth.login(channel.value, username.value, password.value);
-    password.value = "";
-    await router.replace(
-      auth.isStudent ? "/student/courses" : "/manage/courses",
+    await auth.login(
+      !internal.value && entry.value === "student" ? "student" : "admin",
+      username.value,
+      password.value,
     );
+    const expected = internal.value
+      ? "admin"
+      : (
+          {
+            student: "student",
+            mentor: "mentor",
+            admin: "platform_admin",
+          } as Record<string, string>
+        )[entry.value];
+    if (auth.user?.roleKey !== expected) {
+      await auth.logout();
+      throw new Error(t("dashboard.wrongRole"));
+    }
+    password.value = "";
+    await router.replace(auth.homePath);
   } catch (e) {
     error.value = (e as Error).message;
   } finally {
@@ -41,17 +58,22 @@ async function submit() {
       </div>
     </div>
     <section class="login-card">
-      <h2>{{ t("welcome") }}</h2>
-      <p>{{ t("loginHelp") }}</p>
+      <h2>{{ t(internal ? "dashboard.internalLogin" : "welcome") }}</h2>
+      <p>{{ t(internal ? "dashboard.internalOnly" : "loginHelp") }}</p>
       <form @submit.prevent="submit">
-        <label for="entry">{{ t("signIn") }}</label><select id="entry" v-model="channel">
-          <option value="student">
-            {{ t("studentEntry") }}
-          </option>
-          <option value="admin">
-            {{ t("managementEntry") }}
-          </option>
-        </select><label for="username">{{ t("username") }}</label><input
+        <template v-if="!internal">
+          <label for="entry">{{ t("dashboard.loginRole") }}</label><select id="entry" v-model="entry">
+            <option value="student">
+              {{ t("studentEntry") }}
+            </option>
+            <option value="mentor">
+              {{ t("dashboard.mentor") }}
+            </option>
+            <option value="admin">
+              {{ t("dashboard.administrator") }}
+            </option>
+          </select>
+        </template><label for="username">{{ t("username") }}</label><input
           id="username"
           v-model="username"
           required
