@@ -1,0 +1,49 @@
+server:
+  address: 127.0.0.1
+  port: 8080
+spring:
+  application:
+    name: up-self
+  profiles:
+    active: local
+  messages:
+    basename: i18n/messages
+    encoding: UTF-8
+    fallback-to-system-locale: false
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 105MB
+  jackson:
+    time-zone: Asia/Kuala_Lumpur
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    druid:
+      slave:
+        enabled: false
+      web-stat-filter:
+        enabled: false
+      stat-view-servlet:
+        enabled: false
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    validate-on-migrate: true
+    out-of-order: true
+    placeholder-replacement: false
+    locations: classpath:db/draft
+pagehelper:
+  helper-dialect: mysql
+  reasonable: true
+token:
+  admin:
+    expireTime: 120
+  client:
+    expireTime: 120
+custom:
+  totp:
+    enabled: false
+    issuer: UP-SELF
+
+learning:
+  storage-path: ./.local/uploads

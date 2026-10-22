@@ -1,0 +1,37 @@
+# 复制到 .local/application-local.yml，参考 README 填入独立配置。切勿提交密码。
+spring:
+  datasource:
+    druid:
+      master:
+        url: jdbc:mysql://127.0.0.1:3306/up_self_dev?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=GMT%2B8
+        username: upself_app
+        password: REPLACE_ME
+  flyway:
+    url: jdbc:mysql://127.0.0.1:3306/up_self_dev?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=GMT%2B8
+    user: upself_migrate
+    password: REPLACE_ME
+  redis:
+    host: 127.0.0.1
+    port: 6379
+    database: 2
+    password: REPLACE_ME
+token:
+  admin:
+    secret: REPLACE_WITH_64_RANDOM_CHARACTERS
+  client:
+    secret: REPLACE_WITH_DIFFERENT_64_RANDOM_CHARACTERS
+custom:
+  totp:
+    enabled: false
+    encryptKey: REPLACE_WITH_64_RANDOM_CHARACTERS
+bootstrap:
+  enabled: true
+  passwords:
+    maintenance: REPLACE_ME
+    student01: REPLACE_ME
+    mentor01: REPLACE_ME
+    admin01: REPLACE_ME
+
+# Private learning files. Never expose this directory as static content.
+learning:
+  storage-path: ./.local/uploads

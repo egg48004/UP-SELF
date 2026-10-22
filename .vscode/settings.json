@@ -1,0 +1,39 @@
+{
+  "java.jdt.ls.java.home": "C:\\Users\\eggma\\.vscode\\extensions\\redhat.java-1.55.0-win32-x64\\jre\\21.0.11-win32-x86_64",
+  "java.configuration.runtimes": [
+    {
+      "name": "JavaSE-1.8",
+      "path": "C:\\Program Files\\Java\\jdk1.8.0_231",
+      "default": true
+    }
+  ],
+  "java.configuration.maven.userSettings": "C:\\Users\\eggma\\Desktop\\codex\\up-self\\.mvn\\settings.xml",
+  "maven.executable.path": "C:\\Program Files\\Apache\\apache-maven-3.10.0\\bin\\mvn.cmd",
+  "maven.terminal.useJavaHome": true,
+  "java.configuration.updateBuildConfiguration": "automatic",
+  "files.encoding": "utf8",
+  "debug.saveBeforeStart": "none",
+  "files.exclude": {
+    "**/target": true,
+    ".local": true,
+    "**/node_modules": true
+  },
+  "search.exclude": {
+    ".local": true,
+    "**/target": true,
+    "**/node_modules": true
+  },
+  "terminal.integrated.env.windows": {
+    "PATH": "C:\\Users\\eggma\\Documents\\Codex\\local-env\\nodejs\\node-v24.22.1-win-x64;${env:PATH}"
+  },
+  "java.import.exclusions": [
+    "**/node_modules/**",
+    "**/.local/**",
+    "**/.git/**",
+    "**/frontend/**"
+  ],
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/.local/**": true
+  }
+}

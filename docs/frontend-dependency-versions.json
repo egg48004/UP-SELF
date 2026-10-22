@@ -1,0 +1,195 @@
+{
+  "checkedAt": "2026-10-22",
+  "source": "npm registry package metadata checked during installation; installed versions are pinned in frontend/package-lock.json",
+  "node": "24.22.1",
+  "npm": "11.19.1",
+  "packages": [
+    {
+      "name": "vue",
+      "version": "3.5.44",
+      "engines": {},
+      "peerDependencies": {
+        "typescript": "*"
+      }
+    },
+    {
+      "name": "vue-router",
+      "version": "4.6.4",
+      "engines": {},
+      "peerDependencies": {
+        "vue": "^3.5.0"
+      }
+    },
+    {
+      "name": "pinia",
+      "version": "3.0.4",
+      "engines": {},
+      "peerDependencies": {
+        "vue": "^3.5.11",
+        "typescript": ">=4.5.0"
+      }
+    },
+    {
+      "name": "axios",
+      "version": "1.20.0",
+      "engines": {},
+      "peerDependencies": {}
+    },
+    {
+      "name": "element-plus",
+      "version": "2.14.7",
+      "engines": {},
+      "peerDependencies": {
+        "vue": "^3.3.7"
+      }
+    },
+    {
+      "name": "vue-i18n",
+      "version": "11.4.16",
+      "engines": {
+        "node": ">= 22"
+      },
+      "peerDependencies": {
+        "vue": "^3.0.0"
+      }
+    },
+    {
+      "name": "vite",
+      "version": "7.3.7",
+      "engines": {
+        "node": "^20.19.0 || >=22.12.0"
+      },
+      "peerDependencies": {
+        "tsx": "^4.8.1",
+        "jiti": ">=1.21.0",
+        "less": "^4.0.0",
+        "sass": "^1.70.0",
+        "yaml": "^2.4.2",
+        "stylus": ">=0.54.8",
+        "terser": "^5.16.0",
+        "sugarss": "^5.0.0",
+        "@types/node": "^20.19.0 || >=22.12.0",
+        "lightningcss": "^1.21.0",
+        "sass-embedded": "^1.70.0"
+      }
+    },
+    {
+      "name": "@vitejs/plugin-vue",
+      "version": "6.0.10",
+      "engines": {
+        "node": "^20.19.0 || >=22.12.0"
+      },
+      "peerDependencies": {
+        "vue": "^3.2.25 || ^3.6.0-rc.10",
+        "vite": "^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0"
+      }
+    },
+    {
+      "name": "typescript",
+      "version": "5.9.3",
+      "engines": {
+        "node": ">=14.17"
+      },
+      "peerDependencies": {}
+    },
+    {
+      "name": "vue-tsc",
+      "version": "3.3.13",
+      "engines": {},
+      "peerDependencies": {
+        "typescript": ">=5.0.0"
+      }
+    },
+    {
+      "name": "vitest",
+      "version": "4.1.12",
+      "engines": {
+        "node": "^20.0.0 || ^22.0.0 || >=24.0.0"
+      },
+      "peerDependencies": {
+        "vite": "^6.0.0 || ^7.0.0 || ^8.0.0",
+        "jsdom": "*",
+        "happy-dom": "*",
+        "@vitest/ui": "4.1.12",
+        "@types/node": "^20.0.0 || ^22.0.0 || >=24.0.0",
+        "@edge-runtime/vm": "*",
+        "@opentelemetry/api": "^1.9.0",
+        "@vitest/coverage-v8": "4.1.12",
+        "@vitest/browser-preview": "4.1.12",
+        "@vitest/coverage-istanbul": "4.1.12",
+        "@vitest/browser-playwright": "4.1.12",
+        "@vitest/browser-webdriverio": "^4.1.11"
+      }
+    },
+    {
+      "name": "@vue/test-utils",
+      "version": "2.5.1",
+      "engines": {},
+      "peerDependencies": {
+        "vue": "3.x",
+        "@vue/compiler-dom": "3.x",
+        "@vue/server-renderer": "3.x"
+      }
+    },
+    {
+      "name": "jsdom",
+      "version": "27.4.0",
+      "engines": {
+        "node": "^20.19.0 || ^22.12.0 || >=24.0.0"
+      },
+      "peerDependencies": {
+        "canvas": "^3.0.0"
+      }
+    },
+    {
+      "name": "@playwright/test",
+      "version": "1.64.1",
+      "engines": {
+        "node": ">=20"
+      },
+      "peerDependencies": {}
+    },
+    {
+      "name": "eslint",
+      "version": "9.39.5",
+      "engines": {
+        "node": "^18.18.0 || ^20.9.0 || >=21.1.0"
+      },
+      "peerDependencies": {
+        "jiti": "*"
+      }
+    },
+    {
+      "name": "eslint-plugin-vue",
+      "version": "10.11.1",
+      "engines": {
+        "node": "^18.18.0 || ^20.9.0 || >=21.1.0"
+      },
+      "peerDependencies": {
+        "eslint": "^8.57.0 || ^9.0.0 || ^10.0.0",
+        "vue-eslint-parser": "^10.3.0",
+        "@stylistic/eslint-plugin": "^2.0.0 || ^3.0.0 || ^4.0.0 || ^5.0.0",
+        "@typescript-eslint/parser": "^7.0.0 || ^8.0.0"
+      }
+    },
+    {
+      "name": "typescript-eslint",
+      "version": "8.72.0",
+      "engines": {
+        "node": "^18.18.0 || ^20.9.0 || >=21.1.0"
+      },
+      "peerDependencies": {
+        "eslint": "^8.57.0 || ^9.0.0 || ^10.0.0",
+        "typescript": ">=4.8.4 <6.1.0"
+      }
+    },
+    {
+      "name": "prettier",
+      "version": "3.9.10",
+      "engines": {
+        "node": ">=14"
+      },
+      "peerDependencies": {}
+    }
+  ]
+}

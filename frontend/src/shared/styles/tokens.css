@@ -1,0 +1,54 @@
+:root {
+  --bg: #f6f7f2;
+  --surface: #fff;
+  --text: #20352c;
+  --muted: #526259;
+  --primary: #155e4b;
+  --tint: #e9f1e7;
+  --border: #7b8b80;
+  --border-soft: #d7dfd5;
+  --focus: #005fcc;
+  --danger: #982c25;
+  --error-bg: #fff0ee;
+  --el-color-primary: var(--primary);
+  --el-text-color-primary: var(--text);
+  --el-text-color-regular: var(--text);
+  --el-bg-color: var(--surface);
+  --el-fill-color-blank: var(--surface);
+  --el-border-color: var(--border);
+  font-size: 16px;
+}
+html[data-size="large"] {
+  font-size: 18px;
+}
+html[data-size="extraLarge"] {
+  font-size: 20px;
+}
+html[data-contrast="highContrast"] {
+  --bg: #101512;
+  --surface: #17231b;
+  --text: #fff;
+  --muted: #e2e9e3;
+  --primary: #b8f4c7;
+  --tint: #233b2b;
+  --border: #c1d6c7;
+  --border-soft: #8caa94;
+  --focus: #ffde59;
+  --danger: #ffb4a8;
+  --error-bg: #391b19;
+  --el-text-color-secondary: var(--muted);
+  --el-color-primary-light-9: var(--tint);
+  --el-fill-color-light: var(--tint);
+  --el-text-color-placeholder: #b9c9bf;
+}
+html[data-contrast="highContrast"] .el-button--primary {
+  color: #101512;
+}
+html[data-contrast="highContrast"] .course-art small {
+  color: #20352c;
+}
+html[data-contrast="highContrast"] .el-button.is-disabled {
+  color: #d3ded5;
+  background: #26382c;
+  border-color: #839b89;
+}

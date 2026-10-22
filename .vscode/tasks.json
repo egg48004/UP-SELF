@@ -1,0 +1,105 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "UP-SELF: 启动数据库与Redis",
+      "type": "process",
+      "command": "powershell.exe",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}/scripts/services.ps1"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "UP-SELF: 构建",
+      "type": "process",
+      "command": "powershell.exe",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}/scripts/build.ps1"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": [
+        "$javac"
+      ]
+    },
+    {
+      "label": "UP-SELF: Frontend dev",
+      "type": "process",
+      "command": "C:\\Users\\eggma\\Documents\\Codex\\local-env\\nodejs\\node-v24.22.1-win-x64\\node.exe",
+      "args": [
+        "C:\\Users\\eggma\\Documents\\Codex\\local-env\\nodejs\\node-v24.22.1-win-x64\\node_modules/npm/bin/npm-cli.js",
+        "run",
+        "dev"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/frontend",
+        "env": {
+          "PATH": "C:\\Users\\eggma\\Documents\\Codex\\local-env\\nodejs\\node-v24.22.1-win-x64;${env:PATH}"
+        }
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "UP-SELF: Frontend build",
+      "type": "process",
+      "command": "C:\\Users\\eggma\\Documents\\Codex\\local-env\\nodejs\\node-v24.22.1-win-x64\\node.exe",
+      "args": [
+        "C:\\Users\\eggma\\Documents\\Codex\\local-env\\nodejs\\node-v24.22.1-win-x64\\node_modules/npm/bin/npm-cli.js",
+        "run",
+        "build"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/frontend",
+        "env": {
+          "PATH": "C:\\Users\\eggma\\Documents\\Codex\\local-env\\nodejs\\node-v24.22.1-win-x64;${env:PATH}"
+        }
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "UP-SELF: Frontend typecheck",
+      "type": "process",
+      "command": "C:\\Users\\eggma\\Documents\\Codex\\local-env\\nodejs\\node-v24.22.1-win-x64\\node.exe",
+      "args": [
+        "C:\\Users\\eggma\\Documents\\Codex\\local-env\\nodejs\\node-v24.22.1-win-x64\\node_modules/npm/bin/npm-cli.js",
+        "run",
+        "typecheck"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/frontend",
+        "env": {
+          "PATH": "C:\\Users\\eggma\\Documents\\Codex\\local-env\\nodejs\\node-v24.22.1-win-x64;${env:PATH}"
+        }
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "UP-SELF: Frontend test",
+      "type": "process",
+      "command": "C:\\Users\\eggma\\Documents\\Codex\\local-env\\nodejs\\node-v24.22.1-win-x64\\node.exe",
+      "args": [
+        "C:\\Users\\eggma\\Documents\\Codex\\local-env\\nodejs\\node-v24.22.1-win-x64\\node_modules/npm/bin/npm-cli.js",
+        "run",
+        "test"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/frontend",
+        "env": {
+          "PATH": "C:\\Users\\eggma\\Documents\\Codex\\local-env\\nodejs\\node-v24.22.1-win-x64;${env:PATH}"
+        }
+      },
+      "problemMatcher": []
+    }
+  ]
+}

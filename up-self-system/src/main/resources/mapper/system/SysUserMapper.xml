@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC '-//mybatis.org//DTD Mapper 3.0//EN'
+  'http://mybatis.org/dtd/mybatis-3-mapper.dtd'>
+<mapper namespace="com.upself.system.mapper.SysUserMapper">
+    <sql id="columns">u.id,u.user_name,u.nick_name,u.password,u.role_id,r.role_key,u.status,u.auth_version,u.totp_secret,u.create_time</sql>
+    <select id="selectByName" resultType="com.upself.common.core.domain.entity.SysUser">
+        SELECT 
+        <include refid="columns"/>
+         FROM sys_user u JOIN sys_role r ON u.role_id=r.role_id WHERE u.user_name=#{name} AND r.status='0'
+    </select>
+    <select id="selectById" resultType="com.upself.common.core.domain.entity.SysUser">
+        SELECT 
+        <include refid="columns"/>
+         FROM sys_user u JOIN sys_role r ON u.role_id=r.role_id WHERE u.id=#{id} AND r.status='0'
+    </select>
+    <select id="selectList" resultType="com.upself.common.core.domain.entity.SysUser">
+        SELECT 
+        <include refid="columns"/>
+         FROM sys_user u JOIN sys_role r ON u.role_id=r.role_id WHERE u.id != 1 
+        <if test="name != null and name != ''">AND u.user_name LIKE CONCAT('%',#{name},'%')</if>
+         ORDER BY u.id DESC
+    </select>
+    <select id="selectCandidates" resultType="map">
+        SELECT u.id, u.user_name AS userName, u.nick_name AS nickName
+        FROM sys_user u JOIN sys_role r ON u.role_id=r.role_id
+        WHERE u.status='0' AND r.status='0' AND r.role_key=#{role}
+        <if test="keyword != null and keyword != ''">AND (LOCATE(#{keyword},u.user_name)>0 OR LOCATE(#{keyword},u.nick_name)>0)</if>
+        ORDER BY u.id
+    </select>
+    <select id="count" resultType="int">SELECT COUNT(*) FROM sys_user</select>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">INSERT INTO sys_user(user_name,nick_name,password,role_id,status) VALUES(#{userName},#{nickName},#{password},#{roleId},'0')</insert>
+    <update id="update">UPDATE sys_user SET nick_name=#{nickName},role_id=#{roleId},status=#{status},auth_version=auth_version+1 WHERE id=#{id} AND id != 1</update>
+    <update id="changePassword">UPDATE sys_user SET password=#{password},auth_version=auth_version+1 WHERE id=#{id}</update>
+    <update id="bindTotp">UPDATE sys_user SET totp_secret=#{secret} WHERE id=#{id} AND totp_secret IS NULL</update>
+    <update id="resetTotp">UPDATE sys_user SET totp_secret=NULL,auth_version=auth_version+1 WHERE id=#{id}</update>
+    <select id="selectPermissions" resultType="string">SELECT DISTINCT m.perms FROM sys_menu m JOIN sys_role_menu rm ON m.menu_id=rm.menu_id WHERE rm.role_id=#{roleId} AND m.status='0' AND m.perms IS NOT NULL AND m.perms != ''</select>
+    <select id="selectMenus" resultType="map">SELECT m.menu_id AS menuId,m.parent_id AS parentId,m.menu_name AS menuName,m.path,m.menu_type AS menuType,m.perms FROM sys_menu m JOIN sys_role_menu rm ON m.menu_id=rm.menu_id WHERE rm.role_id=#{roleId} AND m.status='0' ORDER BY m.order_num,m.menu_id</select>
+    <select id="selectRoles" resultType="map">SELECT role_id AS roleId,role_name AS roleName,role_key AS roleKey FROM sys_role WHERE role_id != 1 AND status='0' ORDER BY role_id</select>
+</mapper>

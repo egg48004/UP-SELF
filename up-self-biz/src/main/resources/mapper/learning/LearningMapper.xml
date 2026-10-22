@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.upself.biz.learning.mapper.LearningMapper">
+ <sql id="courseColumns">c.id,c.title,c.description,c.language_code,c.mentor_id,u.nick_name AS mentor_name,c.status,c.created_by,c.create_time,c.update_time</sql>
+ <select id="courses" resultType="com.upself.biz.learning.domain.Course">SELECT <include refid="courseColumns"/> FROM learning_course c LEFT JOIN sys_user u ON c.mentor_id=u.id WHERE c.deleted=0
+ <choose><when test="role == 'student'">AND c.status='PUBLISHED' AND EXISTS(SELECT 1 FROM learning_enrollment e WHERE e.course_id=c.id AND e.student_id=#{userId} AND e.active=1)</when><when test="role == 'mentor'">AND c.mentor_id=#{userId}</when><otherwise>AND #{role} IN ('platform_admin','admin')</otherwise></choose>
+ <if test="keyword != null and keyword != ''">AND LOCATE(#{keyword},c.title)&gt;0</if> ORDER BY c.id DESC</select>
+ <select id="course" resultType="com.upself.biz.learning.domain.Course">SELECT <include refid="courseColumns"/> FROM learning_course c LEFT JOIN sys_user u ON c.mentor_id=u.id WHERE c.id=#{id} AND c.deleted=0</select>
+ <select id="lockCourse" resultType="com.upself.biz.learning.domain.Course">SELECT * FROM learning_course WHERE id=#{id} AND deleted=0 FOR UPDATE</select>
+ <insert id="insertCourse" useGeneratedKeys="true" keyProperty="id">INSERT INTO learning_course(title,description,language_code,created_by) VALUES(#{title},#{description},#{languageCode},#{createdBy})</insert>
+ <update id="updateCourse">UPDATE learning_course SET title=#{title},description=#{description},language_code=#{languageCode} WHERE id=#{id}</update>
+ <update id="assignMentor">UPDATE learning_course SET mentor_id=#{mentorId} WHERE id=#{id}</update>
+ <update id="courseStatus">UPDATE learning_course SET status=#{status} WHERE id=#{id}</update>
+ <select id="enrolled" resultType="int">SELECT COUNT(*) FROM learning_enrollment WHERE course_id=#{courseId} AND student_id=#{studentId} AND active=1</select>
+ <insert id="enroll">INSERT INTO learning_enrollment(course_id,student_id,active) VALUES(#{courseId},#{studentId},1) ON DUPLICATE KEY UPDATE active=1</insert>
+ <update id="unenroll">UPDATE learning_enrollment SET active=0 WHERE course_id=#{courseId} AND student_id=#{studentId}</update>
+ <select id="members" resultType="map">SELECT e.student_id AS studentId,u.user_name AS userName,u.nick_name AS nickName,u.status AS accountStatus FROM learning_enrollment e JOIN sys_user u ON e.student_id=u.id WHERE e.course_id=#{courseId} AND e.active=1 ORDER BY e.student_id</select>
+ <select id="chapters" resultType="com.upself.biz.learning.domain.Chapter">SELECT * FROM learning_chapter WHERE course_id=#{courseId} AND deleted=0 <if test="student">AND status='PUBLISHED'</if> ORDER BY sort_order,id</select>
+ <select id="chapter" resultType="com.upself.biz.learning.domain.Chapter">SELECT * FROM learning_chapter WHERE id=#{id} AND deleted=0</select>
+ <insert id="insertChapter" useGeneratedKeys="true" keyProperty="id">INSERT INTO learning_chapter(course_id,title,body,sort_order,status,language_code) VALUES(#{courseId},#{title},#{body},#{sortOrder},#{status},#{languageCode})</insert>
+ <update id="updateChapter">UPDATE learning_chapter SET title=#{title},body=#{body},sort_order=#{sortOrder},status=#{status},language_code=#{languageCode} WHERE id=#{id}</update>
+ <update id="deleteChapter">UPDATE learning_chapter SET deleted=1 WHERE id=#{id}</update>
+ <select id="resources" resultType="com.upself.biz.learning.domain.LearningResource">SELECT * FROM learning_resource WHERE chapter_id=#{chapterId} AND deleted=0 <if test="student">AND status='PUBLISHED'</if> ORDER BY id</select>
+ <select id="resource" resultType="com.upself.biz.learning.domain.LearningResource">SELECT * FROM learning_resource WHERE id=#{id} AND deleted=0</select>
+ <insert id="insertResource" useGeneratedKeys="true" keyProperty="id">INSERT INTO learning_resource(chapter_id,kind,title,storage_key,original_name,mime_type,file_size,alt_text,caption_resource_id,transcript,language_code,status,created_by) VALUES(#{chapterId},#{kind},#{title},#{storageKey},#{originalName},#{mimeType},#{fileSize},#{altText},#{captionResourceId},#{transcript},#{languageCode},#{status},#{createdBy})</insert>
+ <update id="updateResource">UPDATE learning_resource SET title=#{title},alt_text=#{altText},caption_resource_id=#{captionResourceId},transcript=#{transcript},language_code=#{languageCode},status=#{status} WHERE id=#{id}</update>
+ <update id="deleteResource">UPDATE learning_resource SET deleted=1 WHERE id=#{id}</update>
+ <select id="captionReferences" resultType="int">SELECT COUNT(*) FROM learning_resource r JOIN learning_chapter c ON r.chapter_id=c.id WHERE r.caption_resource_id=#{id} AND r.deleted=0 AND c.deleted=0</select>
+ <select id="posts" resultType="com.upself.biz.learning.domain.CoursePost">SELECT * FROM learning_post WHERE course_id=#{courseId} AND deleted=0 <if test="student">AND status='PUBLISHED'</if> ORDER BY create_time DESC,id DESC</select>
+ <select id="post" resultType="com.upself.biz.learning.domain.CoursePost">SELECT * FROM learning_post WHERE id=#{id} AND deleted=0</select>
+ <insert id="insertPost" useGeneratedKeys="true" keyProperty="id">INSERT INTO learning_post(course_id,title,body,type,meeting_url,meeting_starts_at,language_code,status,created_by) VALUES(#{courseId},#{title},#{body},#{type},#{meetingUrl},#{meetingStartsAt},#{languageCode},#{status},#{createdBy})</insert>
+ <update id="updatePost">UPDATE learning_post SET title=#{title},body=#{body},type=#{type},meeting_url=#{meetingUrl},meeting_starts_at=#{meetingStartsAt},language_code=#{languageCode},status=#{status} WHERE id=#{id}</update>
+ <update id="offlinePost">UPDATE learning_post SET status='DRAFT' WHERE id=#{id}</update>
+ <update id="deletePost">UPDATE learning_post SET deleted=1 WHERE id=#{id}</update>
+</mapper>

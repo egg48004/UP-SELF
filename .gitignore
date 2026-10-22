@@ -1,0 +1,16 @@
+**/target/
+.local/
+logs/
+*.log
+*.iml
+.idea/
+.vscode/*.log
+
+# Owner explicitly requested tracking the real local application configuration.
+
+__pycache__/
+
+frontend/node_modules/
+frontend/dist/
+frontend/test-results/
+frontend/playwright-report/

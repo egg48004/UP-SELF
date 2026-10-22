@@ -1,0 +1,54 @@
+# 本机开发配置：数据库、Redis、JWT、TOTP 和初始账号密码集中在这里。
+# student01=学生；mentor01=导师；admin01=平台管理员；maintenance=维护账号。
+# bootstrap.passwords 是建库时的初始密码，修改账号密码后不会自动回写此处。
+# 下面沿用现有本地密码和密钥，不重置账号、不修改数据库。
+spring:
+  datasource:
+    druid:
+      master:
+        url: "jdbc:mysql://127.0.0.1:3306/up_self_dev?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=GMT%2B8"
+        username: upself_app
+        password: 88a923bef4be3da0f18b4a307f42dbc60d686221
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        initial-size: 1
+        min-idle: 1
+        max-active: 10
+  flyway:
+    url: "jdbc:mysql://127.0.0.1:3306/up_self_dev?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=GMT%2B8"
+    user: upself_migrate
+    password: c1b302d5428b25ea635e6e5921567682278ab4d9
+  redis:
+    host: 127.0.0.1
+    port: 6379
+    database: 2
+    password: a422f672bdde435bb01ed230ff40d591b1e67e2e5e91f80e
+    timeout: 10s
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
+        max-wait: -1ms
+token:
+  admin:
+    secret: 9b59e1ddb7735c818acab6adf2aebf8d178e3b11dca3c9055cab6a765ea33e38
+  client:
+    secret: 0deb3cdcfb3feb35402f7269f10d60e83432930d78e0e62076d6e473905698aa
+custom:
+  totp:
+    enabled: false
+    encryptKey: 268f9203abc042c69e1039bbb5bb0162cfbd9d3185d4c2a1dee49b61893868e5
+bootstrap:
+  enabled: true
+  passwords:
+    maintenance: l6_FsBPqPyArnsO1aQ63h4_6
+    student01: hmXrh0yVkEY8fLrXtR4Cshnc
+    mentor01: VG9mGQsqudb-H79KnowCvZNj
+    admin01: UpSelf-Admin-347dda3203!
+logging:
+  file:
+    name: ""
+
+# Private learning files. Never expose this directory as static content.
+learning:
+  storage-path: ./.local/uploads

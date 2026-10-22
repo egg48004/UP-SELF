@@ -1,0 +1,41 @@
+{
+  "name": "up-self-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24.0.0 <25",
+    "npm": ">=11 <12"
+  },
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 5173 --strictPort --configLoader native",
+    "build": "vue-tsc --noEmit && vite build --configLoader native",
+    "typecheck": "vue-tsc --noEmit",
+    "lint": "eslint src tests",
+    "format": "prettier --write src tests *.ts",
+    "test": "vitest run --configLoader native",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "vue": "3.5.44",
+    "vue-router": "4.6.4",
+    "pinia": "3.0.4",
+    "axios": "1.20.0",
+    "element-plus": "2.14.7",
+    "vue-i18n": "11.4.16"
+  },
+  "devDependencies": {
+    "vite": "7.3.7",
+    "@vitejs/plugin-vue": "6.0.10",
+    "typescript": "5.9.3",
+    "vue-tsc": "3.3.13",
+    "vitest": "4.1.12",
+    "@vue/test-utils": "2.5.1",
+    "jsdom": "27.4.0",
+    "@playwright/test": "1.64.1",
+    "eslint": "9.39.5",
+    "eslint-plugin-vue": "10.11.1",
+    "typescript-eslint": "8.72.0",
+    "prettier": "3.9.10"
+  }
+}
