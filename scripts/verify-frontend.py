@@ -15,15 +15,18 @@ env=os.environ.copy();runtime=Path(r'C:\Users\eggma\Documents\Codex\local-env\no
 for k in ['admin01','mentor01','student01','maintenance']:env['UPSELF_'+k.upper()+'_PASSWORD']=config['bootstrap']['passwords'][k]
 fixtures=root/'frontend/tests/fixtures'
 (work/'screenshots').mkdir(exist_ok=True)
+env['UPSELF_SQL_CLIENT']=str(auth.ENV/'mysql/bin/mysql.exe');env['UPSELF_SQL_CONFIG']=str(auth.ENV/'secrets/mysql-migration-client.cnf')
 env['UPSELF_MEDIA_DIR']=str(fixtures);env['UPSELF_SCREENSHOTS']=str(work/'screenshots');env['UPSELF_TEST_WORK']=str(work)
 extra=sys.argv[1:]
 out=work/('frontend-e2e-extra.log' if extra else 'frontend-e2e.log')
 with out.open('w',encoding='utf-8') as log:
  r=subprocess.run([runtime+'\\node.exe',str(root/'frontend/node_modules/@playwright/test/cli.js'),'test',*extra],cwd=root/'frontend',env=env,stdout=log,stderr=subprocess.STDOUT)
+mood_file=work/'e2e-mood.json'
 assignment_file=work/'e2e-assignments.json'
 extra_file=work/'e2e-extra.json'
 main_file=work/'e2e-generated.json'
 records=[]
+if mood_file.exists():records.append((json.loads(mood_file.read_text(encoding='utf-8')), 'Mood UI check %'))
 if assignment_file.exists():records.append((json.loads(assignment_file.read_text(encoding='utf-8')), 'Assignment UI check %'))
 if extra_file.exists(): records.append((json.loads(extra_file.read_text()), 'UI action check %'))
 if main_file.exists(): records.append((json.loads(main_file.read_text()), 'Learning together %'))
@@ -43,10 +46,16 @@ for generated, title_pattern in records:
   for key in rows.splitlines():
    file=(root/'.local/uploads'/key).resolve();base=(root/'.local/uploads').resolve()
    if base in file.parents and file.is_file():file.unlink()
- for uid in generated.get('users',[]):auth.sql('DELETE FROM sys_user WHERE id='+str(int(uid))+" AND user_name LIKE 'ui_%';")
+ for uid in generated.get('users',[]):
+  uid=int(uid)
+  if auth.sql('SELECT COUNT(*) FROM sys_user WHERE id='+str(uid)+" AND user_name LIKE 'mood_ui_%';")=='1':
+   auth.sql('DELETE FROM mood_entry WHERE student_id='+str(uid)+';DELETE FROM mood_notice_ack WHERE student_id='+str(uid)+';DELETE FROM sys_user WHERE id='+str(uid)+" AND user_name LIKE 'mood_ui_%';")
+  else:auth.sql('DELETE FROM sys_user WHERE id='+str(uid)+" AND user_name LIKE 'ui_%';")
+mood_file.unlink(missing_ok=True)
 assignment_file.unlink(missing_ok=True)
 extra_file.unlink(missing_ok=True)
 main_file.unlink(missing_ok=True)
+if root.resolve() not in cpdir.resolve().parents or cpdir.name!='browser-check-dependencies':raise RuntimeError('Verification scratch path is outside the project')
 shutil.rmtree(cpdir)
 (work/'ReadLocalYaml.java').unlink(missing_ok=True)
 (work/'ReadLocalYaml.class').unlink(missing_ok=True)

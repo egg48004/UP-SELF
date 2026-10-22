@@ -30,6 +30,13 @@ onMounted(load);
     <p>{{ t("dashboard.mentorIntro") }}</p>
     <div class="dashboard-grid">
       <section class="panel">
+        <h2>{{ t("mood.studentMood") }}</h2>
+        <p>{{ t("mood.mentorHomeHelp") }}</p>
+        <RouterLink class="button-link" to="/mentor/mood">
+          {{ t("mood.studentMood") }} →
+        </RouterLink>
+      </section>
+      <section class="panel">
         <h2>{{ t("dashboard.teachingCourses") }}</h2>
         <p>{{ t("dashboard.prepareHelp") }}</p>
         <RouterLink class="button-link" to="/manage/courses">
@@ -49,12 +56,11 @@ onMounted(load);
             class="dashboard-row"
             :to="'/mentor/assignments/' + a.id"
           >
-            <strong>{{ a.title }}</strong
-            ><span>{{
+            <strong>{{ a.title }}</strong><span>{{
               t("assignment.pendingCount", { count: a.pendingCount })
             }}</span>
-          </RouterLink> </AsyncState
-        ><RouterLink to="/mentor/assignments">
+          </RouterLink>
+        </AsyncState><RouterLink to="/mentor/assignments">
           {{ t("assignment.teaching") }} →
         </RouterLink>
       </section>

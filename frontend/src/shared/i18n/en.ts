@@ -1,6 +1,8 @@
+import mood from "../../features/mood/messages";
 import assignment from "../../features/assignments/messages";
 import dashboard from "../../features/dashboard/messages";
 export default {
+  mood,
   assignment,
   dashboard,
   mainNavigation: "Main navigation",

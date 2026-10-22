@@ -45,6 +45,13 @@ onMounted(load);
     <AsyncState :loading="busy" :error="error" @retry="load">
       <div class="dashboard-grid">
         <section class="panel">
+          <h2><span aria-hidden="true">🌤️ </span>{{ t("mood.myMood") }}</h2>
+          <p>{{ t("mood.homeHelp") }}</p>
+          <RouterLink class="button-link" to="/student/mood">
+            {{ t("mood.myMood") }} →
+          </RouterLink>
+        </section>
+        <section class="panel">
           <h2>📝 {{ t("assignment.myWork") }}</h2>
           <p v-if="!work.length">
             {{ t("assignment.empty") }}
@@ -55,11 +62,10 @@ onMounted(load);
             class="dashboard-row"
             :to="'/student/assignments/' + a.id"
           >
-            <strong>{{ a.title }}</strong
-            ><span>{{
+            <strong>{{ a.title }}</strong><span>{{
               t("assignment." + (a.myStatus || "notStarted"))
-            }}</span> </RouterLink
-          ><RouterLink to="/student/assignments">
+            }}</span>
+          </RouterLink><RouterLink to="/student/assignments">
             {{ t("assignment.myWork") }} →
           </RouterLink>
         </section>

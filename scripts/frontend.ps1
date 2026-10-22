@@ -11,7 +11,8 @@ try {
         if (-not (Test-Path -LiteralPath $pythonExe)) { throw 'Optional browser regression requires Python 3.12 and Chrome. Normal startup does not require Python.' }
         & $pythonExe (Join-Path $PSScriptRoot 'verify-frontend.py')
     } else {
-        $npmArgs=if ($Action -eq 'install') { @('ci') } else { @('run',$Action) }
+        # Keep a one-item argument array: Windows PowerShell otherwise splats "ci" as c, i.
+        [string[]]$npmArgs=if ($Action -eq 'install') { @('ci') } else { @('run',$Action) }
         & (Join-Path $tools.nodeHome 'node.exe') (Join-Path $tools.nodeHome 'node_modules/npm/bin/npm-cli.js') @npmArgs
     }
     if ($LASTEXITCODE -ne 0) { throw "Frontend action failed: $Action" }

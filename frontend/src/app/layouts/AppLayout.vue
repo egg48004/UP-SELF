@@ -76,10 +76,16 @@ async function logout() {
         >
           <span v-if="auth.isStudent" aria-hidden="true">📝 </span>{{ t("assignment.title") }}
         </RouterLink>
-        <RouterLink v-if="auth.can('system:user:list')" to="/manage/accounts">
-          {{
-            t("accounts")
+        <RouterLink
+          v-if="auth.isStudent || auth.isMentor"
+          :to="auth.isStudent ? '/student/mood' : '/mentor/mood'"
+        >
+          <span v-if="auth.isStudent" aria-hidden="true">🌤️ </span>{{
+            t(auth.isStudent ? "mood.myMood" : "mood.studentMood")
           }}
+        </RouterLink>
+        <RouterLink v-if="auth.can('system:user:list')" to="/manage/accounts">
+          {{ t("accounts") }}
         </RouterLink>
         <RouterLink v-if="auth.isStudent" to="/preferences">
           Aa {{ t("preferences") }}
@@ -87,9 +93,7 @@ async function logout() {
       </nav>
       <div class="account-nav">
         <span class="role-badge">{{ t("dashboard." + role) }}</span><RouterLink to="/profile/security" :aria-label="t('profile')">
-          {{
-            auth.user?.nickName
-          }}
+          {{ auth.user?.nickName }}
         </RouterLink><el-button text @click="logout">
           {{ t("signOut") }}
         </el-button>

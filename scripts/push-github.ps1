@@ -1,4 +1,4 @@
-param([string]$Message = 'Make startup portable and document environment setup and snapshot recovery')
+param([string]$Message = 'Publish assignments, weekly mood and portable setup')
 $ErrorActionPreference = 'Stop'
 $project = Split-Path -Parent $PSScriptRoot
 $repository = 'https://github.com/egg48004/UP-SELF.git'

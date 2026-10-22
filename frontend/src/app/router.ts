@@ -100,6 +100,21 @@ export const router = createRouter({
           meta: { roles: ["mentor"] },
         },
         {
+          path: "student/mood",
+          component: () => import("../features/mood/pages/StudentMoodPage.vue"),
+          meta: { roles: ["student"] },
+        },
+        {
+          path: "mentor/mood",
+          component: () => import("../features/mood/pages/MentorMoodList.vue"),
+          meta: { roles: ["mentor"] },
+        },
+        {
+          path: "mentor/mood/:studentId",
+          component: () => import("../features/mood/pages/MentorMoodPage.vue"),
+          meta: { roles: ["mentor"] },
+        },
+        {
           path: "preferences",
           component: () =>
             import("../features/preferences/pages/PreferencesPage.vue"),
