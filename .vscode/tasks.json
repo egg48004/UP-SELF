@@ -36,69 +36,57 @@
     {
       "label": "UP-SELF: Frontend dev",
       "type": "process",
-      "command": "C:\\Users\\eggma\\Documents\\Codex\\local-env\\nodejs\\node-v24.22.1-win-x64\\node.exe",
+      "command": "powershell.exe",
       "args": [
-        "C:\\Users\\eggma\\Documents\\Codex\\local-env\\nodejs\\node-v24.22.1-win-x64\\node_modules/npm/bin/npm-cli.js",
-        "run",
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}/scripts/frontend.ps1",
         "dev"
       ],
-      "options": {
-        "cwd": "${workspaceFolder}/frontend",
-        "env": {
-          "PATH": "C:\\Users\\eggma\\Documents\\Codex\\local-env\\nodejs\\node-v24.22.1-win-x64;${env:PATH}"
-        }
-      },
       "problemMatcher": []
     },
     {
       "label": "UP-SELF: Frontend build",
       "type": "process",
-      "command": "C:\\Users\\eggma\\Documents\\Codex\\local-env\\nodejs\\node-v24.22.1-win-x64\\node.exe",
+      "command": "powershell.exe",
       "args": [
-        "C:\\Users\\eggma\\Documents\\Codex\\local-env\\nodejs\\node-v24.22.1-win-x64\\node_modules/npm/bin/npm-cli.js",
-        "run",
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}/scripts/frontend.ps1",
         "build"
       ],
-      "options": {
-        "cwd": "${workspaceFolder}/frontend",
-        "env": {
-          "PATH": "C:\\Users\\eggma\\Documents\\Codex\\local-env\\nodejs\\node-v24.22.1-win-x64;${env:PATH}"
-        }
-      },
       "problemMatcher": []
     },
     {
       "label": "UP-SELF: Frontend typecheck",
       "type": "process",
-      "command": "C:\\Users\\eggma\\Documents\\Codex\\local-env\\nodejs\\node-v24.22.1-win-x64\\node.exe",
+      "command": "powershell.exe",
       "args": [
-        "C:\\Users\\eggma\\Documents\\Codex\\local-env\\nodejs\\node-v24.22.1-win-x64\\node_modules/npm/bin/npm-cli.js",
-        "run",
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}/scripts/frontend.ps1",
         "typecheck"
       ],
-      "options": {
-        "cwd": "${workspaceFolder}/frontend",
-        "env": {
-          "PATH": "C:\\Users\\eggma\\Documents\\Codex\\local-env\\nodejs\\node-v24.22.1-win-x64;${env:PATH}"
-        }
-      },
       "problemMatcher": []
     },
     {
       "label": "UP-SELF: Frontend test",
       "type": "process",
-      "command": "C:\\Users\\eggma\\Documents\\Codex\\local-env\\nodejs\\node-v24.22.1-win-x64\\node.exe",
+      "command": "powershell.exe",
       "args": [
-        "C:\\Users\\eggma\\Documents\\Codex\\local-env\\nodejs\\node-v24.22.1-win-x64\\node_modules/npm/bin/npm-cli.js",
-        "run",
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}/scripts/frontend.ps1",
         "test"
       ],
-      "options": {
-        "cwd": "${workspaceFolder}/frontend",
-        "env": {
-          "PATH": "C:\\Users\\eggma\\Documents\\Codex\\local-env\\nodejs\\node-v24.22.1-win-x64;${env:PATH}"
-        }
-      },
       "problemMatcher": []
     }
   ]

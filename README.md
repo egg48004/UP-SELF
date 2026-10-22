@@ -1,5 +1,7 @@
 # UP-SELF 学习平台
 
+换电脑安装、首次空库启动、完整恢复数据库与上传文件，先看 [跨电脑环境安装与启动教程](docs/跨电脑环境安装与启动教程.md)。版本集合见 `environment/versions.json`。真实迁移快照位于 `migration/local-snapshot`。
+
 独立毕业项目。沿用参考项目的六模块 Java 后端架构和框架依赖版本，当前实现登录、三角色权限、账号管理、Flyway 初始化及学习模块后端。学习模块包含课程分配、加入与发布、章节、视频/图片/字幕和导师帖子。Vue 学习页面已接通真实后端，学生使用单独学习布局；导师、管理员和维护共用管理布局。作业、心情及群聊尚未开发。
 
 ## 配置和密码在哪里
@@ -21,7 +23,7 @@
 
 ## VS Code 启动
 
-1. 打开 `up-self.code-workspace`，等待 Java 导入完成。
+1. 首次运行 `scripts/configure-local.ps1` 配置安装目录，再用 `open-vscode.cmd` 打开本机生成的 `.local/up-self.code-workspace`，等待 Java 导入完成。根目录同名文件是共享模板。
 2. 电脑重启后先运行任务 **UP-SELF: 启动数据库与Redis**。
 3. 选择 **UP-SELF · Backend + Frontend**，按 F5，同时启动Java和Vue。
 4. 出现 `Started UpSelfApplication` 和 Vite的Local地址后，访问 **http://127.0.0.1:5173/**。8080根页仍是旧账号验证页。

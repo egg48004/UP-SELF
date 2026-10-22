@@ -1,20 +1,11 @@
 {
   "folders": [
     {
-      "path": "."
+      "path": ".",
+      "name": "UP-SELF"
     }
   ],
   "settings": {
-    "java.jdt.ls.java.home": "C:\\Users\\eggma\\.vscode\\extensions\\redhat.java-1.55.0-win32-x64\\jre\\21.0.11-win32-x86_64",
-    "java.configuration.runtimes": [
-      {
-        "name": "JavaSE-1.8",
-        "path": "C:\\Program Files\\Java\\jdk1.8.0_231",
-        "default": true
-      }
-    ],
-    "java.configuration.maven.userSettings": "C:\\Users\\eggma\\Desktop\\codex\\up-self\\.mvn\\settings.xml",
-    "maven.executable.path": "C:\\Program Files\\Apache\\apache-maven-3.10.0\\bin\\mvn.cmd",
     "maven.terminal.useJavaHome": true,
     "java.configuration.updateBuildConfiguration": "automatic",
     "files.encoding": "utf8",
@@ -29,9 +20,6 @@
       "**/node_modules": true
     },
     "java.compile.nullAnalysis.mode": "disabled",
-    "terminal.integrated.env.windows": {
-      "PATH": "C:\\Users\\eggma\\Documents\\Codex\\local-env\\nodejs\\node-v24.22.1-win-x64;${env:PATH}"
-    },
     "debug.saveBeforeStart": "none",
     "java.import.exclusions": [
       "**/node_modules/**",
@@ -43,5 +31,52 @@
       "**/node_modules/**": true,
       "**/.local/**": true
     }
+  },
+  "launch": {
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "type": "java",
+        "name": "UP-SELF · 本地登录权限服务",
+        "request": "launch",
+        "mainClass": "com.upself.web.UpSelfApplication",
+        "projectName": "up-self-admin",
+        "cwd": "${workspaceFolder:UP-SELF}",
+        "args": "--spring.config.additional-location=file:./config/",
+        "console": "internalConsole",
+        "vmArgs": "-Dfile.encoding=UTF-8"
+      },
+      {
+        "type": "node",
+        "request": "launch",
+        "name": "UP-SELF · Frontend",
+        "runtimeExecutable": "node",
+        "program": "${workspaceFolder:UP-SELF}/frontend/node_modules/vite/bin/vite.js",
+        "args": [
+          "--host",
+          "127.0.0.1",
+          "--port",
+          "5173",
+          "--strictPort",
+          "--configLoader",
+          "native"
+        ],
+        "cwd": "${workspaceFolder:UP-SELF}/frontend",
+        "console": "internalConsole",
+        "skipFiles": [
+          "<node_internals>/**"
+        ]
+      }
+    ],
+    "compounds": [
+      {
+        "name": "UP-SELF · Backend + Frontend",
+        "configurations": [
+          "UP-SELF · 本地登录权限服务",
+          "UP-SELF · Frontend"
+        ],
+        "stopAll": true
+      }
+    ]
   }
 }

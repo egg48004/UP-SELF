@@ -1,4 +1,4 @@
-param([string]$Message = 'Save UP-SELF learning MVP and actual local migration snapshot')
+param([string]$Message = 'Make startup portable and document environment setup and snapshot recovery')
 $ErrorActionPreference = 'Stop'
 $project = Split-Path -Parent $PSScriptRoot
 $repository = 'https://github.com/egg48004/UP-SELF.git'

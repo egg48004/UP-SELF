@@ -1,8 +1,18 @@
-param([string]$Action='dev')
+param([ValidateSet('dev','build','typecheck','lint','test','install','verify')][string]$Action='dev')
 $ErrorActionPreference='Stop'
-$project=Split-Path $PSScriptRoot -Parent
-$runtimeFile='C:\Users\eggma\Documents\Codex\local-env\nodejs\runtime-path.txt'
-$runtime=(Get-Content -LiteralPath $runtimeFile -Raw).Trim()
-$env:PATH="$runtime;$env:PATH"
-Push-Location (Join-Path $project 'frontend')
-try { if($Action -eq 'verify'){ & 'C:\Users\eggma\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe' (Join-Path $PSScriptRoot 'verify-frontend.py') } elseif($Action -eq 'install'){ & (Join-Path $runtime 'node.exe') (Join-Path $runtime 'node_modules/npm/bin/npm-cli.js') ci } else { & (Join-Path $runtime 'node.exe') (Join-Path $runtime 'node_modules/npm/bin/npm-cli.js') run $Action };exit $LASTEXITCODE } finally {Pop-Location}
+. "$PSScriptRoot/dev-tools.ps1"
+$tools=Get-UPSelfTools
+$env:PATH=$tools.nodeHome+';'+$env:PATH
+Push-Location -LiteralPath (Join-Path $tools.projectRoot 'frontend')
+try {
+    if ($Action -eq 'verify') {
+        $python=Get-Command python.exe -ErrorAction SilentlyContinue
+        $pythonExe=if ($python) { $python.Source } else { Join-Path $env:USERPROFILE '.cache/codex-runtimes/codex-primary-runtime/dependencies/python/python.exe' }
+        if (-not (Test-Path -LiteralPath $pythonExe)) { throw 'Optional browser regression requires Python 3.12 and Chrome. Normal startup does not require Python.' }
+        & $pythonExe (Join-Path $PSScriptRoot 'verify-frontend.py')
+    } else {
+        $npmArgs=if ($Action -eq 'install') { @('ci') } else { @('run',$Action) }
+        & (Join-Path $tools.nodeHome 'node.exe') (Join-Path $tools.nodeHome 'node_modules/npm/bin/npm-cli.js') @npmArgs
+    }
+    if ($LASTEXITCODE -ne 0) { throw "Frontend action failed: $Action" }
+} finally { Pop-Location }
