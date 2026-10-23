@@ -1,0 +1,51 @@
+# Copy to /etc/up-self/application-prod.yml only during an approved deployment.
+# Secrets are supplied by the root-managed EnvironmentFile, never this repository.
+server:
+  address: 127.0.0.1
+  port: 8080
+spring:
+  datasource:
+    druid:
+      master:
+        url: ${UPSELF_DB_URL}
+        username: ${UPSELF_DB_USER}
+        password: ${UPSELF_DB_PASSWORD}
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        initial-size: 1
+        min-idle: 1
+        max-active: 10
+  flyway:
+    url: ${UPSELF_DB_URL}
+    user: ${UPSELF_MIGRATION_USER}
+    password: ${UPSELF_MIGRATION_PASSWORD}
+  redis:
+    host: 127.0.0.1
+    port: 6379
+    database: 2
+    password: ${UPSELF_REDIS_PASSWORD}
+    timeout: 3000ms
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 4
+        min-idle: 0
+        max-wait: 2000ms
+token:
+  admin:
+    secret: ${UPSELF_ADMIN_TOKEN_SECRET}
+  client:
+    secret: ${UPSELF_STUDENT_TOKEN_SECRET}
+custom:
+  totp:
+    enabled: false
+bootstrap:
+  enabled: ${UPSELF_BOOTSTRAP_ENABLED:false}
+  passwords:
+    maintenance: ${UPSELF_INITIAL_MAINTENANCE_PASSWORD:}
+    student01: ${UPSELF_INITIAL_STUDENT_PASSWORD:}
+    mentor01: ${UPSELF_INITIAL_MENTOR_PASSWORD:}
+    admin01: ${UPSELF_INITIAL_ADMIN_PASSWORD:}
+learning:
+  storage-path: /var/lib/up-self/uploads
+assignment:
+  storage-path: /var/lib/up-self/uploads/assignments

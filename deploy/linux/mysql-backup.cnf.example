@@ -1,0 +1,7 @@
+# Future /etc/up-self/mysql-backup.cnf, root-owned mode 0600. No real values here.
+[client]
+host=127.0.0.1
+port=3306
+user=upself_migration
+password=REPLACE_MIGRATION_PASSWORD
+default-character-set=utf8mb4

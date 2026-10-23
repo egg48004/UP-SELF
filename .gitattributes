@@ -1,0 +1,2 @@
+deploy/linux/*.sh text eol=lf
+deploy/linux/*.example text eol=lf
