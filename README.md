@@ -1,6 +1,6 @@
 # UP-SELF 学习平台
 
-最新页面组织见[菜单与页面组织调整验收](docs/菜单与页面组织调整验收.md)。课程收藏说明见 [FR-07/08交付验收](docs/课程收藏FR07-FR08交付验收.md)，已有心情及作业说明见 [每周心情交付](docs/每周心情模块交付与验收.md)与[三角色与作业交付](docs/三角色与作业模块交付验收.md)。
+最新交付见[FR-25自我效能评估](docs/自我效能FR25交付验收.md)，已接入My check-in，与每周心情分开展示。页面组织见[菜单调整](docs/菜单与页面组织调整验收.md)；课程收藏见 [FR-07/08交付](docs/课程收藏FR07-FR08交付验收.md)，心情及作业见 [每周心情](docs/每周心情模块交付与验收.md)与[三角色与作业](docs/三角色与作业模块交付验收.md)。
 
 换电脑安装、首次空库启动、完整恢复数据库与上传文件，先看 [跨电脑环境安装与启动教程](docs/跨电脑环境安装与启动教程.md)。版本集合见 `environment/versions.json`。真实迁移快照位于 `migration/local-snapshot`。
 
@@ -65,7 +65,7 @@ Flyway 脚本位于 `up-self-admin/src/main/resources/db/draft`，已执行脚�
 
 双击 `build.cmd` 或按 Ctrl+Shift+B，包含单元测试。完整集成检查可在停止应用、保留数据库与 Redis 的情况下，用 Python3 运行 `scripts/verify-local.py`。检查时按需重新生成临时日志和结果，不保留旧验收产物。
 
-接口见 `docs/API接口说明.md`。学习模块接口见 `docs/Learning-backend-API.md`。当前数据库版本为 V8：V3 学习、V4 作业、V5 每周心情、V6 课程信息与学习进度、V7 个人学习目标、V8 课程收藏；原迁移保持不变，后端启动只应用缺失版本。换电脑可选择空库首次迁移或完整恢复匹配的数据和文件。
+接口见 `docs/API接口说明.md`。学习模块接口见 `docs/Learning-backend-API.md`。当前数据库版本为 V9：V3 学习、V4 作业、V5 每周心情、V6 课程信息与学习进度、V7 个人学习目标、V8 课程收藏、V9 自我效能；原迁移保持不变，后端启动只应用缺失版本。换电脑可选择空库首次迁移或完整恢复匹配的数据和文件。
 
 ## 前端环境与命令
 
@@ -90,7 +90,7 @@ Vite使用Node24原生配置加载，避免额外打包配置；常规开发依�
 
 ## 当前范围、答辩与Linux部署准备
 
-- [当前61个FR完成状态与报告差异](docs/当前61个FR完成状态与报告差异.md)：23完成、6部分、32未完成，严格按报告原文。
+- [当前61个FR完成状态与报告差异](docs/当前61个FR完成状态与报告差异.md)：24完成、6部分、31未完成，严格按报告原文。
 - [答辩演示清单](docs/答辩演示清单.md)：约10分钟三角色真实闭环及准备/备用步骤。
 - [Linux部署适配准备](docs/Linux部署适配准备.md)：沿用现有版本的发布包、prod/systemd/Nginx/备份模板及待验证事项；未购买或部署。
 
@@ -98,12 +98,12 @@ Vite使用Node24原生配置加载，避免额外打包配置；常规开发依�
 
 个人目标入口：学生登录 → **My goals**。范围、API与验收见[个人学习目标FR-23/24交付](docs/个人学习目标FR23-FR24交付验收.md)。首次启动自动追加V7，已有账号需退出重登以刷新新增权限。
 
-课程收藏入口：学生登录 → **My learning → My courses** / 课程详情 → **Save course**，在 **My learning → Saved courses** 查看、打开和取消收藏。收藏仅本人可见，不能绕过课程加入/发布限制。升级后首次启动自动追加V8，已有账号需退出重登刷新权限；FR-25自我效能评估之后再做。
+课程收藏入口：学生登录 → **My learning → My courses** / 课程详情 → **Save course**，在 **My learning → Saved courses** 查看、打开和取消收藏。收藏仅本人可见，不能绕过课程加入/发布限制。升级后首次启动自动追加缺失迁移，已有账号需退出重登刷新新增权限。
 
 ## 当前菜单
 
-- 学生：**Home、My learning、Assignments、My mood、My goals**；My learning内切换My courses / Saved courses / Learning history。右上角 **Aa** 打开Reading settings。
-- 导师：**Home、Teaching courses、Assignments、Students**；Students内切换Student overview / Student mood。
+- 学生：**Home、My learning、Assignments、My check-in、My goals**；My learning内切换My courses / Saved courses / Learning history；My check-in内切换My mood / Self-belief。右上角 **Aa** 打开Reading settings。
+- 导师：**Home、Teaching courses、Assignments、Students**；Students内切换Student overview / Student check-ins；打开学生后切换My mood / Self-belief，均只读。
 - 管理员：**Home、Accounts、Course allocation**。maintenance继续使用内部入口。
 
-此次只重新组织入口，原网址、API、功能与权限保持不变；手机菜单自动换行，不用在隐藏菜单中寻找功能。
+原心情及学习网址保留；手机菜单自动换行，不用在隐藏菜单中寻找功能。自我效能是V9新增功能：重启后退出重新登录，学生进入Self-belief，首次单独确认共享后填写GSE-3三题；再次填写间隔28天。心情仍每周一次。导师只读分数、日期和趋势，不能读取学生逐题答案；管理员和maintenance无权查看。

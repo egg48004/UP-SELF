@@ -1,4 +1,19 @@
 @import url("./tokens.css");
+.efficacy-question { font-size: 1.35rem; font-weight: 650; line-height: 1.5; }
+.efficacy-choices { display: grid; gap: 0.65rem; margin: 1rem 0 1.5rem; }
+.efficacy-choice { display: flex; align-items: center; gap: 0.75rem; padding: 0.85rem; margin: 0; min-height: 48px; border: 2px solid var(--border); border-radius: 0.6rem; cursor: pointer; }
+.efficacy-choice.chosen { background: var(--tint); border-color: var(--primary); }
+.efficacy-choice input[type="radio"] { width: 22px; height: 22px; flex: 0 0 22px; accent-color: var(--primary); }
+.efficacy-choice:focus-within { outline: 3px solid var(--focus); outline-offset: 3px; }
+.efficacy-chart-scroll { overflow-x: auto; max-width: 100%; }
+.efficacy-chart { display: block; width: 100%; height: 280px; }
+.efficacy-grid-line { stroke: var(--border-soft); stroke-width: 1; }
+.efficacy-axis { fill: var(--text); font: 14px system-ui, sans-serif; }
+.efficacy-trend-line { fill: none; stroke: var(--primary); stroke-width: 3; stroke-linejoin: round; }
+.efficacy-trend-point { fill: var(--primary); stroke: var(--surface); stroke-width: 1; }
+.efficacy-history-list { list-style: none; padding: 0; margin: 0; }
+.efficacy-history-list > li { padding: 1rem 0; border-bottom: 1px solid var(--border-soft); }
+.efficacy-history-list h3 { font-size: 1.05rem; margin: 0.3rem 0; }
 * {
   box-sizing: border-box;
 }

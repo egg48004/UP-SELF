@@ -67,4 +67,7 @@ if r.returncode == 0 and (not extra or any('goals' in item for item in extra)):
 if r.returncode == 0 and (not extra or any('bookmarks' in item for item in extra)):
  bookmark_result=subprocess.run([sys.executable,str(root/'scripts/verify-bookmarks.py'),'--browser'],cwd=root)
  if bookmark_result.returncode != 0:raise SystemExit(bookmark_result.returncode)
+if r.returncode == 0 and (not extra or any('self-efficacy' in item for item in extra)):
+ efficacy_result=subprocess.run([sys.executable,str(root/'scripts/verify-self-efficacy.py'),'--browser'],cwd=root)
+ if efficacy_result.returncode != 0:raise SystemExit(efficacy_result.returncode)
 raise SystemExit(r.returncode)

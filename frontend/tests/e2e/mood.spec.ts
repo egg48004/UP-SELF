@@ -134,7 +134,7 @@ test("weekly mood: first-use notice, once-only save, private notes and current-m
     await expect(
       admin
         .getByRole("navigation")
-        .getByRole("link", { name: /My mood|Student mood/ }),
+        .getByRole("link", { name: /My check-in|Student check-ins/ }),
     ).toHaveCount(0);
     await admin.goto("/#/student/mood");
     await expect(
@@ -152,7 +152,7 @@ test("weekly mood: first-use notice, once-only save, private notes and current-m
     const learner = await login(student.username, password, "student");
     await learner
       .getByRole("navigation")
-      .getByRole("link", { name: "My mood", exact: false })
+      .getByRole("link", { name: "My check-in", exact: true })
       .click();
     await expect(
       learner.getByRole("heading", {
@@ -174,7 +174,7 @@ test("weekly mood: first-use notice, once-only save, private notes and current-m
     await expect(learner).toHaveURL(/student\/home/);
     await learner
       .getByRole("navigation")
-      .getByRole("link", { name: "My mood", exact: false })
+      .getByRole("link", { name: "My check-in", exact: true })
       .click();
     await expect(
       learner.getByRole("heading", {
@@ -321,7 +321,7 @@ test("weekly mood: first-use notice, once-only save, private notes and current-m
     await coach.getByRole("navigation", { name: "Mentor navigation", exact: true }).getByRole("link", { name: "Students", exact: true }).click();
     await coach
       .getByRole("navigation")
-      .getByRole("link", { name: "Student mood", exact: true })
+      .getByRole("link", { name: "Student check-ins", exact: true })
       .click();
     await expect(coach.getByText("Page 1 · 12 items")).toBeVisible();
     await coach.getByRole("button", { name: "Next", exact: true }).click();
@@ -336,7 +336,7 @@ test("weekly mood: first-use notice, once-only save, private notes and current-m
     await expect(coach.getByText("Page 1 · 12 items")).toBeVisible();
     await coach
       .getByRole("link", {
-        name: "View mood: " + student.username,
+        name: "View check-ins: " + student.username,
         exact: true,
       })
       .click();

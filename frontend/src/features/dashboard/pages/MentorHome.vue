@@ -37,10 +37,10 @@ onMounted(load);
     </section>
     <div class="dashboard-grid">
       <section class="panel">
-        <h2>{{ t("mood.studentMood") }}</h2>
-        <p>{{ t("mood.mentorHomeHelp") }}</p>
+        <h2>{{ t("efficacy.studentCheckIns") }}</h2>
+        <p>{{ t("efficacy.mentorIntro") }}</p>
         <RouterLink class="button-link" to="/mentor/mood">
-          {{ t("mood.studentMood") }} →
+          {{ t("efficacy.studentCheckIns") }} →
         </RouterLink>
       </section>
       <section class="panel">

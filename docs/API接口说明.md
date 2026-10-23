@@ -78,4 +78,21 @@ GET `/system/user/candidates` 要求 `learning:course:assign`，参数role仅stu
 | PUT | /client/learning/bookmarks/{courseId} | AjaxResult，收藏本人已加入且已发布的课程，无需body |
 | DELETE | /client/learning/bookmarks/{courseId} | AjaxResult，取消本人收藏；失效项仍可移除 |
 
-课程列表/详情增加当前学生`bookmarked`。失效项`course:null`不含原课程资料；重复保存/取消幂等。导师、管理员和maintenance无学生收藏权限。实现及验收见[收藏交付](课程收藏FR07-FR08交付验收.md)，FR-25之后再做。
+课程列表/详情增加当前学生`bookmarked`。失效项`course:null`不含原课程资料；重复保存/取消幂等。导师、管理员和maintenance无学生收藏权限。实现及验收见[收藏交付](课程收藏FR07-FR08交付验收.md)。
+
+## V9：自我效能（FR-25）
+
+学生使用`efficacy:own:read` / `efficacy:own:record`，导师只使用`efficacy:students:read`。沿用原角色与两条认证链。共享告知独立于心情。
+
+| 方法 | 路径 | 用途/返回 |
+|---|---|---|
+| GET | /client/self-efficacy/current | AjaxResult.data：today/timeZone、instrument、noticeVersion/acknowledged、viewers、latest、available/nextAvailableDate/intervalDays |
+| POST | /client/self-efficacy/acknowledgment | noticeVersion、accepted=true；首次独立共享确认 |
+| POST | /client/self-efficacy/entries | assessmentDate、instrumentVersion、answers三项1～5整数；后端均值及28天限制 |
+| GET | /client/self-efficacy/history | current/pageSize，TableDataInfo，本人历史及原始答案 |
+| GET | /client/self-efficacy/trend | weeks=4～52，默认26；AjaxResult.data，只返回真实日期的已保存分数 |
+| GET | /self-efficacy/students/{studentId} | 当前课程导师可访问的学生身份 |
+| GET | /self-efficacy/students/{studentId}/history | TableDataInfo；只含日期、分数、量表版本 |
+| GET | /self-efficacy/students/{studentId}/trend | AjaxResult.data；当前导师只读趋势 |
+
+GSE-3均值保留两位小数，不接受缺题、越界或非整数，不信任客户端score/studentId。当前周期已保存或页面日期/量表过期返回409，未确认或无当前课程关系403。没有修改/删除或导师写入接口。源码、许可、实际FR差异和验收见[FR-25交付](自我效能FR25交付验收.md)。

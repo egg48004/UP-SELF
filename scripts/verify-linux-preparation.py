@@ -47,7 +47,7 @@ tools=json.loads((ROOT/'.local/development-tools.json').read_text(encoding='utf-
 with tempfile.TemporaryDirectory(dir=work) as td:
  q=Path(td)
  with zipfile.ZipFile(release/'app/up-self-admin.jar') as jar:
-  check('jar-has-V1-to-V8',all(any('/V'+str(v)+'__' in n for n in jar.namelist()) for v in range(1,9)))
+  check('jar-has-V1-to-V9',all(any('/V'+str(v)+'__' in n for n in jar.namelist()) for v in range(1,10)))
   check('jar-has-no-local-config',not any('application-local' in n or 'local-credentials' in n for n in jar.namelist()))
   check('jar-has-new-progress-mapper',any('up-self-biz-' in n for n in jar.namelist()))
   for n in jar.namelist():

@@ -64,10 +64,10 @@ onMounted(load);
       </section>
       <div class="dashboard-grid">
         <section class="panel">
-          <h2><span aria-hidden="true">🌤️ </span>{{ t("mood.myMood") }}</h2>
+          <h2><span aria-hidden="true">🧭 </span>{{ t("efficacy.checkIn") }}</h2>
           <p>{{ t("mood.homeHelp") }}</p>
           <RouterLink class="button-link" to="/student/mood">
-            {{ t("mood.myMood") }} →
+            {{ t("efficacy.checkIn") }} →
           </RouterLink>
         </section>
         <section class="panel">

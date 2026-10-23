@@ -40,8 +40,8 @@ onMounted(load);
     <p class="eyebrow">
       {{ t("dashboard.mentor") }}
     </p>
-    <h1>{{ t("mood.studentMood") }}</h1>
-    <p>{{ t("mood.mentorIntro") }}</p>
+    <h1>{{ t("efficacy.studentCheckIns") }}</h1>
+    <p>{{ t("efficacy.mentorIntro") }}</p>
     <form class="search-bar" @submit.prevent="search">
       <label class="sr-only" for="mood-student-search">{{ t("search") }}</label><input
         id="mood-student-search"
@@ -84,9 +84,9 @@ onMounted(load);
               <td>
                 <RouterLink
                   :to="'/mentor/mood/' + person.id"
-                  :aria-label="t('mood.openStudent') + ': ' + person.username"
+                  :aria-label="t('efficacy.openCheckIns') + ': ' + person.username"
                 >
-                  {{ t("mood.openStudent") }} →
+                  {{ t("efficacy.openCheckIns") }} →
                 </RouterLink>
               </td>
             </tr>

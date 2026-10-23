@@ -1,0 +1,18 @@
+export default {
+  checkIn: "My check-in", checkInSections: "My check-in sections", studentCheckIns: "Student check-ins",
+  openCheckIns: "View check-ins", mentorIntro: "Read-only mood and self-belief check-ins for your current students.", mentorAnswers: "Individual answers are not shared with mentors.",
+  title: "Self-belief", intro: "Your belief in handling everyday challenges.", cadence: "Three statements. Once every 28 days. Take your time.",
+  noticeTitle: "Before your first self-belief check-in", noticeIntro: "Your current course mentors can see your saved scores, dates and trends.",
+  noticeAnswers: "Your individual answers are only shown to you.", noticeAgree: "I understand who can see my self-belief check-ins.",
+  continue: "Continue to self-belief", viewers: "Who can see my self-belief?", viewersOnly: "Only you can view it right now.",
+  viewersFuture: "Access follows your joined, published courses and current mentors.",
+  saved: "Your self-belief check-in is saved.", score: "Score: {score} / 5", reflection: "This is a reflection, not a grade.",
+  nextDate: "You can record again from {date}.", refresh: "Refresh self-belief", ready: "Ready when you are.",
+  statement: "Statement {number} of 3", choose: "Choose what fits you.", save: "Save self-belief",
+  confirm: "Save these answers? Your next check-in will be available in 28 days.", leave: "Leave without saving your self-belief answers?",
+  about: "About this check-in", presentation: "Original wording and scoring. Presented one statement at a time.",
+  source: "GSE-3 source", history: "Self-belief history", empty: "No saved self-belief check-ins yet.",
+  trend: "Self-belief over time", chartName: "Self-belief trend", chartDescription: "Saved GSE-3 mean scores, from 1 to 5, on their actual dates. A table is also available.",
+  pointsHelp: "Each dot is one saved check-in. Lines join recorded scores; dates between them have no measured score.",
+  noPoints: "No saved check-ins in this range.", date: "Date", value: "Score / 5", answers: "My answers",
+};

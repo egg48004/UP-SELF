@@ -4,7 +4,9 @@ import dashboard from "../../features/dashboard/messages";
 import progress from "../../features/learning/messages";
 import goal from "../../features/goals/messages";
 import bookmark from "../../features/learning/bookmarkMessages";
+import efficacy from "../../features/self-efficacy/messages";
 export default {
+  efficacy,
   bookmark,
   goal,
   progress,

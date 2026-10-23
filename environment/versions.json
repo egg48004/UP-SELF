@@ -7,7 +7,7 @@
   "npm": "11.19.1",
   "mysql": "5.7.44",
   "redisWindowsPort": "5.0.14.1",
-  "flywaySchemaVersion": "8",
+  "flywaySchemaVersion": "9",
   "includedModules": [
     "authentication",
     "learning",
@@ -16,7 +16,8 @@
     "learning-progress",
     "student-overview",
     "personal-goals",
-    "course-bookmarks"
+    "course-bookmarks",
+    "self-efficacy"
   ],
   "backendDependencies": "../docs/runtime-dependencies.json",
   "frontendDependencies": "../frontend/package-lock.json",

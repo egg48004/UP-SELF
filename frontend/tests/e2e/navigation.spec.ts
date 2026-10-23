@@ -39,7 +39,7 @@ test("role navigation: five student entries, grouped learning, Aa and management
     const student = await login("student", "student01");
     const menu = primary(student, "Student");
     await expect(menu.getByRole("link")).toHaveCount(5);
-    for (const name of ["Home", "My learning", "Assignments", "My mood", "My goals"]) await expect(menu.getByRole("link", { name, exact: true })).toBeVisible();
+    for (const name of ["Home", "My learning", "Assignments", "My check-in", "My goals"]) await expect(menu.getByRole("link", { name, exact: true })).toBeVisible();
     for (const name of ["Saved courses", "Learning history", "Reading settings"]) await expect(menu.getByRole("link", { name, exact: true })).toHaveCount(0);
     await expect(student.getByRole("heading", { name: "Welcome back", exact: true })).toBeVisible();
     const learning = menu.getByRole("link", { name: "My learning", exact: true });
@@ -94,7 +94,7 @@ test("role navigation: five student entries, grouped learning, Aa and management
     await student.setViewportSize({ width: 390, height: 844 });
     await learning.click(); await settled(student); await visibleNavigation(student);
     await student.screenshot({ path: path.join(screenshots, "navigation-student-mobile.png"), fullPage: true });
-    for (const [name, heading] of [["Assignments", "My assignments"], ["My mood", "A moment for you"], ["My goals", "My goals"], ["Home", "Welcome back"]]) {
+    for (const [name, heading] of [["Assignments", "My assignments"], ["My check-in", "A moment for you"], ["My goals", "My goals"], ["Home", "Welcome back"]]) {
       await menu.getByRole("link", { name, exact: true }).click();
       await expect(student.getByRole("heading", { name: heading, exact: true })).toBeVisible();
       await expect(sections).toHaveCount(0); await settled(student);
@@ -107,11 +107,11 @@ test("role navigation: five student entries, grouped learning, Aa and management
     await teaching.getByRole("link", { name: "Students", exact: true }).click();
     const students = mentor.getByRole("navigation", { name: "Student sections", exact: true });
     await expect(students.getByRole("link")).toHaveCount(2);
-    await students.getByRole("link", { name: "Student mood", exact: true }).click();
-    await expect(mentor.getByRole("heading", { name: "Student mood", exact: true })).toBeVisible();
+    await students.getByRole("link", { name: "Student check-ins", exact: true }).click();
+    await expect(mentor.getByRole("heading", { name: "Student check-ins", exact: true })).toBeVisible();
     await expect(teaching.getByRole("link", { name: "Students", exact: true })).toHaveAttribute("aria-current", "page");
     await settled(mentor); await mentor.reload();
-    await expect(students.getByRole("link", { name: "Student mood", exact: true })).toHaveAttribute("aria-current", "page");
+    await expect(students.getByRole("link", { name: "Student check-ins", exact: true })).toHaveAttribute("aria-current", "page");
     await students.getByRole("link", { name: "Student overview", exact: true }).click();
     await expect(mentor.getByRole("heading", { name: "Student overview", exact: true })).toBeVisible();
     await settled(mentor); await mentor.screenshot({ path: path.join(screenshots, "navigation-mentor.png"), fullPage: true });

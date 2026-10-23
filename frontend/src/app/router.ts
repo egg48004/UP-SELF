@@ -14,6 +14,16 @@ export const router = createRouter({
       component: AppLayout,
       children: [
         {
+          path: "student/self-efficacy",
+          component: () => import("../features/self-efficacy/pages/StudentSelfEfficacyPage.vue"),
+          meta: { roles: ["student"], permission: "efficacy:own:read" },
+        },
+        {
+          path: "mentor/self-efficacy/:studentId",
+          component: () => import("../features/self-efficacy/pages/MentorSelfEfficacyPage.vue"),
+          meta: { roles: ["mentor"], permission: "efficacy:students:read" },
+        },
+        {
           path: "",
           component: () =>
             import("../features/dashboard/pages/StudentHome.vue"),

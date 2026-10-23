@@ -28,7 +28,8 @@ const navigation = computed(() =>
         : "dashboard.adminNav",
 );
 const learningPaths = ["/student/courses", "/student/saved-courses", "/student/history"];
-const studentPaths = ["/mentor/students", "/mentor/mood"];
+const studentPaths = ["/mentor/students", "/mentor/mood", "/mentor/self-efficacy"];
+const checkInPaths = ["/student/mood", "/student/self-efficacy"];
 function within(path: string) {
   return route.path === path || route.path.startsWith(path + "/");
 }
@@ -42,7 +43,7 @@ const mainLinks = computed(() => {
       home,
       link("/student/courses", "navigation.myLearning", "📚", learningPaths),
       link("/student/assignments", "assignment.title", "📝"),
-      link("/student/mood", "mood.myMood", "🌤️"),
+      link("/student/mood", "efficacy.checkIn", "🧭", checkInPaths),
       ...(auth.can("goals:own") ? [link("/student/goals", "goal.title", "🌱")] : []),
     ];
   }
@@ -61,6 +62,12 @@ const mainLinks = computed(() => {
   ];
 });
 const sectionLinks = computed(() => {
+  if (auth.isStudent && checkInPaths.some(within)) {
+    return { label: t("efficacy.checkInSections"), items: [
+      link("/student/mood", "mood.myMood"),
+      ...(auth.can("efficacy:own:read") ? [link("/student/self-efficacy", "efficacy.title")] : []),
+    ] };
+  }
   if (auth.isStudent && learningPaths.some(within)) {
     return {
       label: t("navigation.learningSections"),
@@ -72,11 +79,17 @@ const sectionLinks = computed(() => {
     };
   }
   if (auth.isMentor && studentPaths.some(within)) {
+    if (route.params.studentId) {
+      return { label: t("efficacy.studentCheckIns"), items: [
+        link("/mentor/mood/" + route.params.studentId, "mood.myMood"),
+        ...(auth.can("efficacy:students:read") ? [link("/mentor/self-efficacy/" + route.params.studentId, "efficacy.title")] : []),
+      ] };
+    }
     return {
       label: t("navigation.studentSections"),
       items: [
         link("/mentor/students", "progress.overview"),
-        link("/mentor/mood", "mood.studentMood"),
+        link("/mentor/mood", "efficacy.studentCheckIns"),
       ],
     };
   }
