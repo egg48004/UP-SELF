@@ -8,6 +8,7 @@ import type { Course, Chapter, Post, Member, State } from "../types";
 import type { Candidate } from "../../accounts/api";
 import AsyncState from "../../../shared/ui/AsyncState.vue";
 import { confirmAction } from "../../../shared/ui/confirm";
+import CourseFacts from "../components/CourseFacts.vue";
 import CourseForm from "../components/CourseForm.vue";
 import CourseMemberPicker from "../components/CourseMemberPicker.vue";
 import PostEditor from "../components/PostEditor.vue";
@@ -161,6 +162,7 @@ watch(id, load, { immediate: true });
         <p class="plain-text">
           {{ course.description }}
         </p>
+        <CourseFacts :course="course" />
         <p v-if="!editable" class="notice">
           {{ t("archivedHelp") }}
         </p>

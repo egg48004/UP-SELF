@@ -65,7 +65,7 @@ Flyway 脚本位于 `up-self-admin/src/main/resources/db/draft`，已执行脚�
 
 双击 `build.cmd` 或按 Ctrl+Shift+B，包含单元测试。完整集成检查可在停止应用、保留数据库与 Redis 的情况下，用 Python3 运行 `scripts/verify-local.py`。检查时按需重新生成临时日志和结果，不保留旧验收产物。
 
-接口见 `docs/API接口说明.md`。学习模块接口见 `docs/Learning-backend-API.md`。当前数据库版本为 V5：V3 学习、V4 作业、V5 每周心情；原迁移保持不变，后端启动只应用缺失版本。换电脑可选择空库首次迁移或完整恢复匹配的数据和文件。
+接口见 `docs/API接口说明.md`。学习模块接口见 `docs/Learning-backend-API.md`。当前数据库版本为 V6：V3 学习、V4 作业、V5 每周心情、V6 课程信息与学习进度；原迁移保持不变，后端启动只应用缺失版本。换电脑可选择空库首次迁移或完整恢复匹配的数据和文件。
 
 ## 前端环境与命令
 
@@ -84,3 +84,5 @@ Vite使用Node24原生配置加载，避免额外打包配置；常规开发依�
 入口账号：student01 选择 Student；mentor01 选择 Mentor；admin01 选择 Administrator；maintenance 仅内部登录入口。初始密码在 config/application-local.yml 的 bootstrap.passwords，完整恢复后以数据库现有密码为准。课程中的示例视频和明确标注的会议示例可替换为实际教学内容。
 
 具体实现、按钮检查范围和 FR 差异见学习、作业、心情各模块交付说明。前端按功能组织，HTTP 不依赖业务 store 或 router；学习、作业与心情均已接通后端。此次换电脑恢复及发布验证见 [本次发布与迁移验收](docs/本次发布与迁移验收.md)。
+
+学习进度、继续学习、学习历史、导师学生概览及演示数据说明见 [学习进度与导师概览交付验收](docs/学习进度与导师概览交付验收.md)。

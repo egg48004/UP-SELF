@@ -100,6 +100,8 @@ public class LearningServiceImpl implements ILearningService {
         Course c = new Course();
         c.setTitle(b.getTitle());
         c.setDescription(b.getDescription());
+        c.setDifficulty(b.getDifficulty());
+        c.setEstimatedMinutes(b.getEstimatedMinutes());
         c.setLanguageCode(b.getLanguageCode());
         c.setCreatedBy(actor().getUserId());
         mapper.insertCourse(c);
@@ -113,6 +115,8 @@ public class LearningServiceImpl implements ILearningService {
         Course c = get(id, true);
         c.setTitle(b.getTitle());
         c.setDescription(b.getDescription());
+        c.setDifficulty(b.getDifficulty());
+        c.setEstimatedMinutes(b.getEstimatedMinutes());
         c.setLanguageCode(b.getLanguageCode());
         mapper.updateCourse(c);
         record("COURSE_EDIT", id);

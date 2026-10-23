@@ -587,11 +587,11 @@ test("real administrator → mentor → student learning workflow", async ({
     await admin.getByPlaceholder("Username", { exact: true }).fill("student01");
     await admin.getByRole("button", { name: "Search", exact: true }).click();
     await expect(
-      admin.getByRole("row").filter({ hasText: "student01" }),
+      admin.getByRole("row").filter({ has: admin.getByRole("cell", { name: "student01", exact: true }) }),
     ).toHaveCount(1);
     await admin
       .getByRole("row")
-      .filter({ hasText: "student01" })
+      .filter({ has: admin.getByRole("cell", { name: "student01", exact: true }) })
       .getByRole("button", { name: "Edit", exact: true })
       .click();
     dialog = admin.getByRole("dialog", { name: "Edit", exact: true });

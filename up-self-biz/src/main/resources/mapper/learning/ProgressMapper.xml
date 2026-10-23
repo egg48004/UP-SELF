@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.upself.biz.learning.mapper.ProgressMapper">
+ <select id="chapters" resultType="com.upself.biz.learning.dto.ProgressViews$Item">
+  SELECT ch.id AS chapter_id,ch.title AS chapter_title,ch.course_id,p.completed_at,p.last_visited_at
+  FROM learning_chapter ch LEFT JOIN learning_chapter_progress p ON p.chapter_id=ch.id AND p.student_id=#{studentId}
+  WHERE ch.course_id=#{courseId} AND ch.deleted=0 AND ch.status='PUBLISHED' ORDER BY ch.sort_order,ch.id
+ </select>
+ <insert id="visit">
+  INSERT INTO learning_chapter_progress(student_id,chapter_id,last_visited_at) VALUES(#{studentId},#{chapterId},NOW(6))
+  ON DUPLICATE KEY UPDATE last_visited_at=NOW(6)
+ </insert>
+ <insert id="complete">
+  INSERT INTO learning_chapter_progress(student_id,chapter_id,last_visited_at,completed_at)
+  VALUES(#{studentId},#{chapterId},NOW(6),IF(#{completed},NOW(6),NULL))
+  ON DUPLICATE KEY UPDATE completed_at=IF(#{completed},COALESCE(completed_at,NOW(6)),NULL)
+ </insert>
+ <select id="history" resultType="com.upself.biz.learning.dto.ProgressViews$Item">
+  SELECT ch.id AS chapter_id,ch.title AS chapter_title,c.id AS course_id,c.title AS course_title,p.completed_at,p.last_visited_at
+  FROM learning_chapter_progress p JOIN learning_chapter ch ON ch.id=p.chapter_id
+  JOIN learning_course c ON c.id=ch.course_id
+  JOIN learning_enrollment e ON e.course_id=c.id AND e.student_id=p.student_id AND e.active=1
+  WHERE p.student_id=#{studentId} AND p.completed_at IS NOT NULL AND ch.deleted=0 AND ch.status='PUBLISHED'
+  AND c.deleted=0 AND c.status='PUBLISHED' ORDER BY p.completed_at DESC,ch.id DESC
+ </select>
+ <select id="resume" resultType="com.upself.biz.learning.dto.ProgressViews$Item">
+ SELECT ch.id AS chapter_id,ch.title AS chapter_title,c.id AS course_id,c.title AS course_title,p.last_visited_at
+ FROM learning_chapter_progress p JOIN learning_chapter ch ON ch.id=p.chapter_id JOIN learning_course c ON c.id=ch.course_id
+ JOIN learning_enrollment e ON e.course_id=c.id AND e.student_id=p.student_id AND e.active=1
+ WHERE p.student_id=#{studentId} AND ch.deleted=0 AND ch.status='PUBLISHED' AND c.deleted=0 AND c.status='PUBLISHED'
+ ORDER BY p.last_visited_at DESC,ch.id DESC LIMIT 1
+ </select>
+ <!-- One row per current student/course. Counts contain no answers or private mood notes. -->
+ <select id="overview" resultType="com.upself.biz.learning.dto.ProgressViews$Overview">
+  SELECT s.id AS student_id,s.nick_name AS student_name,s.user_name AS username,c.id AS course_id,c.title AS course_title,
+  (SELECT COUNT(*) FROM learning_chapter ch WHERE ch.course_id=c.id AND ch.deleted=0 AND ch.status='PUBLISHED') AS total_chapters,
+  (SELECT COUNT(*) FROM learning_chapter ch JOIN learning_chapter_progress p ON p.chapter_id=ch.id WHERE p.student_id=s.id AND p.completed_at IS NOT NULL AND ch.course_id=c.id AND ch.deleted=0 AND ch.status='PUBLISHED') AS completed_chapters,
+  (SELECT COUNT(*) FROM assignment a WHERE a.course_id=c.id AND a.status='PUBLISHED') AS assignment_count,
+  (SELECT COUNT(*) FROM assignment a JOIN assignment_submission sub ON sub.assignment_id=a.id WHERE sub.student_id=s.id AND a.course_id=c.id AND a.status='PUBLISHED' AND sub.status='SUBMITTED') AS submitted_count,
+  (SELECT COUNT(*) FROM assignment a JOIN assignment_submission sub ON sub.assignment_id=a.id WHERE sub.student_id=s.id AND a.course_id=c.id AND a.status='PUBLISHED' AND sub.status='GRADED') AS graded_count,
+  (SELECT COUNT(*) FROM assignment a JOIN assignment_submission sub ON sub.assignment_id=a.id WHERE sub.student_id=s.id AND a.course_id=c.id AND a.status='PUBLISHED' AND sub.status='RETURNED') AS returned_count,
+  me.mood_level,DATE_FORMAT(me.week_start,'%Y-%m-%d') AS mood_week
+  FROM learning_course c JOIN learning_enrollment e ON e.course_id=c.id AND e.active=1
+  JOIN sys_user s ON s.id=e.student_id AND s.role_id=10 AND s.status='0'
+  LEFT JOIN mood_notice_ack ack ON ack.student_id=s.id AND ack.notice_version=#{noticeVersion}
+  LEFT JOIN mood_entry me ON me.student_id=ack.student_id AND me.week_start=(SELECT MAX(m.week_start) FROM mood_entry m WHERE m.student_id=s.id)
+  WHERE c.mentor_id=#{mentorId} AND c.deleted=0 AND c.status='PUBLISHED'
+  <if test="courseId != null">AND c.id=#{courseId}</if>
+  <if test="keyword != null and keyword != ''">AND (LOCATE(#{keyword},s.nick_name)&gt;0 OR LOCATE(#{keyword},s.user_name)&gt;0 OR LOCATE(#{keyword},c.title)&gt;0)</if>
+  ORDER BY c.id,s.id
+ </select>
+</mapper>

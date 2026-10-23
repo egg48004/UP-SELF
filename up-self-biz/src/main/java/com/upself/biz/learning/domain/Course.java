@@ -8,6 +8,8 @@ public class Course {
     private String title;
     private String description;
     private String languageCode;
+    private String difficulty;
+    private Integer estimatedMinutes;
     private Long mentorId;
     private String mentorName;
     private String status;

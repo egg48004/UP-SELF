@@ -1,7 +1,9 @@
 import mood from "../../features/mood/messages";
 import assignment from "../../features/assignments/messages";
 import dashboard from "../../features/dashboard/messages";
+import progress from "../../features/learning/messages";
 export default {
+  progress,
   mood,
   assignment,
   dashboard,

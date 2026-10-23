@@ -7,6 +7,15 @@ import javax.validation.constraints.*;
 public final class LearningBodies {
     @Data
     public static class CourseInput {
+        @NotNull(message = "{field.required}")
+        @Pattern(regexp = "BEGINNER|INTERMEDIATE|ADVANCED", message = "Choose a valid difficulty.")
+        private String difficulty = "BEGINNER";
+
+        @NotNull(message = "{field.required}")
+        @Min(value = 1, message = "Estimated time must be at least one minute.")
+        @Max(value = 10080, message = "Estimated time must be at most 10080 minutes.")
+        private Integer estimatedMinutes = 30;
+
         @NotBlank(message = "{field.required}")
         @Size(max = 150, message = "{field.tooLong}")
         private String title;

@@ -17,7 +17,6 @@ import org.springframework.transaction.annotation.*;
 
 @Service
 public class MoodServiceImpl implements IMoodService {
-  public static final String NOTICE_VERSION = "2026-10-22-v1";
   @Autowired private MoodMapper mapper;
   @Autowired private MoodCalendar calendar;
   @Autowired private SysAuditMapper audit;

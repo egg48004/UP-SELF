@@ -51,3 +51,19 @@
 列表统一使用 BaseController/startPage/getDataTable 和 TableDataInfo，顶层code/msg/rows/total保持不变。current为正式页码，暂兼容旧pageNum；两者同时出现以current为准。
 
 GET `/system/user/candidates` 要求 `learning:course:assign`，参数role仅student/mentor，keyword、current、pageSize。只返回有效角色下启用账号的id/userName/nickName，不返回密码。getInfo增加布尔totpEnabled，前端据此隐藏未启用的验证器维护操作。
+
+
+## V6：课程信息、学习进度与导师概览（2026-10-23）
+
+课程创建/更新增加 `difficulty`（BEGINNER/INTERMEDIATE/ADVANCED，默认 BEGINNER）和 `estimatedMinutes`（1～10080，默认30）。旧课程的默认值需要管理员按真实课程编辑，不是系统测量。
+
+| 方法 | 路径 | 返回/权限 |
+|---|---|---|
+| GET | /client/learning/courses/{id}/progress | AjaxResult.data：total、completed、percent、lastChapterId、chapters；学生本人、已加入已发布课程 |
+| POST | /client/learning/chapters/{id}/visit | 记录本人最后访问时间；不标记完成 |
+| PUT | /client/learning/chapters/{id}/completion | body `{ "completed": true }`，false 可撤销；重复 true 不重写完成时间 |
+| GET | /client/learning/resume | 最近可访问课程/章节；无记录遵循原 AjaxResult 返回 data={}，前端归一成 null |
+| GET | /client/learning/history | TableDataInfo rows/total；current/pageSize；当前仍可访问的已完成章节 |
+| GET | /learning/students/overview | TableDataInfo；current/pageSize、keyword、可选courseId；仅当前负责已发布课程的导师 |
+
+导师概览每行对应一个学生和课程，含章节完成数、已发布作业总数、待批改/已评分/退回数及最近共享心情的等级和周。没有作业正文、附件、私人备注。学生提交状态 DRAFT/无提交计入未提交；归档作业不计数。管理员/maintenance 通配权限也无法绕过 Service 的导师角色检查。

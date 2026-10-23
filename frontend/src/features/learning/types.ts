@@ -3,6 +3,8 @@ export interface Course {
   id: number;
   title: string;
   description: string;
+  difficulty: "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
+  estimatedMinutes: number;
   languageCode: string;
   mentorId: number | null;
   mentorName?: string;
@@ -11,6 +13,8 @@ export interface Course {
 export interface CourseBody {
   title: string;
   description: string;
+  difficulty: "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
+  estimatedMinutes: number;
   languageCode: string;
 }
 export interface Chapter {

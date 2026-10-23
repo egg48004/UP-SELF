@@ -40,6 +40,18 @@ export const router = createRouter({
           meta: { roles: ["admin"] },
         },
         {
+          path: "student/history",
+          component: () =>
+            import("../features/learning/pages/LearningHistoryPage.vue"),
+          meta: { roles: ["student"] },
+        },
+        {
+          path: "mentor/students",
+          component: () =>
+            import("../features/learning/pages/StudentOverviewPage.vue"),
+          meta: { roles: ["mentor"] },
+        },
+        {
           path: "student/courses",
           component: () =>
             import("../features/learning/pages/StudentCoursesPage.vue"),

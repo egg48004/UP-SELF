@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
+import CourseFacts from "./CourseFacts.vue";
 import type { Course } from "../types";
 defineProps<{ course: Course; index: number }>();
 const { t } = useI18n();
@@ -15,6 +16,7 @@ const { t } = useI18n();
       <p class="course-summary">
         {{ course.description }}
       </p>
+      <CourseFacts :course="course" />
       <RouterLink class="button-link" :to="'/student/courses/' + course.id">
         {{ t("openCourse") }} <span aria-hidden="true">→</span>
       </RouterLink>

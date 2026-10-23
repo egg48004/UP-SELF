@@ -6,6 +6,7 @@ import com.upself.biz.mood.dto.MoodViews.*;
 import java.util.List;
 
 public interface IMoodService {
+  String NOTICE_VERSION = "2026-10-22-v1";
   Current current();
 
   Current acknowledge(Acknowledgment body);

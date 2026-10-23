@@ -42,7 +42,7 @@ for generated, title_pattern in records:
   for key in assignment_keys.splitlines():
    base=(root/'.local/uploads/assignments').resolve();file=(base/key).resolve()
    if base in file.parents and file.is_file():file.unlink()
-  auth.sql('UPDATE learning_resource SET caption_resource_id=NULL WHERE chapter_id IN(SELECT id FROM learning_chapter WHERE course_id='+str(cid)+');DELETE FROM learning_resource WHERE chapter_id IN(SELECT id FROM learning_chapter WHERE course_id='+str(cid)+');DELETE FROM learning_post WHERE course_id='+str(cid)+';DELETE FROM learning_chapter WHERE course_id='+str(cid)+';DELETE FROM learning_enrollment WHERE course_id='+str(cid)+';DELETE FROM learning_course WHERE id='+str(cid)+';')
+  auth.sql('UPDATE learning_resource SET caption_resource_id=NULL WHERE chapter_id IN(SELECT id FROM learning_chapter WHERE course_id='+str(cid)+');DELETE FROM learning_resource WHERE chapter_id IN(SELECT id FROM learning_chapter WHERE course_id='+str(cid)+');DELETE FROM learning_post WHERE course_id='+str(cid)+';DELETE FROM learning_chapter_progress WHERE chapter_id IN(SELECT id FROM learning_chapter WHERE course_id='+str(cid)+');DELETE FROM learning_chapter WHERE course_id='+str(cid)+';DELETE FROM learning_enrollment WHERE course_id='+str(cid)+';DELETE FROM learning_course WHERE id='+str(cid)+';')
   for key in rows.splitlines():
    file=(root/'.local/uploads'/key).resolve();base=(root/'.local/uploads').resolve()
    if base in file.parents and file.is_file():file.unlink()

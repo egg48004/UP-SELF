@@ -11,6 +11,8 @@ const props = defineProps<{ course?: Course }>(),
 const form = reactive({
   title: props.course?.title || "",
   description: props.course?.description || "",
+  difficulty: props.course?.difficulty || "BEGINNER",
+  estimatedMinutes: props.course?.estimatedMinutes || 30,
   languageCode: props.course?.languageCode || "en",
 });
 async function submit() {
@@ -47,18 +49,35 @@ async function submit() {
       maxlength="35"
       pattern="[a-zA-Z]{2,3}(-[a-zA-Z0-9]{2,8})*"
     />
+    <label for="course-difficulty">{{ t("progress.difficulty") }}</label>
+    <select id="course-difficulty" v-model="form.difficulty">
+      <option
+        v-for="d in ['BEGINNER', 'INTERMEDIATE', 'ADVANCED']"
+        :key="d"
+        :value="d"
+      >
+        {{ t("progress." + d) }}
+      </option>
+    </select>
+    <label for="course-minutes">{{ t("progress.estimatedMinutes") }}</label><input
+      id="course-minutes"
+      v-model.number="form.estimatedMinutes"
+      type="number"
+      min="1"
+      max="10080"
+      required
+    />
+    <p class="muted">
+      {{ t("progress.timeHelp") }}
+    </p>
     <p v-if="error" class="notice error" role="alert">
       {{ error }}
     </p>
     <div class="actions">
       <el-button native-type="submit" type="primary" :loading="busy">
-        {{
-          t("save")
-        }}
+        {{ t("save") }}
       </el-button><el-button :disabled="busy" @click="emit('cancel')">
-        {{
-          t("cancel")
-        }}
+        {{ t("cancel") }}
       </el-button>
     </div>
   </form>

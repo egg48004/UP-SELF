@@ -44,7 +44,8 @@
         "cwd": "${workspaceFolder:UP-SELF}",
         "args": "--spring.config.additional-location=file:./config/",
         "console": "internalConsole",
-        "vmArgs": "-Dfile.encoding=UTF-8"
+        "vmArgs": "-Dfile.encoding=UTF-8",
+        "preLaunchTask": "UP-SELF prepare backend"
       },
       {
         "type": "node",
@@ -76,6 +77,24 @@
           "UP-SELF · Frontend"
         ],
         "stopAll": true
+      }
+    ]
+  },
+  "tasks": {
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "UP-SELF prepare backend",
+        "type": "process",
+        "command": "powershell.exe",
+        "args": [
+          "-NoProfile",
+          "-ExecutionPolicy",
+          "Bypass",
+          "-File",
+          "${workspaceFolder:UP-SELF}/scripts/prepare-debug.ps1"
+        ],
+        "problemMatcher": []
       }
     ]
   }

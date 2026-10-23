@@ -234,7 +234,9 @@ test("all remaining management actions, pagination and ownership boundaries", as
       page.getByRole("button", { name: "Save and sign out" }),
     ).toBeVisible();
     await page.getByRole("button", { name: "Sign out", exact: true }).click();
+    await expect(page).toHaveURL(/\/login$/);
     await page.goto("/#/internal/login");
+    await expect(page.getByLabel("Choose your role", { exact: true })).not.toBeVisible();
     await page.getByLabel("Username", { exact: true }).fill("maintenance");
     await page
       .getByLabel("Password", { exact: true })

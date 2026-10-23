@@ -80,8 +80,14 @@ async function logout() {
           v-if="auth.isStudent || auth.isMentor"
           :to="auth.isStudent ? '/student/mood' : '/mentor/mood'"
         >
-          <span v-if="auth.isStudent" aria-hidden="true">🌤️ </span>{{
-            t(auth.isStudent ? "mood.myMood" : "mood.studentMood")
+          <span v-if="auth.isStudent" aria-hidden="true">🌤️ </span>{{ t(auth.isStudent ? "mood.myMood" : "mood.studentMood") }}
+        </RouterLink>
+        <RouterLink v-if="auth.isStudent" to="/student/history">
+          📖 {{ t("progress.history") }}
+        </RouterLink>
+        <RouterLink v-if="auth.isMentor" to="/mentor/students">
+          {{
+            t("progress.overview")
           }}
         </RouterLink>
         <RouterLink v-if="auth.can('system:user:list')" to="/manage/accounts">

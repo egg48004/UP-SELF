@@ -199,6 +199,7 @@ input[type="checkbox"] {
   margin-left: 0.35rem;
 }
 .app-header {
+  flex-wrap: wrap;
   background: var(--surface);
   min-height: 88px;
   border-bottom: 1px solid var(--border-soft);
@@ -1038,3 +1039,27 @@ html[data-motion="true"] *:after {
   border-color: var(--primary);
   font-weight: 700;
 }
+
+.learning-progress {
+  margin-block: 1rem;
+}
+.learning-progress progress {
+  width: min(100%, 30rem);
+  display: block;
+  margin-block: 0.75rem;
+  accent-color: var(--primary);
+}
+.course-facts {
+  line-height: 1.7;
+}
+.completion-controls {
+  margin-block: 1rem;
+}
+.history-list {
+  padding: 0;
+  list-style: none;
+}
+
+.chapter-label { flex: 1; min-width: 0; }
+.chapter-label > span { display: block; }
+.chapter-completed { font-size: .85em; margin-top: .2rem; }

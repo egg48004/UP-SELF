@@ -28,6 +28,13 @@ onMounted(load);
     </p>
     <h1>{{ t("dashboard.mentorTitle") }}</h1>
     <p>{{ t("dashboard.mentorIntro") }}</p>
+    <section class="panel">
+      <h2>{{ t("progress.overview") }}</h2>
+      <p>{{ t("progress.overviewHelp") }}</p>
+      <RouterLink class="button-link" to="/mentor/students">
+        {{ t("progress.overview") }} →
+      </RouterLink>
+    </section>
     <div class="dashboard-grid">
       <section class="panel">
         <h2>{{ t("mood.studentMood") }}</h2>

@@ -144,7 +144,7 @@ if ($Action -eq 'Export') {
         if (-not (Test-Path -LiteralPath $original) -or (Get-SnapshotHash $original) -ne (Get-SnapshotHash $copied)) { throw 'A referenced upload changed during export. Pause application writes and retry.' }
     }
     $counts=[ordered]@{}
-    foreach ($table in @('sys_user','learning_course','learning_resource','assignment','assignment_submission','assignment_file','mood_notice_ack','mood_entry')) {
+    foreach ($table in @('sys_user','learning_course','learning_resource','assignment','assignment_submission','assignment_file','mood_notice_ack','mood_entry','learning_chapter_progress')) {
         $counts[$table]=[int](Invoke-Database -Sql "SELECT COUNT(*) FROM $table;" -Database $DatabaseName)
     }
     $files=[ordered]@{}

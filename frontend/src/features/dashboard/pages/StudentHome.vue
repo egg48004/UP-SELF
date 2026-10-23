@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
+import { progressApi } from "../../learning/progress";
+import type { LearningItem } from "../../learning/progress";
 import { learningApi } from "../../learning/api";
 import type { Course } from "../../learning/types";
 import { assignmentApi } from "../../assignments/api";
@@ -10,16 +12,19 @@ import AsyncState from "../../../shared/ui/AsyncState.vue";
 const { t } = useI18n(),
   courses = ref<Course[]>([]),
   work = ref<Assignment[]>([]),
+  resume = ref<LearningItem | null>(null),
   busy = ref(true),
   error = ref("");
 async function load() {
   busy.value = true;
   error.value = "";
   try {
-    const [c, a] = await Promise.all([
+    const [c, a, r] = await Promise.all([
       learningApi.courses({ current: 1, pageSize: 3 }),
       assignmentApi.list(1, "", undefined, false, 3),
+      progressApi.resume(),
     ]);
+    resume.value = r;
     courses.value = c.rows;
     work.value = a.rows;
   } catch (e) {
@@ -43,6 +48,20 @@ onMounted(load);
       </div>
     </div>
     <AsyncState :loading="busy" :error="error" @retry="load">
+      <section v-if="resume" class="panel learning-progress">
+        <h2>📖 {{ t("progress.resume") }}</h2>
+        <p>{{ resume.courseTitle }}</p>
+        <p>{{ t("progress.lastChapter", { title: resume.chapterTitle }) }}</p>
+        <RouterLink
+          class="button-link"
+          :to="{
+            path: '/student/courses/' + resume.courseId,
+            query: { chapterId: resume.chapterId },
+          }"
+        >
+          {{ t("progress.resume") }} →
+        </RouterLink>
+      </section>
       <div class="dashboard-grid">
         <section class="panel">
           <h2><span aria-hidden="true">🌤️ </span>{{ t("mood.myMood") }}</h2>
