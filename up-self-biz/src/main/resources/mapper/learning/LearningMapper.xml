@@ -2,7 +2,9 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.upself.biz.learning.mapper.LearningMapper">
  <sql id="courseColumns">c.id,c.title,c.description,c.difficulty,c.estimated_minutes,c.language_code,c.mentor_id,u.nick_name AS mentor_name,c.status,c.created_by,c.create_time,c.update_time</sql>
- <select id="courses" resultType="com.upself.biz.learning.domain.Course">SELECT <include refid="courseColumns"/> FROM learning_course c LEFT JOIN sys_user u ON c.mentor_id=u.id WHERE c.deleted=0
+ <select id="courses" resultType="com.upself.biz.learning.domain.Course">SELECT <include refid="courseColumns"/>,
+ <choose><when test="role == 'student'">EXISTS(SELECT 1 FROM learning_bookmark b WHERE b.course_id=c.id AND b.student_id=#{userId})</when><otherwise>0</otherwise></choose> AS bookmarked
+ FROM learning_course c LEFT JOIN sys_user u ON c.mentor_id=u.id WHERE c.deleted=0
  <choose><when test="role == 'student'">AND c.status='PUBLISHED' AND EXISTS(SELECT 1 FROM learning_enrollment e WHERE e.course_id=c.id AND e.student_id=#{userId} AND e.active=1)</when><when test="role == 'mentor'">AND c.mentor_id=#{userId}</when><otherwise>AND #{role} IN ('platform_admin','admin')</otherwise></choose>
  <if test="keyword != null and keyword != ''">AND LOCATE(#{keyword},c.title)&gt;0</if> ORDER BY c.id DESC</select>
  <select id="course" resultType="com.upself.biz.learning.domain.Course">SELECT <include refid="courseColumns"/> FROM learning_course c LEFT JOIN sys_user u ON c.mentor_id=u.id WHERE c.id=#{id} AND c.deleted=0</select>

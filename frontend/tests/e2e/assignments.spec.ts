@@ -158,7 +158,7 @@ test("three roles: publish, upload, return, resubmit, grade and read feedback", 
     const aid = Number(mentor.url().split("/").pop());
     const student = await login("student01", "student");
     await expect(
-      student.getByRole("heading", { name: "My learning", exact: true }),
+      student.getByRole("heading", { name: "Welcome back", exact: true }),
     ).toBeVisible();
     await expect(
       student

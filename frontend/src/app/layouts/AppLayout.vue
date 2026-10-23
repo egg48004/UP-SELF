@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { useAuthStore } from "../../features/auth/store";
+import NavigationLinks from "../../shared/ui/NavigationLinks.vue";
 const { t } = useI18n(),
   auth = useAuthStore(),
   router = useRouter(),
+  route = useRoute(),
   error = ref("");
 const role = computed(() =>
   auth.isStudent
@@ -25,6 +27,61 @@ const navigation = computed(() =>
         ? "dashboard.internalNav"
         : "dashboard.adminNav",
 );
+const learningPaths = ["/student/courses", "/student/saved-courses", "/student/history"];
+const studentPaths = ["/mentor/students", "/mentor/mood"];
+function within(path: string) {
+  return route.path === path || route.path.startsWith(path + "/");
+}
+function link(to: string, key: string, icon = "", paths = [to]) {
+  return { to, label: t(key), icon, active: paths.some(within) };
+}
+const mainLinks = computed(() => {
+  const home = link(auth.homePath, "dashboard.home", auth.isStudent ? "🏠" : "");
+  if (auth.isStudent) {
+    return [
+      home,
+      link("/student/courses", "navigation.myLearning", "📚", learningPaths),
+      link("/student/assignments", "assignment.title", "📝"),
+      link("/student/mood", "mood.myMood", "🌤️"),
+      ...(auth.can("goals:own") ? [link("/student/goals", "goal.title", "🌱")] : []),
+    ];
+  }
+  if (auth.isMentor) {
+    return [
+      home,
+      link("/manage/courses", "dashboard.teachingCourses"),
+      link("/mentor/assignments", "assignment.title"),
+      link("/mentor/students", "navigation.students", "", studentPaths),
+    ];
+  }
+  return [
+    home,
+    ...(auth.can("system:user:list") ? [link("/manage/accounts", "accounts")] : []),
+    link("/manage/courses", "dashboard.courseAllocation"),
+  ];
+});
+const sectionLinks = computed(() => {
+  if (auth.isStudent && learningPaths.some(within)) {
+    return {
+      label: t("navigation.learningSections"),
+      items: [
+        link("/student/courses", "myCourses"),
+        ...(auth.can("learning:bookmark:own") ? [link("/student/saved-courses", "bookmark.title")] : []),
+        link("/student/history", "progress.history"),
+      ],
+    };
+  }
+  if (auth.isMentor && studentPaths.some(within)) {
+    return {
+      label: t("navigation.studentSections"),
+      items: [
+        link("/mentor/students", "progress.overview"),
+        link("/mentor/mood", "mood.studentMood"),
+      ],
+    };
+  }
+  return null;
+});
 function focusContent() {
   document.getElementById("main")?.focus();
 }
@@ -53,50 +110,6 @@ async function logout() {
       <RouterLink class="brand" :to="auth.homePath">
         UP<span>SELF</span><i aria-hidden="true">✦</i>
       </RouterLink>
-      <nav class="main-nav" :aria-label="t(navigation)">
-        <RouterLink :to="auth.homePath">
-          {{ t("dashboard.home") }}
-        </RouterLink>
-        <RouterLink
-          :to="auth.isStudent ? '/student/courses' : '/manage/courses'"
-        >
-          <span v-if="auth.isStudent" aria-hidden="true">📚 </span>{{
-            t(
-              auth.isStudent
-                ? "myCourses"
-                : auth.isMentor
-                  ? "dashboard.teachingCourses"
-                  : "dashboard.courseAllocation",
-            )
-          }}
-        </RouterLink>
-        <RouterLink
-          v-if="auth.isStudent || auth.isMentor"
-          :to="auth.isStudent ? '/student/assignments' : '/mentor/assignments'"
-        >
-          <span v-if="auth.isStudent" aria-hidden="true">📝 </span>{{ t("assignment.title") }}
-        </RouterLink>
-        <RouterLink
-          v-if="auth.isStudent || auth.isMentor"
-          :to="auth.isStudent ? '/student/mood' : '/mentor/mood'"
-        >
-          <span v-if="auth.isStudent" aria-hidden="true">🌤️ </span>{{ t(auth.isStudent ? "mood.myMood" : "mood.studentMood") }}
-        </RouterLink>
-        <RouterLink v-if="auth.isStudent" to="/student/history">
-          📖 {{ t("progress.history") }}
-        </RouterLink>
-        <RouterLink v-if="auth.isMentor" to="/mentor/students">
-          {{
-            t("progress.overview")
-          }}
-        </RouterLink>
-        <RouterLink v-if="auth.can('system:user:list')" to="/manage/accounts">
-          {{ t("accounts") }}
-        </RouterLink>
-        <RouterLink v-if="auth.isStudent" to="/preferences">
-          Aa {{ t("preferences") }}
-        </RouterLink>
-      </nav>
       <div class="account-nav">
         <span class="role-badge">{{ t("dashboard." + role) }}</span><RouterLink to="/profile/security" :aria-label="t('profile')">
           {{ auth.user?.nickName }}
@@ -104,11 +117,27 @@ async function logout() {
           {{ t("signOut") }}
         </el-button>
       </div>
+      <RouterLink
+        v-if="auth.isStudent"
+        class="reading-settings-link"
+        to="/preferences"
+        :aria-label="t('preferences')"
+        :title="t('preferences')"
+      >
+        <span aria-hidden="true">Aa</span>
+      </RouterLink>
+      <NavigationLinks class="main-nav" :label="t(navigation)" :items="mainLinks" />
     </header>
     <main id="main" tabindex="-1" class="main-content">
       <p v-if="error" role="alert">
         {{ error }}
       </p>
+      <NavigationLinks
+        v-if="sectionLinks"
+        class="section-nav"
+        :label="sectionLinks.label"
+        :items="sectionLinks.items"
+      />
       <RouterView />
     </main>
     <footer>

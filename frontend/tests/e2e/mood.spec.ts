@@ -318,6 +318,7 @@ test("weekly mood: first-use notice, once-only save, private notes and current-m
     });
     await learner.setViewportSize({ width: 1365, height: 900 });
     const coach = await login(mentor.username, password, "mentor");
+    await coach.getByRole("navigation", { name: "Mentor navigation", exact: true }).getByRole("link", { name: "Students", exact: true }).click();
     await coach
       .getByRole("navigation")
       .getByRole("link", { name: "Student mood", exact: true })

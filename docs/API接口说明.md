@@ -31,7 +31,7 @@
 
 账号格式 `[A-Za-z0-9_.@-]{3,100}`；显示名最多60字符；新密码10–64字符。用户名创建后本版不支持改名。普通管理员不能修改维护账号，也不能调整另一个平台管理员的角色/状态以绕过凭证保护；自己的停用/降级也被拒绝。
 
-角色和菜单数据先用独立 Flyway 管理，不提供可任意授权通配权限的后台编辑接口；学习接口见 Learning-backend-API.md；作业和心情尚未开发。
+角色和菜单数据先用独立 Flyway 管理，不提供可任意授权通配权限的后台编辑接口。学习与收藏接口见[Learning-backend-API](Learning-backend-API.md)；作业、心情和个人目标已交付，分别见[作业说明](三角色与作业模块交付验收.md)、[心情说明](每周心情模块交付与验收.md)及[目标说明](个人学习目标FR23-FR24交付验收.md)。
 
 ## 返回约定
 
@@ -67,3 +67,15 @@ GET `/system/user/candidates` 要求 `learning:course:assign`，参数role仅stu
 | GET | /learning/students/overview | TableDataInfo；current/pageSize、keyword、可选courseId；仅当前负责已发布课程的导师 |
 
 导师概览每行对应一个学生和课程，含章节完成数、已发布作业总数、待批改/已评分/退回数及最近共享心情的等级和周。没有作业正文、附件、私人备注。学生提交状态 DRAFT/无提交计入未提交；归档作业不计数。管理员/maintenance 通配权限也无法绕过 Service 的导师角色检查。
+
+## V8：课程收藏（FR-07、08）
+
+学生权限`learning:bookmark:own`，只访问本人的收藏；学生身份和课程访问资格在后端校验。
+
+| 方法 | 路径 | 返回/用途 |
+|---|---|---|
+| GET | /client/learning/bookmarks?current=1&pageSize=10 | TableDataInfo；rows每项courseId/savedAt/available/course |
+| PUT | /client/learning/bookmarks/{courseId} | AjaxResult，收藏本人已加入且已发布的课程，无需body |
+| DELETE | /client/learning/bookmarks/{courseId} | AjaxResult，取消本人收藏；失效项仍可移除 |
+
+课程列表/详情增加当前学生`bookmarked`。失效项`course:null`不含原课程资料；重复保存/取消幂等。导师、管理员和maintenance无学生收藏权限。实现及验收见[收藏交付](课程收藏FR07-FR08交付验收.md)，FR-25之后再做。

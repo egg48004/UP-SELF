@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.upself.biz.goal.mapper.GoalMapper">
+    <sql id="columns">id, student_id, title, details, status, completed_at, create_time, update_time, version</sql>
+    <select id="list" resultType="com.upself.biz.goal.domain.PersonalGoal">
+        SELECT <include refid="columns"/> FROM personal_goal WHERE student_id=#{studentId}
+        <if test="status != null and status != ''">AND status=#{status}</if>
+        ORDER BY id DESC
+    </select>
+    <select id="own" resultType="com.upself.biz.goal.domain.PersonalGoal">
+        SELECT <include refid="columns"/> FROM personal_goal WHERE id=#{id} AND student_id=#{studentId}
+    </select>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO personal_goal(student_id,title,details) VALUES(#{studentId},#{title},#{details})
+    </insert>
+    <update id="edit">
+        UPDATE personal_goal SET title=#{title},details=#{details},version=version+1
+        WHERE id=#{id} AND student_id=#{studentId} AND version=#{version}
+    </update>
+    <update id="complete">
+        UPDATE personal_goal SET
+        completed_at=CASE WHEN #{completed} THEN COALESCE(completed_at,CURRENT_TIMESTAMP(6)) ELSE NULL END,
+        status=CASE WHEN #{completed} THEN 'COMPLETED' ELSE 'ACTIVE' END, version=version+1
+        WHERE id=#{id} AND student_id=#{studentId} AND version=#{version}
+    </update>
+    <delete id="delete">
+        DELETE FROM personal_goal WHERE id=#{id} AND student_id=#{studentId} AND version=#{version}
+    </delete>
+</mapper>

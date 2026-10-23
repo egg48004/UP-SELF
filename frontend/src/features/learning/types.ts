@@ -1,5 +1,6 @@
 export type State = "DRAFT" | "PUBLISHED" | "ARCHIVED";
 export interface Course {
+  bookmarked: boolean;
   id: number;
   title: string;
   description: string;

@@ -73,7 +73,7 @@ test("real administrator → mentor → student learning workflow", async ({
           ? user === "mentor01"
             ? "Teaching courses"
             : "Course allocation"
-          : /My courses/,
+          : /My learning/,
       })
       .click();
     record(user + " browser login");

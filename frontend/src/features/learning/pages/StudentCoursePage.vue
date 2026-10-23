@@ -5,6 +5,7 @@ import { useI18n } from "vue-i18n";
 import { learningApi } from "../api";
 import type { Course, Chapter, Post } from "../types";
 import CourseFacts from "../components/CourseFacts.vue";
+import BookmarkButton from "../components/BookmarkButton.vue";
 import { progressApi } from "../progress";
 import type { LearningProgress } from "../progress";
 import CourseReader from "../components/CourseReader.vue";
@@ -121,6 +122,7 @@ watch(() => route.params.id, load, { immediate: true });
             <h1>{{ course.title }}</h1>
             <p>{{ course.description }}</p>
             <CourseFacts :course="course" />
+            <BookmarkButton :course-id="course.id" :saved="course.bookmarked" :title="course.title" @changed="course.bookmarked = $event" />
           </div>
         </div>
         <section

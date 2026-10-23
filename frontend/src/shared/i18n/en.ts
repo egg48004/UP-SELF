@@ -2,11 +2,21 @@ import mood from "../../features/mood/messages";
 import assignment from "../../features/assignments/messages";
 import dashboard from "../../features/dashboard/messages";
 import progress from "../../features/learning/messages";
+import goal from "../../features/goals/messages";
+import bookmark from "../../features/learning/bookmarkMessages";
 export default {
+  bookmark,
+  goal,
   progress,
   mood,
   assignment,
   dashboard,
+  navigation: {
+    myLearning: "My learning",
+    students: "Students",
+    learningSections: "My learning sections",
+    studentSections: "Student sections",
+  },
   mainNavigation: "Main navigation",
   invalidValue: "Please check the format and length of this field.",
   loginTitle: "One small step. A new possibility.",

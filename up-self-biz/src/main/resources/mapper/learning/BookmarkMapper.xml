@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.upself.biz.learning.mapper.BookmarkMapper">
+    <resultMap id="savedCourse" type="com.upself.biz.learning.dto.SavedCourse">
+        <id property="courseId" column="bookmark_course_id"/>
+        <result property="savedAt" column="saved_at"/>
+        <association property="course" javaType="com.upself.biz.learning.domain.Course" notNullColumn="id">
+            <id property="id" column="id"/>
+            <result property="title" column="title"/>
+            <result property="description" column="description"/>
+            <result property="difficulty" column="difficulty"/>
+            <result property="estimatedMinutes" column="estimated_minutes"/>
+            <result property="languageCode" column="language_code"/>
+            <result property="mentorId" column="mentor_id"/>
+            <result property="mentorName" column="mentor_name"/>
+            <result property="status" column="status"/>
+            <result property="bookmarked" column="bookmarked"/>
+        </association>
+    </resultMap>
+    <!-- The access condition belongs in the JOIN, so unavailable entries expose no course data. -->
+    <select id="list" resultMap="savedCourse">
+        SELECT b.course_id AS bookmark_course_id,b.create_time AS saved_at,
+               c.id,c.title,c.description,c.difficulty,c.estimated_minutes,c.language_code,
+               c.mentor_id,u.nick_name AS mentor_name,c.status,1 AS bookmarked
+        FROM learning_bookmark b
+        LEFT JOIN learning_course c ON c.id=b.course_id AND c.deleted=0 AND c.status='PUBLISHED'
+            AND EXISTS(SELECT 1 FROM learning_enrollment e WHERE e.course_id=c.id
+                       AND e.student_id=#{studentId} AND e.active=1)
+        LEFT JOIN sys_user u ON u.id=c.mentor_id
+        WHERE b.student_id=#{studentId}
+        ORDER BY b.create_time DESC,b.course_id DESC
+    </select>
+    <select id="saved" resultType="boolean">
+        SELECT EXISTS(SELECT 1 FROM learning_bookmark WHERE student_id=#{studentId} AND course_id=#{courseId})
+    </select>
+    <insert id="save">
+        INSERT INTO learning_bookmark(student_id,course_id) VALUES(#{studentId},#{courseId})
+        ON DUPLICATE KEY UPDATE course_id=VALUES(course_id)
+    </insert>
+    <delete id="remove">
+        DELETE FROM learning_bookmark WHERE student_id=#{studentId} AND course_id=#{courseId}
+    </delete>
+</mapper>

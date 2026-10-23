@@ -8,7 +8,7 @@ export default defineConfig({
   reporter: "list",
   use: {
     actionTimeout: 10000,
-    baseURL: "http://127.0.0.1:5173",
+    baseURL: process.env.UPSELF_TEST_UI_URL || "http://127.0.0.1:5173",
     browserName: "chromium",
     channel: "chrome",
     headless: true,

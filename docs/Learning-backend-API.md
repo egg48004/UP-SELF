@@ -107,3 +107,11 @@ F5 started UpSelfApplication successfully on port 8080; VS Code reported No Prob
 ## P0 pagination alignment
 
 Controllers now extend the reference-style BaseController, use startPage()/getDataTable() and return TableDataInfo for paginated lists. The public page parameter is current; pageNum remains a temporary compatibility alias for existing clients. Both provided: current wins. Max page size remains 100. Non-paginated chapter/resource/post collections retain data arrays.
+
+## FR-07/08 course bookmarks (V8)
+
+Student permission: `learning:bookmark:own`. GET `/client/learning/bookmarks?current=1&pageSize=10` returns `rows,total,code,msg`. Each row contains `courseId,savedAt,available,course`. PUT and DELETE `/client/learning/bookmarks/{courseId}` save/remove the authenticated student's bookmark and return AjaxResult; no body or studentId is needed. Repeated saves/removals are idempotent. Existing course list/detail responses now include the current student's `bookmarked` boolean.
+
+Only enrolled, published, non-deleted courses may be saved. Inaccessible saved entries remain removable with `available:false,course:null`; their previous title/description/mentor are not exposed. Bookmarks do not grant enrollment or course access. Mentor, administrator and maintenance cannot use student bookmarks. No request parameter can select another owner.
+
+Source: `BookmarkController`, `BookmarkServiceImpl`, `BookmarkMapper.xml` and `V8__course_bookmarks.sql`. Reproduce the real API/Chrome workflow with `python scripts/verify-bookmarks.py --browser` while local frontend/backend are running. Full Chinese delivery notes: [FR-07/08](课程收藏FR07-FR08交付验收.md).

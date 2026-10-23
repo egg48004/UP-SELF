@@ -4,6 +4,7 @@ import lombok.Data;
 
 @Data
 public class Course {
+    private boolean bookmarked;
     private Long id;
     private String title;
     private String description;

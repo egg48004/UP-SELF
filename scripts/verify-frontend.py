@@ -61,4 +61,10 @@ shutil.rmtree(cpdir)
 (work/'ReadLocalYaml.class').unlink(missing_ok=True)
 print('Browser checks exit:',r.returncode)
 print(out.read_text(encoding='utf-8')[-5500:].encode('ascii',errors='replace').decode())
+if r.returncode == 0 and (not extra or any('goals' in item for item in extra)):
+ goal_result=subprocess.run([sys.executable,str(root/'scripts/verify-goals.py'),'--browser'],cwd=root)
+ if goal_result.returncode != 0:raise SystemExit(goal_result.returncode)
+if r.returncode == 0 and (not extra or any('bookmarks' in item for item in extra)):
+ bookmark_result=subprocess.run([sys.executable,str(root/'scripts/verify-bookmarks.py'),'--browser'],cwd=root)
+ if bookmark_result.returncode != 0:raise SystemExit(bookmark_result.returncode)
 raise SystemExit(r.returncode)

@@ -3,6 +3,7 @@ package com.upself.biz.learning.service.impl;
 import com.upself.biz.learning.domain.*;
 import com.upself.biz.learning.dto.LearningBodies.*;
 import com.upself.biz.learning.mapper.LearningMapper;
+import com.upself.biz.learning.mapper.BookmarkMapper;
 import com.upself.biz.learning.service.*;
 import com.upself.common.core.domain.entity.SysUser;
 import com.upself.common.core.domain.model.LoginUser;
@@ -23,6 +24,7 @@ import java.util.*;
 @Service
 public class LearningServiceImpl implements ILearningService {
     @Autowired private LearningMapper mapper;
+    @Autowired private BookmarkMapper bookmarks;
     @Autowired private SysUserMapper users;
     @Autowired private SysAuditMapper audit;
     @Autowired private LearningFileStorage files;
@@ -91,6 +93,7 @@ public class LearningServiceImpl implements ILearningService {
     public Course course(Long id) {
         Course c = get(id, false);
         readable(c, actor());
+        if (student(actor())) c.setBookmarked(bookmarks.saved(actor().getUserId(), id));
         return c;
     }
 

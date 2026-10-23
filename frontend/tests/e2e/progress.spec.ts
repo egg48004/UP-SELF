@@ -178,6 +178,7 @@ test("learning progress: administrator metadata, student completion/resume/histo
     ).toBe(true);
     await shot(s, "progress-history-mobile.png");
     const m = await login(mentor.username, mentor.password, "mentor");
+    await m.getByRole("navigation", { name: "Mentor navigation", exact: true }).getByRole("link", { name: "Students", exact: true }).click();
     await m
       .getByRole("navigation")
       .getByRole("link", { name: "Student overview", exact: true })

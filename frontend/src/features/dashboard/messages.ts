@@ -3,7 +3,7 @@ export default {
   mentor: "Mentor",
   administrator: "Administrator",
   internal: "Internal maintenance",
-  studentTitle: "My learning",
+  studentTitle: "Welcome back",
   studentIntro: "One small step at a time.",
   mentorTitle: "Teaching workspace",
   mentorIntro: "Your courses, learning content and student work.",

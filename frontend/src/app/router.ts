@@ -40,6 +40,11 @@ export const router = createRouter({
           meta: { roles: ["admin"] },
         },
         {
+          path: "student/goals",
+          component: () => import("../features/goals/pages/GoalsPage.vue"),
+          meta: { roles: ["student"], permission: "goals:own" },
+        },
+        {
           path: "student/history",
           component: () =>
             import("../features/learning/pages/LearningHistoryPage.vue"),
@@ -50,6 +55,11 @@ export const router = createRouter({
           component: () =>
             import("../features/learning/pages/StudentOverviewPage.vue"),
           meta: { roles: ["mentor"] },
+        },
+        {
+          path: "student/saved-courses",
+          component: () => import("../features/learning/pages/SavedCoursesPage.vue"),
+          meta: { roles: ["student"], permission: "learning:bookmark:own" },
         },
         {
           path: "student/courses",
