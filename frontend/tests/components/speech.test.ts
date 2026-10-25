@@ -62,7 +62,7 @@ describe("lesson reading controls", () => {
       resume: vi.fn(),
       getVoices: vi.fn(() => [
         {
-          name: "English local",
+          name: "Samantha",
           voiceURI: "english",
           lang: "en-US",
           localService: true,
@@ -110,13 +110,72 @@ describe("lesson reading controls", () => {
     await button("Read aloud").trigger("click");
     await wrapper.get("#reading-speed").setValue("0.85");
     expect(button("Read aloud")).toBeDefined();
-    await wrapper.get("#reading-voice").setValue("english|en-US|English local");
+    await wrapper.get("#reading-voice").setValue("english|en-US|Samantha");
     await button("Read aloud").trigger("click");
     expect(engine.speak.mock.calls.at(-1)![0]).toMatchObject({
       rate: 0.85,
       pitch: 1,
       lang: "en-US",
-      voice: { name: "English local" },
+      voice: { name: "Samantha" },
+    });
+  });
+  it("shows only three ordinary voices and two speeds", async () => {
+    engine.getVoices.mockReturnValue(
+      [
+        "Zarvox",
+        "Whisper",
+        "Cellos",
+        "Bubbles",
+        "Samantha",
+        "Alex",
+        "Daniel",
+        "Karen",
+        "Moira",
+      ].map((name) => ({
+        name,
+        voiceURI: name,
+        lang: "en-US",
+        localService: true,
+        default: false,
+      })),
+    );
+    await render();
+    const options = wrapper.findAll("#reading-voice option");
+    expect(options).toHaveLength(4); // Automatic plus at most three voices.
+    expect(options[0]!.text()).toBe("Automatic");
+    expect(options.slice(1).map((option) => option.text())).toEqual([
+      "Alex (en-US)",
+      "Daniel (en-US)",
+      "Karen (en-US)",
+    ]);
+    expect(
+      wrapper.findAll("#reading-speed option").map((option) => option.text()),
+    ).toEqual(["Slower", "Normal"]);
+    await button("Read aloud").trigger("click");
+    expect(engine.speak.mock.calls[0]![0]).toMatchObject({
+      voice: { name: "Alex" },
+      rate: 1,
+    });
+  });
+  it("displays Automatic and Normal for an old effect voice and fast speed", async () => {
+    localStorage.setItem(
+      "upself.speech.v1",
+      JSON.stringify({
+        voice: "effect|en-US|Whisper",
+        rate: 1.15,
+      }),
+    );
+    await render();
+    expect(
+      (wrapper.get("#reading-voice").element as HTMLSelectElement).value,
+    ).toBe("");
+    expect(
+      (wrapper.get("#reading-speed").element as HTMLSelectElement).value,
+    ).toBe("1");
+    await button("Read aloud").trigger("click");
+    expect(engine.speak.mock.calls[0]![0]).toMatchObject({
+      voice: { name: "Samantha" },
+      rate: 1,
     });
   });
   it("video playback stops speech and resets the lesson buttons", async () => {

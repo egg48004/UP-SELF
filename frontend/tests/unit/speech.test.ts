@@ -13,7 +13,7 @@ import {
 } from "../../src/features/preferences/speechText";
 
 const english = {
-  name: "English local",
+  name: "Microsoft Zira Desktop - English (United States)",
   lang: "en-US",
   voiceURI: "english",
   localService: true,
@@ -203,9 +203,58 @@ describe("read aloud playback", () => {
   });
   it("shows a fallback instead of reading English with a different-language voice", async () => {
     engine.getVoices.mockReturnValue([chinese]);
-    await speech.read("Hello.");
+    const pending = speech.read("Hello.");
+    await vi.advanceTimersByTimeAsync(2000);
+    await pending;
     expect(speech.error.value).toBe("speechUnavailable");
     expect(spoken).toHaveLength(0);
+  });
+  it("never falls back to a novelty voice even when it is the system default", async () => {
+    engine.getVoices.mockReturnValue([
+      { ...english, name: "Zarvox", default: true },
+      { ...english, name: "Whisper" },
+    ]);
+    const pending = speech.read("Hello.");
+    await vi.advanceTimersByTimeAsync(2000);
+    await pending;
+    expect(speech.error.value).toBe("speechUnavailable");
+    expect(speech.preparing.value).toBe(false);
+    expect(spoken).toHaveLength(0);
+  });
+  it("keeps waiting when novelty voices arrive before an ordinary voice", async () => {
+    engine.getVoices.mockReturnValue([{ ...english, name: "Bubbles" }]);
+    const pending = speech.read("Hello.");
+    expect(speech.preparing.value).toBe(true);
+    engine.getVoices.mockReturnValue([english]);
+    engine.dispatchEvent(new Event("voiceschanged"));
+    await pending;
+    expect(spoken[0]?.voice).toBe(english);
+  });
+  it("replaces an old novelty preference and a saved fast speed with safe defaults", async () => {
+    const effect = { ...english, name: "Cellos", voiceURI: "effect" };
+    engine.getVoices.mockReturnValue([effect, english]);
+    localStorage.setItem(
+      "upself.speech.v1",
+      JSON.stringify({
+        voice: voiceKey(effect),
+        rate: 1.15,
+      }),
+    );
+    const second = reader().controller;
+    expect(second.rate.value).toBe(1);
+    await second.read("Hello.");
+    expect(spoken[0]?.voice).toBe(english);
+    expect(second.selectedVoice.value).toBe("");
+    expect(JSON.parse(localStorage.getItem("upself.speech.v1")!)).toEqual({
+      voice: "",
+      rate: 1,
+    });
+  });
+  it("rejects a voice selection outside the displayed list", async () => {
+    speech.setVoice("effect|en-US|Whisper");
+    expect(speech.selectedVoice.value).toBe("");
+    await speech.read("Hello.");
+    expect(spoken[0]?.voice).toBe(english);
   });
   it("times out an empty voice list", async () => {
     engine.getVoices.mockReturnValue([]);
@@ -282,11 +331,90 @@ describe("speech text and voice matching", () => {
   it("never cuts a surrogate pair in a long unbroken token", () => {
     expect(splitSpeechText("😀".repeat(300)).join("")).toBe("😀".repeat(300));
   });
-  it("prefers a local language-matching voice and keeps natural voices available", () => {
-    const remote = { ...english, name: "Remote English", localService: false };
-    const natural = { ...english, name: "Natural English" };
+  it("prefers ordinary local voices and keeps an ordinary remote alternative", () => {
+    const remote = {
+      ...english,
+      name: "Google US English",
+      localService: false,
+    };
+    const natural = { ...english, name: "Samantha (Enhanced)" };
     expect(
       matchingVoices([chinese, remote, english, natural], "EN_gb"),
     ).toEqual([natural, english, remote]);
+  });
+  it("excludes novelty, robotic, unknown and incorrectly labelled voices", () => {
+    const unsuitable = [
+      "Albert",
+      "Bad News",
+      "Bells",
+      "Boing",
+      "Bubbles",
+      "Cellos",
+      "Good News",
+      "Jester",
+      "Organ",
+      "Pipe Organ",
+      "Trinoids",
+      "Whisper",
+      "Wobble",
+      "Zarvox",
+      "Fred",
+      "Superstar",
+      "Novel Natural Voice",
+      "Samantha (Whisper)",
+      "Google US English (Robot)",
+    ].map((name) => ({ ...english, name, default: true }));
+    expect(
+      matchingVoices([...unsuitable, { ...english, lang: "zh-CN" }], "en"),
+    ).toEqual([]);
+    expect(matchingVoices([english], "fr")).toEqual([]);
+  });
+  it("limits the menu to three distinct ordinary voices regardless of list size", () => {
+    const voices = [
+      "Samantha",
+      "Alex",
+      "Daniel",
+      "Karen",
+      "Moira",
+      "Tessa",
+    ].map((name) => ({ ...english, name, voiceURI: name }));
+    const original = [...voices];
+    expect(matchingVoices(voices, "en")).toHaveLength(3);
+    expect(matchingVoices([...voices].reverse(), "en")).toEqual(
+      matchingVoices(voices, "en"),
+    );
+    expect(voices).toEqual(original);
+  });
+  it("shows one variant of a voice and normalizes language tags", () => {
+    const basic = {
+      ...english,
+      name: "Samantha",
+      voiceURI: "basic",
+      lang: "en_US",
+    };
+    const enhanced = {
+      ...basic,
+      name: "Samantha (Enhanced)",
+      voiceURI: "enhanced",
+    };
+    expect(matchingVoices([basic, enhanced, { ...enhanced }], "EN_us")).toEqual(
+      [enhanced],
+    );
+  });
+  it("supports common Windows, Mac and Chrome ordinary voice names", () => {
+    for (const name of [
+      "Microsoft David Desktop - English (United States)",
+      "Microsoft Hazel - English (Great Britain)",
+      "Microsoft Aria Online (Natural) - English (United States)",
+      "Samantha",
+      "Alex",
+      "Daniel (Premium)",
+      "Google US English",
+      "Google UK English Female",
+      "Google UK English Male",
+    ]) {
+      const voice = { ...english, name };
+      expect(matchingVoices([voice], "en")).toEqual([voice]);
+    }
   });
 });

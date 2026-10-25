@@ -115,7 +115,7 @@ export default {
   resume: "Resume",
   stop: "Stop",
   speechUnavailable:
-    "No voice is available for this language. Check your browser's voice support.",
+    "No standard voice is available. Add a voice for this language in your device settings, then reload.",
   speechFailed: "Reading stopped. Choose another voice or try again.",
   speechPreparing: "Preparing voice…",
   voiceSettings: "Voice settings",
@@ -124,7 +124,6 @@ export default {
   readingSpeed: "Speed",
   speechSlower: "Slower",
   speechNormal: "Normal",
-  speechFaster: "Faster",
   textSize: "Text size",
   standard: "Standard",
   large: "Large",

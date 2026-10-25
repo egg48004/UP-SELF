@@ -28,21 +28,52 @@ export function voiceKey(voice: SpeechSynthesisVoice): string {
   return `${voice.voiceURI}|${voice.lang}|${voice.name}`;
 }
 
+// Web Speech exposes no novelty/effect flag. Keep an explicit list of ordinary
+// English voices instead of treating every language-matching voice as suitable.
+// New languages and voice providers need their own entries here.
+function standardVoiceProfile(voice: SpeechSynthesisVoice): string | undefined {
+  const name = voice.name.trim().replace(/\s+/gu, " ");
+  const apple = name.match(
+    /^(Samantha|Alex|Daniel|Karen|Moira|Tessa)(?: \((?:Enhanced|Premium)\))?$/iu,
+  );
+  if (apple) return `apple:${apple[1]!.toLowerCase()}`;
+  const microsoft = name.match(
+    /^Microsoft (Zira|David|Mark|Hazel|George|Susan|Aria|Jenny|Guy|Sonia|Ryan)(?: Desktop| Online \(Natural\))?(?: - English \([\w ,]+\))?$/iu,
+  );
+  if (microsoft) return `microsoft:${microsoft[1]!.toLowerCase()}`;
+  const google = name.match(
+    /^Google (US English|UK English (?:Female|Male))$/iu,
+  );
+  if (google) return `google:${google[1]!.toLowerCase()}`;
+}
+
 export function matchingVoices(
   voices: SpeechSynthesisVoice[],
   language: string,
 ) {
   const lang = (language || "en").replaceAll("_", "-").toLowerCase();
   const base = lang.split("-")[0];
+  if (base !== "en") return [];
+  const normalizeLanguage = (value: string) =>
+    value.replaceAll("_", "-").toLowerCase();
   const score = (voice: SpeechSynthesisVoice) =>
     (voice.localService ? 100 : 0) +
     (/natural|premium|enhanced/iu.test(voice.name) ? 50 : 0) +
-    (voice.lang.toLowerCase() === lang ? 20 : 0) +
+    (normalizeLanguage(voice.lang) === lang ? 20 : 0) +
     (voice.default ? 10 : 0);
+  const seen = new Set<string>();
   return voices
     .filter(
       (voice) =>
-        voice.lang.replaceAll("_", "-").toLowerCase().split("-")[0] === base,
+        normalizeLanguage(voice.lang).split("-")[0] === base &&
+        standardVoiceProfile(voice) !== undefined,
     )
-    .sort((a, b) => score(b) - score(a) || a.name.localeCompare(b.name));
+    .sort((a, b) => score(b) - score(a) || a.name.localeCompare(b.name))
+    .filter((voice) => {
+      const profile = `${standardVoiceProfile(voice)}|${normalizeLanguage(voice.lang)}`;
+      if (seen.has(profile)) return false;
+      seen.add(profile);
+      return true;
+    })
+    .slice(0, 3);
 }

@@ -76,9 +76,6 @@ defineExpose({ stop: speech.stop });
         <option :value="1">
           {{ t("speechNormal") }}
         </option>
-        <option :value="1.15">
-          {{ t("speechFaster") }}
-        </option>
       </select>
     </details>
   </div>

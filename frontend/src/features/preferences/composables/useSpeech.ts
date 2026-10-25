@@ -10,7 +10,7 @@ import type { MaybeRefOrGetter } from "vue";
 import { matchingVoices, splitSpeechText, voiceKey } from "../speechText";
 
 const preferenceKey = "upself.speech.v1";
-const speeds = [0.85, 1, 1.15];
+const speeds = [0.85, 1];
 let activeStop: (() => void) | undefined;
 
 /** Route changes and videos stop the controller as well as the native queue. */
@@ -92,7 +92,11 @@ export function useSpeech(language: MaybeRefOrGetter<string> = "en") {
   }
   function setVoice(value: string) {
     stop();
-    selectedVoice.value = value;
+    selectedVoice.value = availableVoices.value.some(
+      (voice) => voiceKey(voice) === value,
+    )
+      ? value
+      : "";
     persist();
   }
   function setRate(value: number) {
@@ -100,7 +104,7 @@ export function useSpeech(language: MaybeRefOrGetter<string> = "en") {
     rate.value = speeds.includes(value) ? value : 1;
     persist();
   }
-  function waitForVoices() {
+  function waitForVoices(lang: string) {
     return new Promise<void>((resolve) => {
       const finish = () => {
         clearTimeout(timer);
@@ -110,7 +114,7 @@ export function useSpeech(language: MaybeRefOrGetter<string> = "en") {
       };
       const changed = () => {
         refreshVoices();
-        if (voices.value.length) finish();
+        if (matchingVoices(voices.value, lang).length) finish();
       };
       const timer = setTimeout(finish, 2000);
       cancelVoiceWait = finish;
@@ -168,13 +172,20 @@ export function useSpeech(language: MaybeRefOrGetter<string> = "en") {
     activeStop = stop;
     const token = generation;
     refreshVoices();
-    if (!voices.value.length) {
+    if (!matchingVoices(voices.value, lang).length) {
       preparing.value = true;
-      await waitForVoices();
+      await waitForVoices(lang);
       if (token !== generation) return;
       preparing.value = false;
     }
     const candidates = matchingVoices(voices.value, lang);
+    if (
+      selectedVoice.value &&
+      !candidates.some((voice) => voiceKey(voice) === selectedVoice.value)
+    ) {
+      selectedVoice.value = "";
+      persist();
+    }
     currentVoice =
       candidates.find((voice) => voiceKey(voice) === selectedVoice.value) ||
       candidates[0];
