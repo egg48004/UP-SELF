@@ -3,6 +3,7 @@ import { useAuthStore } from "../features/auth/store";
 import { session } from "../shared/auth/session";
 import AppLayout from "./layouts/AppLayout.vue";
 import { ApiError } from "../shared/http/client";
+import { stopSpeech } from "../features/preferences/composables/useSpeech";
 const login = () => import("../features/auth/pages/LoginPage.vue");
 export const router = createRouter({
   history: createWebHashHistory(),
@@ -186,7 +187,7 @@ router.beforeEach(async (to) => {
   return true;
 });
 router.afterEach(() => {
-  if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+  stopSpeech();
   document.title = "UP-SELF";
   requestAnimationFrame(() =>
     document.querySelector<HTMLElement>("#main")?.focus(),

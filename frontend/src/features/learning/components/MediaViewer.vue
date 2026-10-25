@@ -3,6 +3,8 @@ import { ref, watch, onUnmounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { learningApi } from "../api";
 import type { Resource } from "../types";
+import { stopSpeech } from "../../preferences/composables/useSpeech";
+const emit = defineEmits<{ play: [] }>();
 const props = defineProps<{ resource: Resource }>(),
   { t } = useI18n(),
   src = ref(""),
@@ -40,8 +42,9 @@ async function failed() {
     await load();
   } else error.value = t("mediaError");
 }
-function stopSpeech() {
-  if ("speechSynthesis" in window) speechSynthesis.cancel();
+function onVideoPlay() {
+  stopSpeech();
+  emit("play");
 }
 function retry() {
   attempt.value = 0;
@@ -93,7 +96,7 @@ onUnmounted(() => {
           :src="src"
           :aria-label="resource.title"
           @error="failed"
-          @play="stopSpeech"
+          @play="onVideoPlay"
         >
           <track
             v-if="caption"
