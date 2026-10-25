@@ -1,109 +1,34 @@
-# UP-SELF 学习平台
+# UP SELF
 
-最新交付见[FR-25自我效能评估](docs/自我效能FR25交付验收.md)，已接入My check-in，与每周心情分开展示。页面组织见[菜单调整](docs/菜单与页面组织调整验收.md)；课程收藏见 [FR-07/08交付](docs/课程收藏FR07-FR08交付验收.md)，心情及作业见 [每周心情](docs/每周心情模块交付与验收.md)与[三角色与作业](docs/三角色与作业模块交付验收.md)。
+UP-SELF is a Java and Vue learning platform for a small student group in Malaysia. It includes course allocation and teaching content, private media, assignments and feedback, weekly mood, learning progress, private goals, bookmarks and general self-efficacy assessments.
 
-换电脑安装、首次空库启动、完整恢复数据库与上传文件，先看 [跨电脑环境安装与启动教程](docs/跨电脑环境安装与启动教程.md)。版本集合见 `environment/versions.json`。真实迁移快照位于 `migration/local-snapshot`。
+Read the [Developer Handbook](docs/UP-SELF-Developer-Handbook.md) for architecture, roles, workflows, setup, migration, deployment costs and the complete 61-FR comparison. A [paginated Word edition](docs/UP-SELF-Developer-Handbook.docx) is available. The [documentation index](docs/README.md) links to individual chapters.
 
-准备真实上线前，查看 [正式上线全流程与费用预算](docs/正式上线全流程与费用预算.md)：包含云厂商网址、月租与备份、域名首年及续费、税和汇差、完整上线步骤及年度现金预算。
+## Windows startup
 
-向导师简报可直接使用 [上线配套费用清单](docs/导师简报_上线配套费用清单.md)，已配好最低价试跑、省钱学生试用、DigitalOcean及AWS四套方案。
+Configure the fixed tool paths with scripts/configure-local.ps1, install the locked frontend dependencies and build. Open open-vscode.cmd, which selects the generated .local/up-self.code-workspace. Wait for Java import, then use the existing Backend + Frontend configuration and F5. Do not open another backend or Vite instance on the same ports.
 
-独立毕业项目。沿用参考项目的六模块 Java 后端架构和框架依赖版本，当前实现登录、三角色权限、账号管理、Flyway 初始化及学习模块后端。学习模块包含课程分配、加入与发布、章节、视频/图片/字幕和导师帖子。Vue 学习页面已接通真实后端，学生使用单独学习布局；学生、导师、管理员各有首页和菜单；导师与管理员复用简洁管理组件，maintenance 只保留内部入口。作业发布、草稿、上传提交、退回重交、批改与反馈已接通；每周心情、历史/趋势、当前课程导师只读查看与私人备注隔离已完成；学生个人学习目标（FR-23、24）已接通创建、编辑、完成、恢复及删除；群聊尚未开发。
+```powershell
+.\frontend.cmd install
+.\build.cmd
+.\frontend.cmd build
+.\open-vscode.cmd
+```
 
-## 配置和密码在哪里
+Open **http://127.0.0.1:5173/**. The backend on 8080 is not the Vue homepage. MySQL and Redis must be available; the backend prelaunch task prepares their existing service workflow and Maven XML/SQL resources.
 
-直接打开 **`config/application-local.yml`**。本机 MySQL、Redis 的连接与密码、JWT 密钥、TOTP 加密密钥，以及初始账号密码都集中在这个文件中。
+## Mac preparation
 
-初始账号密码位于文件底部的 `bootstrap.passwords`。`admin01` 已重置并写回配置，数据库 root 密码未修改：
+Follow the handbook's [Mac prerequisites](docs/UP-SELF-Developer-Handbook.md#58-m1-mac-prerequisites). Mac uses separate scripts/macos/up-self.sh helpers and a generated .local/macos/up-self.code-workspace. The intended M1 Mac requires a macOS release supported by Node 24. Mac runtime testing remains pending; Windows operation is unchanged.
 
-| 账号 | 身份 | 登录入口 |
-|---|---|---|
-| student01 | 学生 | 学生入口 |
-| mentor01 | 导师 | 选择 Mentor |
-| admin01 | 平台管理员 | 选择 Administrator |
-| maintenance | 内部维护账号，非日常账号 | `/#/internal/login` |
+## Configuration and data
 
-这些是初始化密码，登录后修改密码不会自动回写配置。本次前端开发没有重置现有账号密码或验证器。学生、导师、管理员现在都只需账号密码登录，不需要绑定验证器或输入动态码。
+Current local settings and bootstrap credentials are in config/application-local.yml. Public roles are Student, Mentor and Administrator; maintenance uses only the internal login entry. Password login is enabled and TOTP is disabled. Existing passwords changed after initialization are stored in MySQL and are not overwritten by bootstrap.
 
-两步验证暂时关闭：`custom.totp.enabled: false`。该设置已在本机配置、示例配置和应用默认配置中保持一致。密码错误限制、角色入口检查、账号停用、JWT/Redis、接口权限及退出失效均保留。原有绑定数据和密钥不删除，以便以后需要时重新启用。
+Current schema is **V9**. Java startup applies missing Flyway migrations. Git transfers code, not live database writes. The archived V5 snapshot is an older data point; export a fresh database and matching uploads before migrating current accounts and records. See [setup and data migration](docs/UP-SELF-Developer-Handbook.md#5-local-setup-and-data-migration).
 
-## VS Code 启动
+## Versions and deployment
 
-1. 首次运行 `scripts/configure-local.ps1` 配置安装目录，再用 `open-vscode.cmd` 打开本机生成的 `.local/up-self.code-workspace`，等待 Java 导入完成。根目录同名文件是共享模板。
-2. 电脑重启后先运行任务 **UP-SELF: 启动数据库与Redis**。
-3. 选择 **UP-SELF · Backend + Frontend**，按 F5，同时启动Java和Vue。
-4. 出现 `Started UpSelfApplication` 和 Vite的Local地址后，访问 **http://127.0.0.1:5173/**。8080根页仍是旧账号验证页。
-5. 分别启动时可选择 **UP-SELF · 本地登录权限服务** 或 **UP-SELF · Frontend**。停掉旧进程后再启动，避免端口占用。
+Retain Java 8u231, Maven 3.10.0, MySQL 5.7.44, the Windows Redis 5.0.14.1 port, Node 24.22.1 and npm 11.19.1. Backend dependencies follow the existing POMs and frontend dependencies follow package-lock.json. Full versions and the Mac Redis platform mapping are in the handbook.
 
-也可双击 `start.cmd` 启动已打包应用；修改 Java 源码后先运行 `build.cmd`。不要同时运行 F5 和 start.cmd，避免争用 8080。VS Code 启动日志在调试控制台查看，命令启动日志在当前终端查看，不再默认生成应用日志文件。
-
-## 目录
-
-| 目录 | 职责 |
-|---|---|
-| up-self-admin | 启动、Controller、参数对象、应用配置、Flyway、登录验证页、单元测试 |
-| up-self-framework | Security、登录、TOTP、token、数据源、MyBatis、异常与切面 |
-| up-self-system | 账号 Service/ServiceImpl、Mapper/XML |
-| up-self-common | 通用响应、登录用户模型、工具、注解 |
-| up-self-biz | 学习、作业及心情模块 Domain、DTO、Service/ServiceImpl、Mapper/XML 与私有文件存储 |
-| up-self-aliyun-oss | OSS 模块边界预留，当前未启用 |
-| config | 可直接查看的本机配置及示例 |
-| docs | 开发标准、权限方案、接口说明、环境说明及依赖版本清单 |
-| scripts | 构建、启动、环境启动及集成验证脚本 |
-| frontend | Vue 3 + TypeScript学习页面、公共请求/身份/偏好及自动化测试 |
-| .local/maven-repository | 本机依赖缓存，保留以避免重新下载 |
-
-## 核心版本
-
-Spring Boot 2.5.14、Spring Security 5.5.8、MyBatis 3.5.9、MyBatis-Plus 3.3.1、PageHelper 5.3.0、Druid 1.2.11、MySQL Connector 8.0.29、Flyway 7.7.3、JJWT 0.9.1、Fastjson2 2.0.57。完整运行依赖见 `docs/runtime-dependencies.json`。
-
-本机保留 Java 8u231、Maven 3.10.0、MySQL 5.7.44、Redis 5.0.14.1。参考 POM 要求 Java 1.8；参考 Docker 使用 Corretto8u362，不能声称 JDK 补丁号完全相同。Java 扩展自带 Java21 只用于语言服务器，项目仍使用 Java8。
-
-Flyway 脚本位于 `up-self-admin/src/main/resources/db/draft`，已执行脚本不改动，新变更追加版本。角色为 student、mentor、platform_admin，维护角色独立保留；平台管理员没有通配超级权限。
-
-## 构建与检查
-
-双击 `build.cmd` 或按 Ctrl+Shift+B，包含单元测试。完整集成检查可在停止应用、保留数据库与 Redis 的情况下，用 Python3 运行 `scripts/verify-local.py`。检查时按需重新生成临时日志和结果，不保留旧验收产物。
-
-接口见 `docs/API接口说明.md`。学习模块接口见 `docs/Learning-backend-API.md`。当前数据库版本为 V9：V3 学习、V4 作业、V5 每周心情、V6 课程信息与学习进度、V7 个人学习目标、V8 课程收藏、V9 自我效能；原迁移保持不变，后端启动只应用缺失版本。换电脑可选择空库首次迁移或完整恢复匹配的数据和文件。
-
-## 前端环境与命令
-
-使用 Node.js 24.22.1、npm 11.19.1。换电脑安装对应版本后运行 `scripts/configure-local.ps1 -NodeHome "你的实际安装目录"`；工作区为新终端配置此 PATH，无需全局安装 Vue。已有终端需关闭后新开。没有修改系统 PATH 或数据库密码。
-
-在项目根目录运行：
-
-- `frontend.cmd dev`：开发服务器5173（另需后端8080）。
-- `frontend.cmd build`：类型检查与生产构建。
-- `frontend.cmd typecheck`、`frontend.cmd lint`、`frontend.cmd test`：静态与行为检查。
-- `frontend.cmd verify`：在已配置完整验收工具的本机，前后端均运行时执行真实 Chrome 学习、管理、作业与心情闭环；清理仅限本次专属测试记录。部分旧可选验收工具仍有本机路径，不是换电脑普通启动依赖。
-- `frontend.cmd install`：按package-lock.json恢复依赖。
-
-Vite使用Node24原生配置加载，避免额外打包配置；常规开发依赖预处理仍由Vite管理。此设备的受限工具进程运行原生esbuild时曾遇目录读取限制，VS Code实际启动已验证。不要关闭TLS验证或修改权限来绕过。
-
-入口账号：student01 选择 Student；mentor01 选择 Mentor；admin01 选择 Administrator；maintenance 仅内部登录入口。初始密码在 config/application-local.yml 的 bootstrap.passwords，完整恢复后以数据库现有密码为准。课程中的示例视频和明确标注的会议示例可替换为实际教学内容。
-
-具体实现、按钮检查范围和 FR 差异见学习、作业、心情各模块交付说明。前端按功能组织，HTTP 不依赖业务 store 或 router；学习、作业与心情均已接通后端。此次换电脑恢复及发布验证见 [本次发布与迁移验收](docs/本次发布与迁移验收.md)。
-
-学习进度、继续学习、学习历史、导师学生概览及演示数据说明见 [学习进度与导师概览交付验收](docs/学习进度与导师概览交付验收.md)。
-
-
-## 当前范围、答辩与Linux部署准备
-
-- [当前61个FR完成状态与报告差异](docs/当前61个FR完成状态与报告差异.md)：24完成、6部分、31未完成，严格按报告原文。
-- [答辩演示清单](docs/答辩演示清单.md)：约10分钟三角色真实闭环及准备/备用步骤。
-- [Linux部署适配准备](docs/Linux部署适配准备.md)：沿用现有版本的发布包、prod/systemd/Nginx/备份模板及待验证事项；未购买或部署。
-
-在本机用 `.\scripts\package-linux.ps1` 构建待部署包；仅写入 `.local/linux-release/`，不包含数据库、上传文件或真实配置。Linux运行、版本差异和正式许可尚需目标环境验收，不把Git Bash检查等同Linux实测。
-
-个人目标入口：学生登录 → **My goals**。范围、API与验收见[个人学习目标FR-23/24交付](docs/个人学习目标FR23-FR24交付验收.md)。首次启动自动追加V7，已有账号需退出重登以刷新新增权限。
-
-课程收藏入口：学生登录 → **My learning → My courses** / 课程详情 → **Save course**，在 **My learning → Saved courses** 查看、打开和取消收藏。收藏仅本人可见，不能绕过课程加入/发布限制。升级后首次启动自动追加缺失迁移，已有账号需退出重登刷新新增权限。
-
-## 当前菜单
-
-- 学生：**Home、My learning、Assignments、My check-in、My goals**；My learning内切换My courses / Saved courses / Learning history；My check-in内切换My mood / Self-belief。右上角 **Aa** 打开Reading settings。
-- 导师：**Home、Teaching courses、Assignments、Students**；Students内切换Student overview / Student check-ins；打开学生后切换My mood / Self-belief，均只读。
-- 管理员：**Home、Accounts、Course allocation**。maintenance继续使用内部入口。
-
-原心情及学习网址保留；手机菜单自动换行，不用在隐藏菜单中寻找功能。自我效能是V9新增功能：重启后退出重新登录，学生进入Self-belief，首次单独确认共享后填写GSE-3三题；再次填写间隔28天。心情仍每周一次。导师只读分数、日期和趋势，不能读取学生逐题答案；管理员和maintenance无权查看。
+Linux production templates are prepared in deploy/linux; actual Linux runtime validation and public deployment are pending. No cloud purchase is required for local development or a local graduation demonstration.

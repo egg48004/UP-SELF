@@ -1,2 +1,7 @@
 deploy/linux/*.sh text eol=lf
 deploy/linux/*.example text eol=lf
+# Mac launchers/helpers use Unix line endings; existing platform rules stay intact.
+scripts/macos/*.sh text eol=lf
+scripts/macos/*.mjs text eol=lf
+open-vscode-macos.command text eol=lf
+up-self-macos.code-workspace text eol=lf

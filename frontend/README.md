@@ -1,11 +1,9 @@
-新增 `features/mood`：独立 API/类型/文案、时间序列 composable、学生/导师页面和共享只读图表/历史。使用现有 HTTP 客户端及权限路由，无新增依赖。详见 [每周心情交付与验收](../docs/每周心情模块交付与验收.md)。
+# UP SELF frontend
 
-本轮新增 `features/dashboard`、`features/assignments`，角色入口、接口和验收见 [交付说明](../docs/三角色与作业模块交付验收.md)。业务页面通过各自 api.ts 调用公共认证请求客户端；作业状态集中在 useStudentWork，附件及历史组件可独立维护。
+Vue 3 and TypeScript frontend for the existing Java backend. Students use a dedicated learning layout; mentors and administrators use role-specific management screens and shared components. Public roles are Student, Mentor and Administrator. Maintenance is an internal entry only.
 
-# UP-SELF frontend
+For fixed versions, directory boundaries, permissions, current workflows and setup, use the [Developer Handbook](../docs/UP-SELF-Developer-Handbook.md). The API reference is in Appendix B. Student accessibility rules are in Section 2.11.
 
-Vue learning application. Run the backend on 8080 first.
+On Windows, run the existing frontend.cmd commands from the repository root. On Mac, use scripts/macos/up-self.sh after configuring the pinned tools. Install dependencies with the lockfile rather than copying node_modules between computers.
 
-Use the workspace F5 configuration **UP-SELF · Frontend** or run `../frontend.cmd dev` from this directory. `../frontend.cmd build`, `typecheck`, `lint`, `test` use the same pinned Node/npm. Visit http://127.0.0.1:5173 .
-
-Dependencies are pinned in package.json and package-lock.json. Student and management layouts share the request client, identity, preferences and feature components. No assignments or mood pages are included yet.
+The development interface is http://127.0.0.1:5173/ and forwards /api to the Java backend on 8080. Production uses built dist files, not the Vite development server. Mac and Linux runtime acceptance remain separate from recorded Windows browser tests.

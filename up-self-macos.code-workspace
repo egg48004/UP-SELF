@@ -1,0 +1,54 @@
+{
+  "folders": [{ "path": ".", "name": "UP-SELF" }],
+  "extensions": { "recommendations": ["vscjava.vscode-java-pack", "Vue.volar"] },
+  "settings": {
+    "files.encoding": "utf8",
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "java.compile.nullAnalysis.mode": "disabled",
+    "java.import.exclusions": ["**/node_modules/**", "**/.local/**", "**/.git/**", "**/frontend/**"],
+    "maven.terminal.useJavaHome": true,
+    "debug.saveBeforeStart": "none",
+    "files.exclude": { "**/target": true, ".local": true, "**/node_modules": true },
+    "search.exclude": { ".local": true, "**/target": true, "**/node_modules": true },
+    "files.watcherExclude": { "**/node_modules/**": true, "**/.local/**": true }
+  },
+  "launch": {
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "type": "java", "name": "UP-SELF · Mac Backend", "request": "launch",
+        "mainClass": "com.upself.web.UpSelfApplication", "projectName": "up-self-admin",
+        "cwd": "${workspaceFolder:UP-SELF}", "console": "internalConsole",
+        "args": "--spring.config.additional-location=file:./config/",
+        "vmArgs": "-Dfile.encoding=UTF-8", "preLaunchTask": "UP-SELF Mac prepare backend"
+      },
+      {
+        "type": "node", "name": "UP-SELF · Mac Frontend", "request": "launch",
+        "runtimeExecutable": "node",
+        "program": "${workspaceFolder:UP-SELF}/frontend/node_modules/vite/bin/vite.js",
+        "args": ["--host", "127.0.0.1", "--port", "5173", "--strictPort", "--configLoader", "native"],
+        "cwd": "${workspaceFolder:UP-SELF}/frontend", "console": "internalConsole",
+        "skipFiles": ["<node_internals>/**"]
+      }
+    ],
+    "compounds": [{
+      "name": "UP-SELF · Mac Backend + Frontend",
+      "configurations": ["UP-SELF · Mac Backend", "UP-SELF · Mac Frontend"], "stopAll": true
+    }]
+  },
+  "tasks": {
+    "version": "2.0.0",
+    "tasks": [
+      { "label": "UP-SELF Mac prepare backend", "type": "process", "command": "/bin/bash",
+        "args": ["${workspaceFolder:UP-SELF}/scripts/macos/up-self.sh", "prepare-backend"],
+        "options": { "cwd": "${workspaceFolder:UP-SELF}" }, "problemMatcher": [] },
+      { "label": "UP-SELF Mac check services", "type": "process", "command": "/bin/bash",
+        "args": ["${workspaceFolder:UP-SELF}/scripts/macos/up-self.sh", "check-services"], "problemMatcher": [] },
+      { "label": "UP-SELF Mac build", "type": "process", "command": "/bin/bash",
+        "args": ["${workspaceFolder:UP-SELF}/scripts/macos/up-self.sh", "build"],
+        "group": { "kind": "build", "isDefault": true }, "problemMatcher": [] },
+      { "label": "UP-SELF Mac Redis", "type": "process", "command": "/bin/bash",
+        "args": ["${workspaceFolder:UP-SELF}/scripts/macos/up-self.sh", "redis"], "problemMatcher": [] }
+    ]
+  }
+}
