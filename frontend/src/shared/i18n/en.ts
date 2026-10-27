@@ -5,7 +5,11 @@ import progress from "../../features/learning/messages";
 import goal from "../../features/goals/messages";
 import bookmark from "../../features/learning/bookmarkMessages";
 import efficacy from "../../features/self-efficacy/messages";
+import knowledge from "../../features/knowledge/messages";
+import recording from "../../features/recordings/messages";
 export default {
+  recording,
+  knowledge,
   efficacy,
   bookmark,
   goal,

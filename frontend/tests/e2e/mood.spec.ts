@@ -3,7 +3,7 @@ import type { Page, BrowserContext } from "@playwright/test";
 import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
-test("weekly mood: first-use notice, once-only save, private notes and current-mentor access", async ({
+test("weekly mood: first-use notice, once-only save, shared diaries, legacy private notes and current-mentor access", async ({
   browser,
   request,
 }) => {
@@ -19,11 +19,11 @@ test("weekly mood: first-use notice, once-only save, private notes and current-m
     errors: string[] = [];
   const persist = () =>
     fs.writeFileSync(path.join(work, "e2e-mood.json"), JSON.stringify(fixture));
-  const privateNote = "Private: I need a quiet space. 🌱";
+  const privateNote = "Shared diary: I need a quiet space. 🌱";
+  const apiBase = process.env.UPSELF_TEST_API_URL || "http://127.0.0.1:8080";
   async function token(username: string, pwd: string, role: string) {
     const r = await request.post(
-      "http://127.0.0.1:8080" +
-        (role === "student" ? "/client/login" : "/empLogin"),
+      apiBase + (role === "student" ? "/client/login" : "/empLogin"),
       { data: { username, password: pwd } },
     );
     const json = await r.json();
@@ -37,7 +37,7 @@ test("weekly mood: first-use notice, once-only save, private notes and current-m
     data?: unknown,
     code = 200,
   ) {
-    const r = await request.fetch("http://127.0.0.1:8080" + url, {
+    const r = await request.fetch(apiBase + url, {
       method,
       data,
       headers: { Authorization: "Bearer " + auth },
@@ -190,7 +190,9 @@ test("weekly mood: first-use notice, once-only save, private notes and current-m
       403,
     );
     await learner
-      .getByLabel("I understand who can see my mood.", { exact: true })
+      .getByLabel("I understand who can see my mood, diaries and recordings.", {
+        exact: true,
+      })
       .check();
     await learner
       .getByRole("button", { name: "Continue to my mood", exact: true })
@@ -213,7 +215,7 @@ test("weekly mood: first-use notice, once-only save, private notes and current-m
     ).not.toBeChecked();
     await learner.getByRole("radio", { name: "Good", exact: true }).check();
     await learner
-      .getByLabel("My private note (optional)", { exact: true })
+      .getByLabel("My diary (optional)", { exact: true })
       .fill(privateNote);
     await learner
       .getByRole("navigation")
@@ -221,7 +223,7 @@ test("weekly mood: first-use notice, once-only save, private notes and current-m
       .click();
     await dialog(learner, "Cancel");
     await expect(
-      learner.getByLabel("My private note (optional)", { exact: true }),
+      learner.getByLabel("My diary (optional)", { exact: true }),
     ).toHaveValue(privateNote);
     await learner
       .getByRole("button", { name: "Save this week’s mood", exact: true })
@@ -237,7 +239,7 @@ test("weekly mood: first-use notice, once-only save, private notes and current-m
     ).toBeVisible();
     await expect(learner.getByRole("radio")).toHaveCount(0);
     await expect(
-      learner.getByLabel("My private note (optional)", { exact: true }),
+      learner.getByLabel("My diary (optional)", { exact: true }),
     ).toHaveCount(0);
     await learner.reload();
     await expect(learner.locator(".mood-saved-value")).toHaveText(/Good/);
@@ -318,7 +320,10 @@ test("weekly mood: first-use notice, once-only save, private notes and current-m
     });
     await learner.setViewportSize({ width: 1365, height: 900 });
     const coach = await login(mentor.username, password, "mentor");
-    await coach.getByRole("navigation", { name: "Mentor navigation", exact: true }).getByRole("link", { name: "Students", exact: true }).click();
+    await coach
+      .getByRole("navigation", { name: "Mentor navigation", exact: true })
+      .getByRole("link", { name: "Students", exact: true })
+      .click();
     await coach
       .getByRole("navigation")
       .getByRole("link", { name: "Student check-ins", exact: true })
@@ -344,9 +349,10 @@ test("weekly mood: first-use notice, once-only save, private notes and current-m
       coach.getByRole("heading", { name: "Mood learner", exact: false }),
     ).toBeVisible();
     await expect(coach.locator(".mood-trend-line")).toHaveCount(3);
-    await expect(coach.getByText(privateNote, { exact: true })).toHaveCount(0);
+    await coach.locator(".mood-history summary").first().click();
+    await expect(coach.getByText(privateNote, { exact: true })).toBeVisible();
     await expect(coach.locator("textarea,input[type=radio]")).toHaveCount(0);
-    await expect(coach.locator(".mood-history summary")).toHaveCount(0);
+    await expect(coach.locator(".mood-history summary")).toHaveCount(10);
     await coach.screenshot({
       path: path.join(screens, "mood-mentor-readonly.png"),
       fullPage: true,
@@ -356,7 +362,7 @@ test("weekly mood: first-use notice, once-only save, private notes and current-m
       mentorToken,
     );
     expect(JSON.stringify(publicHistory)).not.toContain("privateNote");
-    expect(JSON.stringify(publicHistory)).not.toContain("Private:");
+    expect(JSON.stringify(publicHistory)).toContain("Private: historical fixture");
     await coach
       .getByRole("button", { name: "View table", exact: true })
       .click();
@@ -415,9 +421,10 @@ test("weekly mood: first-use notice, once-only save, private notes and current-m
       newCoach.getByRole("heading", { name: "Mood learner", exact: false }),
     ).toBeVisible();
     await expect(newCoach.locator(".mood-trend-point")).toHaveCount(10);
-    await expect(newCoach.getByText(privateNote, { exact: true })).toHaveCount(
-      0,
-    );
+    await newCoach.locator(".mood-history summary").first().click();
+    await expect(
+      newCoach.getByText(privateNote, { exact: true }),
+    ).toBeVisible();
     await api(cp + "/students/" + student.id, adminToken, "DELETE");
     await newCoach.reload();
     await expect(newCoach.getByRole("alert")).toContainText(

@@ -9,7 +9,7 @@ const viewMode = ref<"chart" | "table">("chart");
 const props = defineProps<{
     enabled: boolean;
     studentId?: number;
-    privateNotes?: boolean;
+    showNotes?: boolean;
   }>(),
   { t } = useI18n();
 const {
@@ -50,7 +50,7 @@ defineExpose({ reload });
     :total="total"
     :loading="historyLoading"
     :error="historyError"
-    :private-notes="privateNotes"
+    :show-notes="showNotes"
     @page="history"
     @retry="history(current)"
   />

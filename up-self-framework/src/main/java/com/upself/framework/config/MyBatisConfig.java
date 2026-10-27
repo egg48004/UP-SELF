@@ -12,7 +12,7 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import javax.sql.DataSource;
 
 @Configuration
-@MapperScan({"com.upself.system.mapper", "com.upself.biz.learning.mapper", "com.upself.biz.assignment.mapper", "com.upself.biz.mood.mapper", "com.upself.biz.goal.mapper", "com.upself.biz.selfefficacy.mapper"})
+@MapperScan({"com.upself.system.mapper", "com.upself.biz.learning.mapper", "com.upself.biz.assignment.mapper", "com.upself.biz.mood.mapper", "com.upself.biz.goal.mapper", "com.upself.biz.selfefficacy.mapper", "com.upself.biz.knowledge.mapper"})
 public class MyBatisConfig {
     @Bean
     public SqlSessionFactory sqlSessionFactory(DataSource source) throws Exception {

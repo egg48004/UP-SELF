@@ -30,8 +30,9 @@ export default {
   upload: "Upload file",
   uploadFirst: "Upload the selected file before submitting.",
   chooseFile: "Choose a file",
+  noFileSelected: "No file selected",
   fileHelp:
-    "PDF, DOCX, PNG, JPG or TXT. Up to 20 MB each; five files per attempt.",
+    "PDF, DOCX, PNG, JPG, TXT or audio. Up to 20 MB each; five files per attempt.",
   invalidFile: "Choose a supported file up to 20 MB.",
   cancelUpload: "Cancel upload",
   remove: "Remove",

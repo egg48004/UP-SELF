@@ -1,12 +1,12 @@
 import { ref, watch } from "vue";
 import type { Ref } from "vue";
 import { moodApi } from "../api";
-import type { MoodEntry, MoodPoint, MoodTrend } from "../types";
+import type { MoodEntry, MentorMoodEntry, MoodTrend } from "../types";
 export function useMoodTimeline(
   enabled: Ref<boolean>,
   studentId: Ref<number | undefined>,
 ) {
-  const rows = ref<(MoodEntry | MoodPoint)[]>([]),
+  const rows = ref<(MoodEntry | MentorMoodEntry)[]>([]),
     trend = ref<MoodTrend | null>(null),
     current = ref(1),
     total = ref(0),

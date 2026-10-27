@@ -15,6 +15,16 @@ export const router = createRouter({
       component: AppLayout,
       children: [
         {
+          path: "student/knowledge",
+          component: () => import("../features/knowledge/pages/StudentKnowledgePage.vue"),
+          meta: { roles: ["student"], permission: "knowledge:own:read" },
+        },
+        {
+          path: "mentor/knowledge",
+          component: () => import("../features/knowledge/pages/MentorKnowledgePage.vue"),
+          meta: { roles: ["mentor"], permission: "knowledge:questions:manage" },
+        },
+        {
           path: "student/self-efficacy",
           component: () => import("../features/self-efficacy/pages/StudentSelfEfficacyPage.vue"),
           meta: { roles: ["student"], permission: "efficacy:own:read" },

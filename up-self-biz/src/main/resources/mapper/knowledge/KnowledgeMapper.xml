@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.upself.biz.knowledge.mapper.KnowledgeMapper">
+ <sql id="columns">q.id,q.course_id,q.question_text,q.status,q.version,q.created_by,q.create_time,q.update_time,c.title AS course_title,c.status AS course_status</sql>
+ <select id="ownQuestions" resultType="com.upself.biz.knowledge.domain.KnowledgeQuestion">
+  SELECT <include refid="columns"/>,a.choice,a.update_time AS answered_at
+  FROM knowledge_question q JOIN learning_course c ON c.id=q.course_id
+  JOIN learning_enrollment e ON e.course_id=c.id AND e.student_id=#{studentId} AND e.active=1
+  JOIN sys_user m ON m.id=c.mentor_id AND m.role_id=20 AND m.status='0'
+  LEFT JOIN knowledge_answer a ON a.question_id=q.id AND a.student_id=#{studentId}
+  WHERE c.deleted=0 AND c.status='PUBLISHED' AND q.status='PUBLISHED'
+  <if test="courseId != null">AND c.id=#{courseId}</if> ORDER BY q.id DESC
+ </select>
+ <select id="mentorQuestions" resultType="com.upself.biz.knowledge.domain.KnowledgeQuestion">
+  SELECT <include refid="columns"/>,(SELECT COUNT(*) FROM knowledge_answer a WHERE a.question_id=q.id) AS answer_count
+  FROM knowledge_question q JOIN learning_course c ON c.id=q.course_id
+  WHERE c.deleted=0 AND c.mentor_id=#{mentorId}
+  <if test="courseId != null">AND c.id=#{courseId}</if> ORDER BY q.id DESC
+ </select>
+ <select id="question" resultType="com.upself.biz.knowledge.domain.KnowledgeQuestion">SELECT * FROM knowledge_question WHERE id=#{id}</select>
+ <select id="lockQuestion" resultType="com.upself.biz.knowledge.domain.KnowledgeQuestion">SELECT * FROM knowledge_question WHERE id=#{id} FOR UPDATE</select>
+ <select id="canAnswer" resultType="int">
+  SELECT COUNT(*) FROM learning_enrollment e JOIN sys_user s ON s.id=e.student_id
+  JOIN learning_course c ON c.id=e.course_id JOIN sys_user m ON m.id=c.mentor_id
+  WHERE e.course_id=#{courseId} AND e.student_id=#{studentId} AND e.active=1
+  AND s.role_id=10 AND s.status='0' AND c.deleted=0 AND c.status='PUBLISHED' AND m.role_id=20 AND m.status='0'
+ </select>
+ <insert id="insert" useGeneratedKeys="true" keyProperty="id">INSERT INTO knowledge_question(course_id,question_text,status,created_by) VALUES(#{courseId},#{questionText},#{status},#{createdBy})</insert>
+ <update id="update">UPDATE knowledge_question SET question_text=#{questionText},status=#{status},version=version+1 WHERE id=#{id} AND version=#{version}</update>
+ <delete id="delete">DELETE FROM knowledge_question WHERE id=#{id}</delete>
+ <select id="answerCount" resultType="int">SELECT COUNT(*) FROM knowledge_answer WHERE question_id=#{id}</select>
+ <insert id="saveAnswer">
+  INSERT INTO knowledge_answer(question_id,student_id,choice,question_version) VALUES(#{questionId},#{studentId},#{choice},#{questionVersion})
+  ON DUPLICATE KEY UPDATE choice=VALUES(choice),question_version=VALUES(question_version),update_time=CURRENT_TIMESTAMP
+ </insert>
+ <select id="ownAnswer" resultType="com.upself.biz.knowledge.domain.KnowledgeAnswer">SELECT * FROM knowledge_answer WHERE question_id=#{questionId} AND student_id=#{studentId}</select>
+ <select id="answers" resultType="com.upself.biz.knowledge.domain.KnowledgeAnswer">
+  SELECT a.*,s.nick_name AS student_name,s.user_name AS username
+  FROM knowledge_answer a JOIN knowledge_question q ON q.id=a.question_id
+  JOIN learning_course c ON c.id=q.course_id JOIN sys_user s ON s.id=a.student_id
+  JOIN learning_enrollment e ON e.course_id=c.id AND e.student_id=a.student_id AND e.active=1
+  WHERE q.id=#{questionId} AND c.mentor_id=#{mentorId} AND c.deleted=0 AND c.status='PUBLISHED'
+  AND s.role_id=10 AND s.status='0' ORDER BY a.update_time DESC,a.id DESC
+ </select>
+</mapper>

@@ -148,6 +148,9 @@ watch(id, load, { immediate: true });
             >
               {{ t("assignment.teaching") }} →
             </RouterLink>
+            <RouterLink v-if="auth.isMentor && auth.can('knowledge:questions:manage')" class="button-link" :to="{ path: '/mentor/knowledge', query: { courseId: course.id } }">
+              {{ t("knowledge.questions") }} →
+            </RouterLink>
             <span :class="['status', course.status.toLowerCase()]">{{
               t(course.status.toLowerCase())
             }}</span>

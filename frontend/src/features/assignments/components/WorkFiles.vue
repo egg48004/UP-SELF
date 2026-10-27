@@ -3,6 +3,7 @@ import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { assignmentApi } from "../api";
 import type { WorkFile } from "../types";
+import AudioPlayer from "../../recordings/components/AudioPlayer.vue";
 defineProps<{ files: WorkFile[]; removable?: boolean; disabled?: boolean }>();
 defineEmits<{ remove: [id: number] }>();
 const { t } = useI18n(),
@@ -26,6 +27,7 @@ async function download(file: WorkFile) {
     if (url) setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 }
+function audioLoader(id: number) { return () => assignmentApi.download(id); }
 </script>
 <template>
   <div>
@@ -37,18 +39,17 @@ async function download(file: WorkFile) {
     </p>
     <ul class="work-files">
       <li v-for="f in files" :key="f.id">
-        <span
-          >📎 {{ f.originalName }}
-          <small>({{ Math.ceil(f.fileSize / 1024) }} KB)</small></span
-        >
+        <span>📎 {{ f.originalName }}
+          <small>({{ Math.ceil(f.fileSize / 1024) }} KB)</small></span>
         <div class="button-row">
+          <AudioPlayer v-if="f.mimeType.startsWith('audio/')" :source-key="'assignment-' + f.id" :label="f.originalName" :load="audioLoader(f.id)" />
           <el-button
             :loading="busy === f.id"
             :aria-label="t('assignment.download') + ': ' + f.originalName"
             @click="download(f)"
           >
-            {{ t("assignment.download") }} </el-button
-          ><el-button
+            {{ t("assignment.download") }}
+          </el-button><el-button
             v-if="removable"
             :disabled="disabled"
             :aria-label="t('assignment.remove') + ': ' + f.originalName"
@@ -61,3 +62,7 @@ async function download(file: WorkFile) {
     </ul>
   </div>
 </template>
+<style scoped>
+.work-files .button-row { width: 100%; min-width: 0; flex-wrap: wrap; }
+.work-files li > span { overflow-wrap: anywhere; max-width: 100%; }
+</style>

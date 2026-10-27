@@ -1,6 +1,6 @@
 export default {
   checkIn: "My check-in", checkInSections: "My check-in sections", studentCheckIns: "Student check-ins",
-  openCheckIns: "View check-ins", mentorIntro: "Read-only mood and self-belief check-ins for your current students.", mentorAnswers: "Individual answers are not shared with mentors.",
+  openCheckIns: "View check-ins", mentorIntro: "View mood, shared diaries and self-belief for your current students.", mentorAnswers: "Individual answers are not shared with mentors.",
   title: "Self-belief", intro: "Your belief in handling everyday challenges.", cadence: "Three statements. Once every 28 days. Take your time.",
   noticeTitle: "Before your first self-belief check-in", noticeIntro: "Your current course mentors can see your saved scores, dates and trends.",
   noticeAnswers: "Your individual answers are only shown to you.", noticeAgree: "I understand who can see my self-belief check-ins.",

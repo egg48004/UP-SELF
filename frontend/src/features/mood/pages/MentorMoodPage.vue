@@ -46,6 +46,7 @@ watch(id, load, { immediate: true });
           :key="person.id"
           :enabled="true"
           :student-id="person.id"
+          show-notes
         />
       </template>
     </AsyncState>

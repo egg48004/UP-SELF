@@ -92,6 +92,37 @@ class MoodAccessTest {
   }
 
   @Test
+  void newDiaryIsSharedOnlyAfterCurrentNotice() {
+    acknowledged();
+    when(mapper.insert(any())).thenAnswer(invocation -> { ((MoodEntry) invocation.getArgument(0)).setId(10L); return 1; });
+    service.record(input());
+    verify(mapper).insert(argThat(entry -> entry.isNoteShared() && "Private note".equals(entry.getPrivateNote())));
+  }
+
+  @Test
+  void mentorDiaryProjectionDoesNotContainOwnerOnlyField() throws Exception {
+    MentorMoodEntry shared = new MentorMoodEntry();
+    shared.setDiaryNote("A shared diary");
+    String json = new ObjectMapper().writeValueAsString(shared);
+    assertTrue(json.contains("diaryNote"));
+    assertFalse(json.contains("privateNote"));
+    assertFalse(new MoodEntry().isNoteShared());
+  }
+
+  @Test
+  void diaryAudioUsesOwnerAndCurrentMentorScope() {
+    MoodEntry entry = new MoodEntry(); entry.setStudentId(2L); entry.setRecordingKey("recording.wav");
+    when(mapper.entryById(10L)).thenReturn(entry);
+    assertSame(entry, service.readRecording(10L));
+    role("student", 3L); assertThrows(ServiceException.class, () -> service.readRecording(10L));
+    role("mentor", 5L); assertThrows(ServiceException.class, () -> service.readRecording(10L));
+    when(mapper.canView(5L, 2L)).thenReturn(1); assertSame(entry, service.readRecording(10L));
+    for (String key : new String[] {"admin", "platform_admin"}) {
+      role(key, 1L); assertThrows(ServiceException.class, () -> service.readRecording(10L));
+    }
+  }
+
+  @Test
   void wrongWeekCannotBeBackfilled() {
     acknowledged();
     EntryInput b = input();

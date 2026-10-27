@@ -6,12 +6,14 @@ import com.upself.biz.mood.dto.MoodViews.*;
 import java.util.List;
 
 public interface IMoodService {
-  String NOTICE_VERSION = "2026-10-22-v1";
+  String NOTICE_VERSION = "2026-10-27-audio-v3";
   Current current();
 
   Current acknowledge(Acknowledgment body);
 
   Current record(EntryInput body);
+  Current recordWithAudio(EntryInput body, org.springframework.web.multipart.MultipartFile file);
+  MoodEntry readRecording(Long id);
 
   void verifyStudent();
 
@@ -25,7 +27,7 @@ public interface IMoodService {
 
   void verifyMentorAccess(Long studentId);
 
-  List<MoodPoint> mentorHistory(Long studentId);
+  List<MentorMoodEntry> mentorHistory(Long studentId);
 
   Trend mentorTrend(Long studentId, int weeks);
 }

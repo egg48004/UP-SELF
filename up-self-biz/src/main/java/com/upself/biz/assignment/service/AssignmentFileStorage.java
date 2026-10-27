@@ -16,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public class AssignmentFileStorage {
+  @org.springframework.beans.factory.annotation.Autowired private com.upself.biz.recording.service.RecordingStorage recordings;
   @Value("${assignment.storage-path:${learning.storage-path:./.local/uploads}/assignments}")
   private String directory;
 
@@ -39,6 +40,10 @@ public class AssignmentFileStorage {
   }
 
   public Stored save(MultipartFile file) {
+    if (file != null && com.upself.biz.recording.service.RecordingStorage.audioName(file.getOriginalFilename())) {
+      com.upself.biz.recording.service.RecordingStorage.Stored audio = recordings.save(file);
+      return new Stored(audio.key, audio.name, audio.mime, audio.size);
+    }
     if (file == null || file.isEmpty() || file.getSize() > 20L * 1024 * 1024) throw invalid();
     String raw = Optional.ofNullable(file.getOriginalFilename()).orElse("file").replace('\\', '/');
     String name = raw.substring(raw.lastIndexOf('/') + 1).replaceAll("[\\p{Cntrl}]", "_");
@@ -138,6 +143,7 @@ public class AssignmentFileStorage {
   }
 
   public FileSystemResource open(String key) {
+    if (com.upself.biz.recording.service.RecordingStorage.audioKey(key)) return recordings.open(key);
     Path p = resolve(key);
     if (!Files.isRegularFile(p, LinkOption.NOFOLLOW_LINKS))
       throw new ServiceException(404, "This file is unavailable.");
@@ -145,6 +151,7 @@ public class AssignmentFileStorage {
   }
 
   public void discard(String key) {
+    if (com.upself.biz.recording.service.RecordingStorage.audioKey(key)) { recordings.discard(key); return; }
     try {
       Files.deleteIfExists(resolve(key));
     } catch (IOException failure) {

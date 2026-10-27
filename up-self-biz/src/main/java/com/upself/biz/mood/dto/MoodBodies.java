@@ -26,7 +26,7 @@ public class MoodBodies {
     private Integer moodLevel;
 
     @NotNull(message = "Use an empty note if you do not want to add one.")
-    @Size(max = 2000, message = "Use at most 2,000 characters for your private note.")
+    @Size(max = 2000, message = "Use at most 2,000 characters for your diary.")
     private String privateNote = "";
   }
 }

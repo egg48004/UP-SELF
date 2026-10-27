@@ -3,11 +3,14 @@ created by this invocation are removed; existing records and passwords are never
 Uses the same local Windows DB helper as verify-local.py. Logs no credentials or notes.
 """
 from pathlib import Path
-import importlib.util,json,secrets,re,concurrent.futures
+import importlib.util,json,secrets,re,concurrent.futures,os
 from datetime import datetime,timedelta,timezone
 ROOT=Path(__file__).resolve().parents[1]
 spec=importlib.util.spec_from_file_location('auth',ROOT/'scripts/verify-local.py')
 auth=importlib.util.module_from_spec(spec);spec.loader.exec_module(auth)
+auth.BASE=os.environ.get('UPSELF_TEST_API_URL','http://127.0.0.1:8080')
+if auth.BASE not in ('http://127.0.0.1:8080','http://127.0.0.1:8081'):
+    raise RuntimeError('Only local test backends are allowed')
 PREFIX='mood_check_'+secrets.token_hex(4)
 USERS=[];COURSES=[];TOKENS=[];CHECKS=[]
 def call(label,path,method='GET',body=None,token=None,code=200):
@@ -18,7 +21,7 @@ def call(label,path,method='GET',body=None,token=None,code=200):
     return result
 def public(result):
     text=json.dumps(result)
-    assert 'privateNote' not in text and 'MOOD_PRIVATE_SENTINEL' not in text
+    assert 'privateNote' not in text
     assert 'password' not in text and 'noticeVersion' not in text
 def main():
     auth.clear_our_rate_limits()
@@ -41,7 +44,7 @@ def main():
     assert current['acknowledged'] is False and current.get('entry') is None and current['viewers']==[]
     now=datetime.now(timezone(timedelta(hours=8))).date();week=now-timedelta(days=now.weekday())
     assert current['weekStart']==week.isoformat() and current['weekEnd']==(week+timedelta(days=6)).isoformat() and current['timeZone']=='Asia/Kuala_Lumpur'
-    body={'weekStart':week.isoformat(),'moodLevel':3,'privateNote':'MOOD_PRIVATE_SENTINEL \U0001f331'}
+    body={'weekStart':week.isoformat(),'moodLevel':3,'privateNote':'MOOD_SHARED_DIARY \U0001f331'}
     call('cannot-record-before-notice',own+'/entries','POST',body,s,403)
     for endpoint in ['/history','/trend']:call('cannot-bypass-first-use',own+endpoint,token=s,code=403)
     call('false-acknowledgment-rejected',own+'/acknowledgment','POST',{'accepted':False,'noticeVersion':current['noticeVersion']},s,400)
@@ -59,7 +62,7 @@ def main():
     assert sorted(r['code'] for r in results)==[200,409]
     assert auth.sql('SELECT COUNT(*) FROM mood_entry WHERE student_id=%d;'%sid)=='1'
     CHECKS.append('concurrent-once-per-week');print('PASS concurrent-once-per-week')
-    mine=call('own-record-survives-refresh',own+'/current',token=s)['data'];assert mine['entry']['privateNote']==body['privateNote']
+    mine=call('own-record-survives-refresh',own+'/current',token=s)['data'];assert mine['entry']['privateNote']==body['privateNote'] and mine['entry']['noteShared'] is True
     call('saved-week-cannot-be-overwritten',own+'/entries','POST',dict(body,moodLevel=5),s,409)
     for endpoint in [rp, rp+'/history',rp+'/trend']:call('unrelated-mentor-denied',endpoint,token=m,code=403)
     # A mood record is global to the student; two current courses must not duplicate them.
@@ -96,7 +99,7 @@ def main():
     auth.sql("UPDATE mood_notice_ack SET notice_version='test-old' WHERE student_id=%d;"%sid)
     assert call('changed-notice-requires-confirmation',own+'/current',token=s)['data']['acknowledged'] is False
     call('changed-notice-blocks-owner-history',own+'/history',token=s,code=403)
-    assert call('unconfirmed-history-not-shared',rp+'/history',token=m)['total']==0
+    assert call('history-shared-under-current-relationship',rp+'/history',token=m)['total']==13
     call('reconfirm-preserves-history',own+'/acknowledgment','POST',ack,s)
     assert call('history-preserved',own+'/history',token=s)['total']==13
     c1='/learning/courses/'+str(COURSES[0]);c2='/learning/courses/'+str(COURSES[1])

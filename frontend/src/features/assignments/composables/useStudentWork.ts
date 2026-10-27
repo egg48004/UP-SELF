@@ -77,7 +77,7 @@ export function useStudentWork(id: Ref<number>) {
     if (
       selected.size > 20 * 1024 * 1024 ||
       selected.size === 0 ||
-      !/\.(pdf|docx|png|jpe?g|txt)$/i.test(selected.name)
+      !/\.(pdf|docx|png|jpe?g|txt|webm|m4a|mp4|ogg|wav)$/i.test(selected.name)
     ) {
       error.value = t("assignment.invalidFile");
       return;

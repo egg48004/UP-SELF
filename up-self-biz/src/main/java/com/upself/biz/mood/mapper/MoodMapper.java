@@ -14,6 +14,7 @@ public interface MoodMapper {
   MoodEntry entry(@Param("studentId") Long studentId, @Param("weekStart") String weekStart);
 
   int insert(MoodEntry entry);
+  MoodEntry entryById(@Param("id") Long id);
 
   List<MoodPerson> viewers(@Param("studentId") Long studentId);
 
@@ -31,7 +32,7 @@ public interface MoodMapper {
       @Param("start") String start,
       @Param("end") String end);
 
-  List<MoodPoint> mentorHistory(
+  List<MentorMoodEntry> mentorHistory(
       @Param("mentorId") Long mentorId,
       @Param("studentId") Long studentId,
       @Param("version") String version);

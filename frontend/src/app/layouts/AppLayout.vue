@@ -28,8 +28,8 @@ const navigation = computed(() =>
         : "dashboard.adminNav",
 );
 const learningPaths = ["/student/courses", "/student/saved-courses", "/student/history"];
-const studentPaths = ["/mentor/students", "/mentor/mood", "/mentor/self-efficacy"];
-const checkInPaths = ["/student/mood", "/student/self-efficacy"];
+const studentPaths = ["/mentor/students", "/mentor/mood", "/mentor/self-efficacy", "/mentor/knowledge"];
+const checkInPaths = ["/student/mood", "/student/self-efficacy", "/student/knowledge"];
 function within(path: string) {
   return route.path === path || route.path.startsWith(path + "/");
 }
@@ -66,6 +66,7 @@ const sectionLinks = computed(() => {
     return { label: t("efficacy.checkInSections"), items: [
       link("/student/mood", "mood.myMood"),
       ...(auth.can("efficacy:own:read") ? [link("/student/self-efficacy", "efficacy.title")] : []),
+      ...(auth.can("knowledge:own:read") ? [link("/student/knowledge", "knowledge.title")] : []),
     ] };
   }
   if (auth.isStudent && learningPaths.some(within)) {
@@ -83,6 +84,7 @@ const sectionLinks = computed(() => {
       return { label: t("efficacy.studentCheckIns"), items: [
         link("/mentor/mood/" + route.params.studentId, "mood.myMood"),
         ...(auth.can("efficacy:students:read") ? [link("/mentor/self-efficacy/" + route.params.studentId, "efficacy.title")] : []),
+        ...(auth.can("knowledge:questions:manage") ? [link("/mentor/knowledge", "knowledge.questions")] : []),
       ] };
     }
     return {
@@ -90,6 +92,7 @@ const sectionLinks = computed(() => {
       items: [
         link("/mentor/students", "progress.overview"),
         link("/mentor/mood", "efficacy.studentCheckIns"),
+        ...(auth.can("knowledge:questions:manage") ? [link("/mentor/knowledge", "knowledge.questions")] : []),
       ],
     };
   }

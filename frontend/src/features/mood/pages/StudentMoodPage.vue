@@ -8,6 +8,9 @@ import { moodChoices, weekDate } from "../presentation";
 import MoodTimeline from "../components/MoodTimeline.vue";
 import AsyncState from "../../../shared/ui/AsyncState.vue";
 import { confirmAction } from "../../../shared/ui/confirm";
+import AudioRecorder from "../../recordings/components/AudioRecorder.vue";
+import AudioPlayer from "../../recordings/components/AudioPlayer.vue";
+const recording = ref<File | null>(null), recordingActive = ref(false);
 const { t } = useI18n(),
   current = ref<MoodCurrent | null>(null),
   loading = ref(true),
@@ -20,10 +23,10 @@ const { t } = useI18n(),
   notice = ref(""),
   timeline = ref<InstanceType<typeof MoodTimeline> | null>(null);
 const dirty = computed(
-  () => !current.value?.entry && (level.value !== null || !!privateNote.value),
+  () => !current.value?.entry && (level.value !== null || !!privateNote.value || !!recording.value || recordingActive.value),
 );
 async function guard() {
-  if (busy.value) return false;
+  if (busy.value || recordingActive.value) return false;
   return !dirty.value || (await confirmAction(t("mood.leave")));
 }
 onBeforeRouteLeave(guard);
@@ -50,6 +53,7 @@ async function refresh() {
   if (!(await guard())) return;
   level.value = null;
   privateNote.value = "";
+  recording.value = null;
   notice.value = "";
   error.value = "";
   await load();
@@ -71,7 +75,7 @@ async function acknowledge() {
   }
 }
 async function save() {
-  if (!current.value || level.value === null || busy.value) return;
+  if (!current.value || level.value === null || busy.value || recordingActive.value) return;
   busy.value = true;
   if (!(await confirmAction(t("mood.saveConfirm")))) {
     busy.value = false;
@@ -79,13 +83,14 @@ async function save() {
   }
   error.value = "";
   try {
-    current.value = await moodApi.record(
+    current.value = recording.value ? await moodApi.recordWithAudio(current.value.weekStart, level.value, privateNote.value, recording.value) : await moodApi.record(
       current.value.weekStart,
       level.value,
       privateNote.value,
     );
     level.value = null;
     privateNote.value = "";
+    recording.value = null;
     notice.value = t("mood.saved");
     await timeline.value?.reload();
   } catch (e) {
@@ -95,6 +100,7 @@ async function save() {
   }
 }
 onMounted(load);
+function loadRecording() { return moodApi.audio(current.value!.entry!.recordingId!); }
 </script>
 <template>
   <section class="student-mood">
@@ -202,11 +208,12 @@ onMounted(load);
                 }}
               </p>
               <details v-if="current.entry.privateNote">
-                <summary>{{ t("mood.privateNote") }}</summary>
+                <summary>{{ t("mood.diary") }}</summary>
                 <p class="plain-text">
                   {{ current.entry.privateNote }}
                 </p>
               </details>
+              <AudioPlayer v-if="current.entry.recordingId" :source-key="'diary-' + current.entry.recordingId" :label="current.entry.recordingName || t('recording.play')" :load="loadRecording" />
             </div>
             <form v-else @submit.prevent="save">
               <fieldset :disabled="busy" class="mood-fieldset">
@@ -239,13 +246,17 @@ onMounted(load);
                   aria-describedby="mood-note-help"
                 />
               </fieldset>
+              <AudioRecorder v-model="recording" :disabled="busy" @activity="recordingActive = $event" />
+              <p class="muted">
+                {{ t("recording.sharedDiary") }}
+              </p>
               <p class="muted">
                 {{ t("mood.onePerWeek") }}
               </p>
               <el-button
                 native-type="submit"
                 type="primary"
-                :disabled="level === null || busy"
+                :disabled="level === null || busy || recordingActive"
                 :loading="busy"
               >
                 {{ t("mood.save") }}
@@ -255,7 +266,7 @@ onMounted(load);
           <MoodTimeline
             ref="timeline"
             :enabled="current.acknowledged"
-            private-notes
+            show-notes
           />
         </template>
       </template>

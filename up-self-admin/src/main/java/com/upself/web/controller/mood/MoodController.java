@@ -14,6 +14,23 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping({"/moods", "/client/moods"})
 public class MoodController extends BaseController {
   @Autowired private IMoodService service;
+  @Autowired private com.upself.biz.recording.service.RecordingStorage recordings;
+
+  @PostMapping(value="/entries/recording", consumes="multipart/form-data")
+  @PreAuthorize("@ss.hasPermi('mood:own:record')")
+  public AjaxResult recordAudio(@Valid @ModelAttribute EntryInput body, @RequestParam org.springframework.web.multipart.MultipartFile file) {
+    return AjaxResult.success(service.recordWithAudio(body, file));
+  }
+
+  @GetMapping("/recordings/{id}/content")
+  @PreAuthorize("@ss.hasPermi('mood:own:read') or @ss.hasPermi('mood:students:read')")
+  public org.springframework.http.ResponseEntity<org.springframework.core.io.Resource> recording(@PathVariable Long id) {
+    com.upself.biz.mood.domain.MoodEntry entry = service.readRecording(id);
+    return org.springframework.http.ResponseEntity.ok()
+        .header("Cache-Control", "private, no-store").header("X-Content-Type-Options", "nosniff")
+        .contentType(org.springframework.http.MediaType.parseMediaType(entry.getRecordingMime()))
+        .body(recordings.open(entry.getRecordingKey()));
+  }
 
   @GetMapping("/current")
   @PreAuthorize("@ss.hasPermi('mood:own:read')")

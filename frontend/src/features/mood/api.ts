@@ -1,12 +1,17 @@
-import { data, table } from "../../shared/http/client";
+import { data, table, download } from "../../shared/http/client";
 import type {
   MoodCurrent,
   MoodEntry,
   MoodPerson,
-  MoodPoint,
   MoodTrend,
+  MentorMoodEntry,
 } from "./types";
 export const moodApi = {
+  audio: (id: number, mentor = false) => download((mentor ? "/moods" : "/client/moods") + "/recordings/" + id + "/content"),
+  recordWithAudio: (weekStart: string, moodLevel: number, privateNote: string, file: File) => {
+    const form = new FormData(); form.append("weekStart", weekStart); form.append("moodLevel", String(moodLevel)); form.append("privateNote", privateNote); form.append("file", file);
+    return data<MoodCurrent>("/client/moods/entries/recording", { method: "POST", data: form, timeout: 180000 });
+  },
   current: () => data<MoodCurrent>("/client/moods/current"),
   acknowledge: (noticeVersion: string, accepted: boolean) =>
     data<MoodCurrent>("/client/moods/acknowledgment", {
@@ -23,7 +28,7 @@ export const moodApi = {
       ? table<MoodEntry>("/client/moods/history", {
           params: { current, pageSize: 10 },
         })
-      : table<MoodPoint>("/moods/students/" + studentId + "/history", {
+      : table<MentorMoodEntry>("/moods/students/" + studentId + "/history", {
           params: { current, pageSize: 10 },
         }),
   trend: (weeks: number, studentId?: number) =>

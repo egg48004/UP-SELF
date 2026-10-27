@@ -20,6 +20,7 @@ public class MoodServiceImpl implements IMoodService {
   @Autowired private MoodMapper mapper;
   @Autowired private MoodCalendar calendar;
   @Autowired private SysAuditMapper audit;
+  @Autowired private com.upself.biz.recording.service.RecordingStorage recordings;
 
   private LoginUser actor() {
     return SecurityUtils.getLoginUser();
@@ -76,6 +77,15 @@ public class MoodServiceImpl implements IMoodService {
 
   @Transactional(isolation = Isolation.READ_COMMITTED)
   public Current record(EntryInput b) {
+    return persist(b, null);
+  }
+
+  @Transactional(isolation = Isolation.READ_COMMITTED)
+  public Current recordWithAudio(EntryInput b, org.springframework.web.multipart.MultipartFile file) {
+    return persist(b, file);
+  }
+
+  private Current persist(EntryInput b, org.springframework.web.multipart.MultipartFile file) {
     role("student");
     lockStudent();
     verifyStudent();
@@ -89,9 +99,27 @@ public class MoodServiceImpl implements IMoodService {
     e.setWeekStart(week);
     e.setMoodLevel(b.getMoodLevel());
     e.setPrivateNote(b.getPrivateNote());
+    e.setNoteShared(true);
+    if (file != null) {
+      com.upself.biz.recording.service.RecordingStorage.Stored stored = recordings.save(file);
+      org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(
+          new org.springframework.transaction.support.TransactionSynchronization() {
+            public void afterCompletion(int status) { if (status != STATUS_COMMITTED) recordings.discard(stored.key); }
+          });
+      e.setRecordingKey(stored.key); e.setRecordingName(stored.name); e.setRecordingMime(stored.mime); e.setRecordingSize(stored.size);
+    }
     mapper.insert(e);
     audit.insert(actor().getUserId(), "MOOD_RECORD", e.getId().toString(), "SUCCESS");
     return current();
+  }
+
+  public MoodEntry readRecording(Long id) {
+    MoodEntry e = mapper.entryById(id);
+    if (e == null || e.getRecordingKey() == null) throw new ServiceException(404, "This recording is unavailable.");
+    if ("student".equals(actor().getRoleKey())) {
+      if (!actor().getUserId().equals(e.getStudentId())) throw new ServiceException(403, "You can only play your own diary recordings.");
+    } else verifyMentorAccess(e.getStudentId());
+    return e;
   }
 
   public List<MoodEntry> ownHistory() {
@@ -121,7 +149,8 @@ public class MoodServiceImpl implements IMoodService {
           403, "You can only view mood records for students in your current published courses.");
   }
 
-  public List<MoodPoint> mentorHistory(Long studentId) {
+  public List<MentorMoodEntry> mentorHistory(Long studentId) {
+    // Keep the paginated query first; its SQL also checks the current relationship.
     role("mentor");
     return mapper.mentorHistory(actor().getUserId(), studentId, NOTICE_VERSION);
   }

@@ -8,6 +8,7 @@ import WorkFiles from "../components/WorkFiles.vue";
 import SubmissionHistory from "../components/SubmissionHistory.vue";
 import AsyncState from "../../../shared/ui/AsyncState.vue";
 import { confirmAction } from "../../../shared/ui/confirm";
+import AudioRecorder from "../../recordings/components/AudioRecorder.vue";
 const route = useRoute(),
   { t } = useI18n(),
   id = computed(() => Number(route.params.id));
@@ -31,12 +32,20 @@ const {
   submit,
 } = useStudentWork(id);
 const fileInput = ref<HTMLInputElement | null>(null);
-watch(file, (value) => {
+const recording = ref<File | null>(null), recordingActive = ref(false);
+async function uploadRecording(value: File) {
+  if (busy.value || recordingActive.value) return;
+  file.value = value; await upload();
+  if (!file.value) recording.value = null;
+}
+watch(file, (value, previous) => {
   if (!value && fileInput.value) fileInput.value.value = "";
+  if (!value && previous === recording.value) recording.value = null;
 });
+watch(recording, (value, previous) => { if (!value && previous === file.value) file.value = null; });
 async function guard() {
-  if (busy.value) return false;
-  return !dirty.value || (await confirmAction(t("assignment.leaveConfirm")));
+  if (busy.value || recordingActive.value) return false;
+  return (!dirty.value && !recording.value) || (await confirmAction(t("assignment.leaveConfirm")));
 }
 onBeforeRouteLeave(guard);
 onBeforeRouteUpdate(guard);
@@ -47,8 +56,8 @@ function selectFile(e: Event) {
 <template>
   <section>
     <RouterLink class="back-link" to="/student/assignments">
-      ← {{ t("assignment.back") }} </RouterLink
-    ><AsyncState :loading="loading" @retry="refresh">
+      ← {{ t("assignment.back") }}
+    </RouterLink><AsyncState :loading="loading" @retry="refresh">
       <template v-if="assignment && work">
         <div class="course-banner">
           <span aria-hidden="true">📝</span>
@@ -92,8 +101,7 @@ function selectFile(e: Event) {
           </p>
           <label class="sr-only" for="work-answer">{{
             t("assignment.yourAnswer")
-          }}</label
-          ><textarea
+          }}</label><textarea
             id="work-answer"
             v-model="answer"
             rows="6"
@@ -120,6 +128,10 @@ function selectFile(e: Event) {
             {{ t("assignment.saveDraft") }}
           </el-button>
           <hr />
+          <AudioRecorder v-model="recording" uploadable :disabled="!!busy" :upload-disabled="work.files.length >= 5" @activity="recordingActive = $event" @upload="uploadRecording" />
+          <p v-if="recording || recordingActive" class="muted">
+            {{ t("recording.uploadFirst") }}
+          </p>
           <h3>{{ t("assignment.files") }}</h3>
           <p>{{ t("assignment.fileHelp") }}</p>
           <WorkFiles
@@ -127,23 +139,28 @@ function selectFile(e: Event) {
             removable
             :disabled="!!busy"
             @remove="remove"
-          /><label for="work-file">{{ t("assignment.chooseFile") }}</label
-          ><input
+          /><label for="work-file" class="sr-only">{{ t("assignment.chooseFile") }}</label><input
             id="work-file"
             ref="fileInput"
             :key="work.version"
             type="file"
-            accept=".pdf,.docx,.png,.jpg,.jpeg,.txt"
+            hidden
+            accept=".pdf,.docx,.png,.jpg,.jpeg,.txt,.webm,.m4a,.mp4,.ogg,.wav"
             :disabled="!!busy || work.files.length >= 5"
             @change="selectFile"
           />
+          <div class="button-row">
+            <el-button :disabled="!!busy || work.files.length >= 5" @click="fileInput?.click()">
+              {{ t("assignment.chooseFile") }}
+            </el-button><span>{{ file?.name || t("assignment.noFileSelected") }}</span>
+          </div>
           <div class="button-row">
             <el-button
               :disabled="!file || !!busy || work.files.length >= 5"
               @click="upload"
             >
-              {{ t("assignment.upload") }} </el-button
-            ><el-button
+              {{ t("assignment.upload") }}
+            </el-button><el-button
               v-if="busy === 'upload'"
               @click="uploadControl?.abort()"
             >
@@ -156,7 +173,7 @@ function selectFile(e: Event) {
           <hr />
           <el-button
             type="primary"
-            :disabled="!!busy"
+            :disabled="!!busy || recordingActive || !!recording"
             :loading="busy === 'submit'"
             @click="submit"
           >
