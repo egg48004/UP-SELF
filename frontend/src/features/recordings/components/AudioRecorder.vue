@@ -4,17 +4,25 @@ import { useI18n } from "vue-i18n";
 import { useRecorder } from "../composables/useRecorder";
 import { stopOtherMedia } from "../playback";
 const model = defineModel<File | null>({ default: null });
-defineProps<{
+const props = defineProps<{
   disabled?: boolean;
   uploadable?: boolean;
   uploadDisabled?: boolean;
+  maxSeconds?: number;
+  maxBytes?: number;
+  limitHelp?: string;
+  sizeError?: string;
+  helpText?: string;
 }>();
 const emit = defineEmits<{
   activity: [active: boolean];
   upload: [file: File];
 }>();
 const { t } = useI18n(),
-  recording = useRecorder(),
+  recording = useRecorder({
+    maxSeconds: props.maxSeconds,
+    maxBytes: props.maxBytes,
+  }),
   preview = ref("");
 const previewAudio = ref<HTMLAudioElement | null>(null);
 watch(recording.file, (file) => {
@@ -46,7 +54,7 @@ onBeforeUnmount(() => {
 <template>
   <section class="voice-recorder" :aria-label="t('recording.title')">
     <h3><span aria-hidden="true">🎙 </span>{{ t("recording.title") }}</h3>
-    <p>{{ t("recording.help") }}</p>
+    <p>{{ helpText || t("recording.help") }}</p>
     <div class="button-row">
       <el-button
         v-if="!recording.active.value"
@@ -105,10 +113,14 @@ onBeforeUnmount(() => {
       @play="stopOtherMedia($event.target as HTMLMediaElement)"
     />
     <p v-if="recording.error.value" role="alert" class="notice error">
-      {{ t(recording.error.value) }}
+      {{
+        recording.error.value === "recording.tooLarge" && sizeError
+          ? sizeError
+          : t(recording.error.value)
+      }}
     </p>
     <p class="muted">
-      {{ t("recording.timeHelp") }}
+      {{ limitHelp || t("recording.timeHelp") }}
     </p>
   </section>
 </template>

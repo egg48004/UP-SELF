@@ -28,12 +28,12 @@ class Recorder {
 describe("recording lifecycle", () => {
   let microphone: ReturnType<typeof vi.fn>, stopTrack: ReturnType<typeof vi.fn>;
   let views: ReturnType<typeof mount>[];
-  function render() {
+  function render(options?: Parameters<typeof useRecorder>[0]) {
     let recording!: ReturnType<typeof useRecorder>;
     const view = mount(
       defineComponent({
         setup() {
-          recording = useRecorder();
+          recording = useRecorder(options);
           return () => null;
         },
       }),
@@ -126,5 +126,14 @@ describe("recording lifecycle", () => {
     await vi.advanceTimersByTimeAsync(300000);
     expect(recording.active.value).toBe(false);
     expect(recording.file.value?.size).toBeGreaterThan(0);
+  });
+  it("uses a shorter chat recording limit without changing the default", async () => {
+    vi.useFakeTimers();
+    const { recording } = render({ maxSeconds: 60, maxBytes: 5 * 1024 * 1024 });
+    await recording.start();
+    await vi.advanceTimersByTimeAsync(60000);
+    expect(recording.active.value).toBe(false);
+    expect(recording.file.value?.size).toBeGreaterThan(0);
+    expect(stopTrack).toHaveBeenCalled();
   });
 });

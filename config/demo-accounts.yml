@@ -1,0 +1,51 @@
+# Current local demo login details. Authentication uses the password hashes in MySQL.
+# This file is a readable account inventory; Spring does not import it.
+# Database passwords, internal maintenance and new-account password rules are unchanged.
+# These are synthetic demo users; do not use this password for real users.
+demo:
+  password: "1234"
+  accounts:
+    - username: student01
+      password: "1234"
+      role: student
+    - username: student02
+      password: "1234"
+      role: student
+    - username: student03
+      password: "1234"
+      role: student
+    - username: student04
+      password: "1234"
+      role: student
+    - username: student05
+      password: "1234"
+      role: student
+    - username: student06
+      password: "1234"
+      role: student
+    - username: mentor01
+      password: "1234"
+      role: mentor
+    - username: mentor02
+      password: "1234"
+      role: mentor
+    - username: admin01
+      password: "1234"
+      role: administrator
+  courses:
+    - title: "DEMO - Small steps in business"
+      mentor: mentor01
+      students: [student01, student02, student03, student04, student05, student06]
+      group: "Small steps study circle"
+    - title: "DEMO - Planning a simple budget"
+      mentor: mentor01
+      students: [student01, student02, student03]
+      group: "Budget practice group"
+    - title: "DEMO - Sharing your idea"
+      mentor: mentor02
+      students: [student04, student05, student06]
+      group: "Share an idea together"
+  notes:
+    - "Student 01 can try this week's mood check-in. Other students show a saved check-in."
+    - "All six students have historical self-belief scores and can complete a new assessment."
+    - "Editing this inventory does not reset a password or insert database records."

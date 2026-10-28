@@ -8,12 +8,15 @@ const login = () => import("../features/auth/pages/LoginPage.vue");
 export const router = createRouter({
   history: createWebHashHistory(),
   routes: [
+
     { path: "/login", component: login },
     { path: "/internal/login", component: login, meta: { internal: true } },
     {
       path: "/",
       component: AppLayout,
       children: [
+        {path:'student/courses/:id/discussions',component:()=>import('../features/chat/pages/CourseDiscussionsPage.vue'),meta:{roles:['student'],permission:'chat:read'}},
+        {path:'manage/courses/:id/discussions',component:()=>import('../features/chat/pages/CourseDiscussionsPage.vue'),meta:{roles:['mentor'],permission:'chat:read'}},
         {
           path: "student/knowledge",
           component: () => import("../features/knowledge/pages/StudentKnowledgePage.vue"),

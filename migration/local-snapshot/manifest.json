@@ -1,49 +1,93 @@
 {
-    "createdAt":  "2026-10-22T17:16:42.1362355+08:00",
-    "database":  "up_self_dev",
-    "source":  "Independent UP-SELF local database; reference database excluded",
-    "mysql":  "5.7.44",
-    "redis":  "5.0.14.1",
-    "applicationConfiguration":  "../../config/application-local.yml",
-    "containsPlaintextCredentials":  true,
-    "flywayVersions":  [
-                           "1",
-                           "2",
-                           "3",
-                           "4",
-                           "5"
-                       ],
-    "rowCounts":  {
-                      "sys_user":  5,
-                      "learning_course":  2,
-                      "learning_resource":  3,
-                      "assignment":  1,
-                      "assignment_submission":  1,
-                      "assignment_file":  0,
-                      "mood_notice_ack":  1,
-                      "mood_entry":  1
-                  },
-    "uploadFileCount":  3,
-    "files":  {
-                  "local-credentials.json":  {
-                                                 "bytes":  400,
-                                                 "sha256":  "28c3c4dca38416a5f4fb4201fba1cf388bc36a5a3e8cff91949eef4d70052fdf"
-                                             },
-                  "up_self_dev.sql":  {
-                                          "bytes":  112048,
-                                          "sha256":  "27a00231fe3c00e15bc29b5cc876b52a282778c9d473c12a8f23d27b7372bdef"
-                                      },
-                  "uploads/4430cf5e5ec546df89a2ff5fcebe4bc4.png":  {
-                                                                       "bytes":  13364,
-                                                                       "sha256":  "e253894fcedeab3b5601fdf4525d4ce1d48b99b97c6139ec9eb22c8f07a9ddb0"
-                                                                   },
-                  "uploads/92844e01adff4bbc93e73fef036e1077.mp4":  {
-                                                                       "bytes":  90242,
-                                                                       "sha256":  "3ba21f204105d76ac7388bd3b9b553e50014e874381bf4faf4688ac0827bdbe3"
-                                                                   },
-                  "uploads/ff227032ce984a12a04720aac829152c.vtt":  {
-                                                                       "bytes":  109,
-                                                                       "sha256":  "b82c2400fc6ca176b15701ec3d0c52621d3a7d12c16ea1e2a74401e7d4b4b4a8"
-                                                                   }
-              }
+  "createdAt": "2026-10-28T11:17:48.4488210+08:00",
+  "database": "up_self_dev",
+  "source": "Independent UP-SELF local database; reference database excluded",
+  "mysql": "5.7.44",
+  "redis": "5.0.14.1",
+  "applicationConfiguration": "../../config/application-local.yml",
+  "containsPlaintextCredentials": true,
+  "flywayVersions": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9",
+    "10",
+    "11",
+    "12"
+  ],
+  "rowCounts": {
+    "sys_user": 10,
+    "learning_course": 5,
+    "learning_resource": 12,
+    "assignment": 7,
+    "assignment_submission": 24,
+    "assignment_file": 0,
+    "mood_notice_ack": 6,
+    "mood_entry": 29,
+    "learning_chapter_progress": 39
+  },
+  "uploadFileCount": 12,
+  "files": {
+    "local-credentials.json": {
+      "bytes": 400,
+      "sha256": "28c3c4dca38416a5f4fb4201fba1cf388bc36a5a3e8cff91949eef4d70052fdf"
+    },
+    "up_self_dev.sql": {
+      "bytes": 310200,
+      "sha256": "bd290018cd25a9b78374ad89035bcc785bebc7e5f35f797f93108684e72e1d81"
+    },
+    "uploads/143e063d68cc419da1581675c8f069d8.vtt": {
+      "bytes": 109,
+      "sha256": "b82c2400fc6ca176b15701ec3d0c52621d3a7d12c16ea1e2a74401e7d4b4b4a8"
+    },
+    "uploads/1967109f084142ed9bd96f77c83c9177.png": {
+      "bytes": 13364,
+      "sha256": "e253894fcedeab3b5601fdf4525d4ce1d48b99b97c6139ec9eb22c8f07a9ddb0"
+    },
+    "uploads/26f4770982eb460193077e9e73d1c7cb.vtt": {
+      "bytes": 109,
+      "sha256": "b82c2400fc6ca176b15701ec3d0c52621d3a7d12c16ea1e2a74401e7d4b4b4a8"
+    },
+    "uploads/4430cf5e5ec546df89a2ff5fcebe4bc4.png": {
+      "bytes": 13364,
+      "sha256": "e253894fcedeab3b5601fdf4525d4ce1d48b99b97c6139ec9eb22c8f07a9ddb0"
+    },
+    "uploads/63c007aab8a145f2aaeba1ab56ee71fb.mp4": {
+      "bytes": 90242,
+      "sha256": "3ba21f204105d76ac7388bd3b9b553e50014e874381bf4faf4688ac0827bdbe3"
+    },
+    "uploads/685545a8824647c0bfc363615ae4dd1e.vtt": {
+      "bytes": 109,
+      "sha256": "b82c2400fc6ca176b15701ec3d0c52621d3a7d12c16ea1e2a74401e7d4b4b4a8"
+    },
+    "uploads/76250874107748cebe7ef5433b5fee1d.mp4": {
+      "bytes": 90242,
+      "sha256": "3ba21f204105d76ac7388bd3b9b553e50014e874381bf4faf4688ac0827bdbe3"
+    },
+    "uploads/92844e01adff4bbc93e73fef036e1077.mp4": {
+      "bytes": 90242,
+      "sha256": "3ba21f204105d76ac7388bd3b9b553e50014e874381bf4faf4688ac0827bdbe3"
+    },
+    "uploads/94c7b8dceb214f48aabf5c3fbbf5eb37.mp4": {
+      "bytes": 90242,
+      "sha256": "3ba21f204105d76ac7388bd3b9b553e50014e874381bf4faf4688ac0827bdbe3"
+    },
+    "uploads/ae37fd6b978c412e82968bf59370482a.png": {
+      "bytes": 13364,
+      "sha256": "e253894fcedeab3b5601fdf4525d4ce1d48b99b97c6139ec9eb22c8f07a9ddb0"
+    },
+    "uploads/fd0ae988f3b3457294ca3bc508fca382.png": {
+      "bytes": 13364,
+      "sha256": "e253894fcedeab3b5601fdf4525d4ce1d48b99b97c6139ec9eb22c8f07a9ddb0"
+    },
+    "uploads/ff227032ce984a12a04720aac829152c.vtt": {
+      "bytes": 109,
+      "sha256": "b82c2400fc6ca176b15701ec3d0c52621d3a7d12c16ea1e2a74401e7d4b4b4a8"
+    }
+  }
 }

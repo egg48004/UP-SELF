@@ -7,7 +7,9 @@ import bookmark from "../../features/learning/bookmarkMessages";
 import efficacy from "../../features/self-efficacy/messages";
 import knowledge from "../../features/knowledge/messages";
 import recording from "../../features/recordings/messages";
+import chat from "../../features/chat/messages";
 export default {
+  chat,
   recording,
   knowledge,
   efficacy,

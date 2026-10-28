@@ -1,6 +1,8 @@
 import { computed, onUnmounted, ref, shallowRef } from "vue";
 import { stopOtherMedia } from "../playback";
-export function useRecorder() {
+export function useRecorder(
+  options: { maxSeconds?: number; maxBytes?: number } = {},
+) {
   const state = ref<"idle" | "preparing" | "recording" | "finishing">("idle"),
     seconds = ref(0),
     error = ref("");
@@ -72,7 +74,7 @@ export function useRecorder() {
           chunks.push(event.data);
           size += event.data.size;
         }
-        if (size > 20 * 1024 * 1024) {
+        if (size > (options.maxBytes ?? 20 * 1024 * 1024)) {
           failed = true;
           error.value = "recording.tooLarge";
           stop();
@@ -113,7 +115,7 @@ export function useRecorder() {
       const started = Date.now();
       timer = setInterval(() => {
         seconds.value = Math.floor((Date.now() - started) / 1000);
-        if (seconds.value >= 300) stop();
+        if (seconds.value >= (options.maxSeconds ?? 300)) stop();
       }, 250);
     } catch {
       if (!disposed && token === sequence) {

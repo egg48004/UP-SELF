@@ -1,8 +1,10 @@
-# Archived local migration snapshot
+# Local migration snapshot
 
 This directory contains a dated export of the independent UP-SELF development database and its matching private uploads. Inspect manifest.json for the actual creation time, migration versions, file counts and SHA-256 values.
 
-The archived snapshot currently represents the V5 data state from 22 October 2026. It is not a live mirror of the current V9 application database. Later records are absent until a fresh export is explicitly generated. Applying V6 through V9 adds their schema and permission changes, not missing historical business data.
+The latest export was refreshed on 28 October 2026 after the demo-account reset, with migrations V1 through V12 applied. It includes six students, two mentors, one administrator, the unchanged internal maintenance account, and the current synthetic demonstration records. Current public demo logins are listed in [config/demo-accounts.yml](../../config/demo-accounts.yml). Use manifest.json as the authority for the snapshot's exact contents and export time.
+
+This is an export, not a live database mirror. Later changes appear here only after another export. Applying Flyway migrations creates missing schema and permissions; it does not transfer records created on another computer.
 
 For current data migration, pause application writes on the source computer, export the latest database with matching referenced uploads, then transfer the whole directory with the corresponding code and application configuration. Do not restore over an existing populated database or merge upload directories.
 

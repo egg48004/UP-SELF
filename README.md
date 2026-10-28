@@ -23,9 +23,11 @@ Follow the handbook's [Mac prerequisites](docs/UP-SELF-Developer-Handbook.md#58-
 
 ## Configuration and data
 
-Current local settings and bootstrap credentials are in config/application-local.yml. Public roles are Student, Mentor and Administrator; maintenance uses only the internal login entry. Password login is enabled and TOTP is disabled. Existing passwords changed after initialization are stored in MySQL and are not overwritten by bootstrap.
+Current local service settings and original bootstrap credentials are in config/application-local.yml. Current demo logins are listed in [config/demo-accounts.yml](config/demo-accounts.yml): student01–student06, mentor01–mentor02 and admin01 all use `1234`. The internal maintenance account is unchanged. The demo inventory is for reference; editing it does not change the hashed passwords stored in MySQL. Bootstrap values apply only when initializing an empty database.
 
-Current schema is **V9**. Java startup applies missing Flyway migrations. Git transfers code, not live database writes. The archived V5 snapshot is an older data point; export a fresh database and matching uploads before migrating current accounts and records. See [setup and data migration](docs/UP-SELF-Developer-Handbook.md#5-local-setup-and-data-migration).
+Public roles are Student, Mentor and Administrator; maintenance uses only the internal login entry. Password login is enabled and TOTP is disabled. The six demo students have course progress, submitted and reviewed work, goals, mood and self-belief history, and course discussion messages. These are synthetic demonstration records.
+
+Current schema is **V12**. Java startup applies missing Flyway migrations. Git transfers code, not live database writes. The local migration snapshot has been refreshed with the current demo accounts, data and referenced learning media. Export it again after making further database or upload changes. See [setup and data migration](docs/UP-SELF-Developer-Handbook.md#5-local-setup-and-data-migration).
 
 ## Versions and deployment
 

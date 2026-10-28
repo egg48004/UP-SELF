@@ -154,6 +154,7 @@ watch(() => route.params.id, load, { immediate: true });
         >
           📝 {{ t("assignment.myWork") }}
         </RouterLink>
+        <RouterLink class="button-link" :to="'/student/courses/'+course.id+'/discussions'"><span aria-hidden="true">💬 </span>{{t('chat.title')}}</RouterLink>
         <div class="learning-tabs">
           <el-button
             :type="tab === 'chapters' ? 'primary' : 'default'"

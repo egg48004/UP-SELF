@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.upself.biz.chat.mapper.ChatMapper">
+ <select id="groups" resultType="com.upself.biz.chat.domain.ChatGroup">
+  SELECT g.*,(SELECT COUNT(*) FROM chat_member cm WHERE cm.group_id=g.id AND cm.active=1) AS member_count
+  FROM chat_group g JOIN learning_course c ON c.id=g.course_id WHERE g.course_id=#{courseId} AND c.deleted=0
+  <choose><when test="studentId != null">AND c.status='PUBLISHED' AND EXISTS(SELECT 1 FROM learning_enrollment e JOIN sys_user u ON u.id=e.student_id WHERE e.course_id=c.id AND e.student_id=#{studentId} AND e.active=1 AND u.role_id=10 AND u.status='0')</when><otherwise>AND c.mentor_id=#{actorId}</otherwise></choose>
+  <if test="studentId != null">AND EXISTS(SELECT 1 FROM chat_member cm WHERE cm.group_id=g.id AND cm.student_id=#{studentId} AND cm.active=1)</if>
+  ORDER BY g.id DESC
+ </select>
+ <select id="group" resultType="com.upself.biz.chat.domain.ChatGroup">SELECT * FROM chat_group WHERE id=#{id}</select>
+ <select id="lockGroup" resultType="com.upself.biz.chat.domain.ChatGroup">SELECT * FROM chat_group WHERE id=#{id} FOR UPDATE</select>
+ <insert id="insertGroup" useGeneratedKeys="true" keyProperty="id">INSERT INTO chat_group(course_id,title,status,created_by) VALUES(#{courseId},#{title},#{status},#{createdBy})</insert>
+ <update id="updateGroup">UPDATE chat_group SET title=#{title},status=#{status},version=version+1 WHERE id=#{id} AND version=#{version}</update>
+ <select id="isMember" resultType="int">SELECT COUNT(*) FROM chat_member WHERE group_id=#{groupId} AND student_id=#{studentId} AND active=1</select>
+ <select id="members" resultType="com.upself.biz.chat.domain.ChatMember">
+  SELECT m.student_id,m.active,u.nick_name,u.user_name FROM chat_member m JOIN sys_user u ON u.id=m.student_id
+  WHERE m.group_id=#{id} AND m.active=1 ORDER BY u.nick_name,u.id
+ </select>
+ <select id="candidates" resultType="com.upself.biz.chat.domain.ChatMember">
+  SELECT u.id AS student_id,u.nick_name,u.user_name,1 AS active FROM learning_enrollment e JOIN sys_user u ON u.id=e.student_id
+  WHERE e.course_id=#{id} AND e.active=1 AND u.role_id=10 AND u.status='0' ORDER BY u.nick_name,u.id
+ </select>
+ <select id="eligible" resultType="int">SELECT COUNT(*) FROM learning_enrollment e JOIN sys_user u ON u.id=e.student_id WHERE e.course_id=#{courseId} AND e.student_id=#{studentId} AND e.active=1 AND u.role_id=10 AND u.status='0'</select>
+ <insert id="addMember">INSERT INTO chat_member(group_id,student_id,active) VALUES(#{groupId},#{studentId},1) ON DUPLICATE KEY UPDATE active=1,joined_at=CURRENT_TIMESTAMP</insert>
+ <update id="removeMember">UPDATE chat_member SET active=0 WHERE group_id=#{groupId} AND student_id=#{studentId}</update>
+ <sql id="messageColumns">m.id,m.group_id,m.sender_id,m.body,m.client_key,m.create_time,u.nick_name AS sender_name</sql>
+ <select id="messages" resultType="com.upself.biz.chat.domain.ChatMessage">
+  SELECT <include refid="messageColumns"/> FROM chat_message m JOIN sys_user u ON u.id=m.sender_id WHERE m.group_id=#{groupId}
+  <choose><when test="afterId != null">AND m.id &gt; #{afterId} ORDER BY m.id ASC</when>
+  <otherwise><if test="beforeId != null">AND m.id &lt; #{beforeId}</if> ORDER BY m.id DESC</otherwise></choose>
+  LIMIT 31
+ </select>
+ <select id="message" resultType="com.upself.biz.chat.domain.ChatMessage">SELECT <include refid="messageColumns"/> FROM chat_message m JOIN sys_user u ON u.id=m.sender_id WHERE m.id=#{id}</select>
+ <select id="byKey" resultType="com.upself.biz.chat.domain.ChatMessage">SELECT * FROM chat_message WHERE group_id=#{groupId} AND sender_id=#{senderId} AND client_key=#{clientKey}</select>
+ <insert id="insertMessage" useGeneratedKeys="true" keyProperty="id">INSERT INTO chat_message(group_id,sender_id,body,client_key) VALUES(#{groupId},#{senderId},#{body},#{clientKey})</insert>
+ <select id="messageFiles" resultType="com.upself.biz.chat.domain.ChatFile">SELECT id,group_id,owner_id,message_id,original_name,mime_type,size_bytes,alt_text FROM chat_file WHERE message_id=#{id} ORDER BY id</select>
+ <select id="file" resultType="com.upself.biz.chat.domain.ChatFile">SELECT * FROM chat_file WHERE id=#{id}</select>
+ <insert id="insertFile" useGeneratedKeys="true" keyProperty="id">INSERT INTO chat_file(group_id,owner_id,storage_key,original_name,mime_type,size_bytes,alt_text) VALUES(#{groupId},#{ownerId},#{storageKey},#{originalName},#{mimeType},#{sizeBytes},#{altText})</insert>
+ <delete id="deleteFile">DELETE FROM chat_file WHERE id=#{id} AND message_id IS NULL</delete>
+ <select id="draftCount" resultType="int">SELECT COUNT(*) FROM chat_file WHERE group_id=#{groupId} AND owner_id=#{ownerId} AND message_id IS NULL</select>
+ <select id="drafts" resultType="com.upself.biz.chat.domain.ChatFile">SELECT id,group_id,owner_id,message_id,original_name,mime_type,size_bytes,alt_text FROM chat_file WHERE group_id=#{groupId} AND owner_id=#{ownerId} AND message_id IS NULL ORDER BY id</select>
+ <update id="attach">UPDATE chat_file SET message_id=#{messageId} WHERE id=#{id} AND message_id IS NULL</update>
+</mapper>

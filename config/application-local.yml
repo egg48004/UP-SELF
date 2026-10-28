@@ -1,7 +1,7 @@
-# 本机开发配置：数据库、Redis、JWT、TOTP 和初始账号密码集中在这里。
-# student01=学生；mentor01=导师；admin01=平台管理员；maintenance=维护账号。
-# bootstrap.passwords 是建库时的初始密码，修改账号密码后不会自动回写此处。
-# 下面沿用现有本地密码和密钥，不重置账号、不修改数据库。
+# Local application configuration. Service credentials below are unchanged.
+# Current test logins: config/demo-accounts.yml (all public demo accounts use 1234).
+# bootstrap.passwords contains the original empty-database initial passwords only.
+# Updating bootstrap values does not change an existing account password.
 spring:
   datasource:
     druid:
