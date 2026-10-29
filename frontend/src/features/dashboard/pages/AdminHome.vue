@@ -30,6 +30,20 @@ const { t } = useI18n(),
       }}
     </p>
     <div class="dashboard-grid">
+      <section v-if="!auth.isMaintenance" class="panel">
+        <h2>{{ t("reports.title") }}</h2>
+        <p>{{ t("reports.adminHelp") }}</p>
+        <RouterLink to="/manage/reports">
+          {{ t("reports.title") }}
+        </RouterLink>
+      </section>
+      <section v-if="!auth.isMaintenance" class="panel">
+        <h2>{{ t("exports.title") }}</h2>
+        <p>{{ t("exports.intro") }}</p>
+        <RouterLink to="/manage/exports">
+          {{ t("exports.title") }}
+        </RouterLink>
+      </section>
       <section class="panel">
         <h2>{{ t("accounts") }}</h2>
         <p>{{ t("dashboard.accountsHelp") }}</p>

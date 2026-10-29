@@ -3,6 +3,9 @@ import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
 import { onBeforeRouteLeave } from "vue-router";
 import { useI18n } from "vue-i18n";
 import type { ChatApi } from "../api";
+import ReportDialog from "../../reports/components/ReportDialog.vue";
+import { useAuthStore } from "../../auth/store";
+import type { ChatMessage } from "../types";
 import type { ChatGroup } from "../types";
 import { useDiscussion, mergeMessages } from "../composables/useDiscussion";
 import AudioRecorder from "../../recordings/components/AudioRecorder.vue";
@@ -11,8 +14,14 @@ import ChatMembers from "./ChatMembers.vue";
 import AsyncState from "../../../shared/ui/AsyncState.vue";
 import { confirmAction } from "../../../shared/ui/confirm";
 const props = defineProps<{ id: number; api: ChatApi; manager: boolean }>();
-const emit = defineEmits<{ changed: []; dirty: [value: boolean]; updated: [group: ChatGroup] }>();
+const emit = defineEmits<{
+  changed: [];
+  dirty: [value: boolean];
+  updated: [group: ChatGroup];
+}>();
 const { t } = useI18n();
+const auth = useAuthStore(),
+  reportMessage = ref<ChatMessage>();
 const room = useDiscussion(props.api, props.id),
   { group, rows, drafts, loading, error, connection, hasEarlier, denied } =
     room;
@@ -43,7 +52,12 @@ const closed = computed(
   () => !group.value || group.value.status === "CLOSED" || denied.value,
 );
 watch(pending, (value) => emit("dirty", value));
-watch(() => group.value?.version, () => { if (group.value) emit("updated", {...group.value}); });
+watch(
+  () => group.value?.version,
+  () => {
+    if (group.value) emit("updated", { ...group.value });
+  },
+);
 function atBottom() {
   const el = list.value;
   return !el || el.scrollHeight - el.scrollTop - el.clientHeight < 80;
@@ -65,6 +79,7 @@ watch(
 );
 watch(denied, (value) => {
   if (value) {
+    reportMessage.value = undefined;
     recording.value = null;
     selectedFile.value = null;
     membersOpen.value = false;
@@ -205,6 +220,15 @@ onBeforeUnmount(() => {
 </script>
 <template>
   <section class="panel chat-room" aria-label="Discussion messages">
+    <ReportDialog
+      v-if="reportMessage"
+      :message="reportMessage"
+      @close="reportMessage = undefined"
+      @submitted="
+        reportMessage = undefined;
+        notice = t('reports.submitted');
+      "
+    />
     <AsyncState
       :loading="loading"
       :error="denied ? error : ''"
@@ -215,9 +239,7 @@ onBeforeUnmount(() => {
           <h2>{{ group.title }}</h2>
           <div class="button-row">
             <el-button @click="membersOpen = true">
-              {{
-                t("chat.members")
-              }}
+              {{ t("chat.members") }}
             </el-button><el-button
               v-if="manager"
               @click="
@@ -227,9 +249,7 @@ onBeforeUnmount(() => {
             >
               {{ t("chat.edit") }}
             </el-button><el-button :disabled="!!busy" @click="room.poll">
-              {{
-                t("chat.refresh")
-              }}
+              {{ t("chat.refresh") }}
             </el-button>
           </div>
         </div>
@@ -247,9 +267,7 @@ onBeforeUnmount(() => {
           @scroll="atBottom() && (newMessages = false)"
         >
           <el-button v-if="hasEarlier" @click="earlier">
-            {{
-              t("chat.earlier")
-            }}
+            {{ t("chat.earlier") }}
           </el-button>
           <p v-if="!rows.length">
             {{ t("chat.emptyMessages") }}
@@ -260,6 +278,19 @@ onBeforeUnmount(() => {
                 <strong>{{ m.senderName }}</strong><time :datetime="m.createTime">{{
                   new Date(m.createTime).toLocaleString("en-MY")
                 }}</time>
+                <details
+                  v-if="m.senderId !== auth.user?.id"
+                  class="message-options"
+                >
+                  <summary
+                    :aria-label="t('reports.actions', { name: m.senderName })"
+                  >
+                    ⋯
+                  </summary>
+                  <button type="button" @click="reportMessage = m">
+                    {{ t("reports.report") }}
+                  </button>
+                </details>
               </div>
               <p v-if="m.body" class="plain-text">
                 {{ m.body }}
@@ -335,7 +366,8 @@ onBeforeUnmount(() => {
             :max-seconds="60"
             :max-bytes="5 * 1024 * 1024"
             :limit-help="t('chat.audioHelp')"
-            :size-error="t('chat.invalidFile')" :help-text="t('chat.recorderHelp')"
+            :size-error="t('chat.invalidFile')"
+            :help-text="t('chat.recorderHelp')"
             @activity="active = $event"
             @upload="upload"
           />
@@ -410,13 +442,9 @@ onBeforeUnmount(() => {
             </select>
             <div class="button-row">
               <el-button native-type="submit" :loading="!!busy">
-                {{
-                  t("chat.save")
-                }}
+                {{ t("chat.save") }}
               </el-button><el-button :disabled="!!busy" @click="editing = false">
-                {{
-                  t("chat.cancel")
-                }}
+                {{ t("chat.cancel") }}
               </el-button>
             </div>
           </form>
@@ -486,5 +514,23 @@ summary {
 }
 details > * {
   margin-block: 0.5rem;
+}
+</style>
+
+<style scoped>
+.message-options summary {
+  cursor: pointer;
+  min-width: 44px;
+  min-height: 44px;
+  text-align: center;
+  font-size: 1.5rem;
+  list-style: none;
+}
+.message-options button {
+  min-height: 44px;
+  cursor: pointer;
+}
+.message-options {
+  margin-left: auto;
 }
 </style>

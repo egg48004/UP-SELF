@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.upself.biz.reporting.mapper.ExportMapper">
+ <select id="users" resultType="map">SELECT u.user_name AS username,u.nick_name AS name,r.role_key AS role,IF(u.status='0','Active','Disabled') AS status,DATE_FORMAT(u.create_time,'%Y-%m-%d %H:%i:%s') AS created FROM sys_user u JOIN sys_role r ON r.role_id=u.role_id WHERE u.role_id IN (10,20,30)
+ <if test="keyword != null and keyword != ''">AND (LOCATE(#{keyword},u.user_name)&gt;0 OR LOCATE(#{keyword},u.nick_name)&gt;0)</if><if test="role != null and role != ''">AND r.role_key=#{role}</if><if test="status != null and status != ''">AND u.status=#{status}</if> ORDER BY u.id LIMIT 10001</select>
+ <select id="courses" resultType="map">SELECT c.title AS course,c.status AS status,COALESCE(u.user_name,'') AS mentor,COALESCE(u.nick_name,'') AS mentorName,
+ (SELECT COUNT(*) FROM learning_enrollment e JOIN sys_user s ON s.id=e.student_id AND s.status='0' AND s.role_id=10 WHERE e.course_id=c.id AND e.active=1) AS students,c.difficulty AS difficulty,c.estimated_minutes AS minutes
+ FROM learning_course c LEFT JOIN sys_user u ON u.id=c.mentor_id WHERE c.deleted=0 <if test="keyword != null and keyword != ''">AND LOCATE(#{keyword},c.title)&gt;0</if><if test="status != null and status != ''">AND c.status=#{status}</if> ORDER BY c.id LIMIT 10001</select>
+ <select id="learning" resultType="map">SELECT s.user_name AS username,s.nick_name AS name,c.title AS course,COALESCE(m.user_name,'') AS mentor,
+ (SELECT COUNT(*) FROM learning_chapter ch WHERE ch.course_id=c.id AND ch.deleted=0 AND ch.status='PUBLISHED') AS total,
+ (SELECT COUNT(*) FROM learning_chapter ch JOIN learning_chapter_progress p ON p.chapter_id=ch.id WHERE p.student_id=s.id AND p.completed_at IS NOT NULL AND ch.course_id=c.id AND ch.deleted=0 AND ch.status='PUBLISHED') AS completed,
+ (SELECT COUNT(*) FROM assignment a WHERE a.course_id=c.id AND a.status='PUBLISHED') AS assignments,
+ (SELECT COUNT(*) FROM assignment a JOIN assignment_submission sub ON sub.assignment_id=a.id WHERE sub.student_id=s.id AND sub.status='SUBMITTED' AND a.course_id=c.id AND a.status='PUBLISHED') AS waiting,
+ (SELECT COUNT(*) FROM assignment a JOIN assignment_submission sub ON sub.assignment_id=a.id WHERE sub.student_id=s.id AND sub.status='GRADED' AND a.course_id=c.id AND a.status='PUBLISHED') AS graded,
+ (SELECT COUNT(*) FROM assignment a JOIN assignment_submission sub ON sub.assignment_id=a.id WHERE sub.student_id=s.id AND sub.status='RETURNED' AND a.course_id=c.id AND a.status='PUBLISHED') AS returned
+ FROM learning_course c JOIN learning_enrollment e ON e.course_id=c.id AND e.active=1 JOIN sys_user s ON s.id=e.student_id AND s.role_id=10 AND s.status='0' LEFT JOIN sys_user m ON m.id=c.mentor_id
+ WHERE c.deleted=0 AND c.status='PUBLISHED' <if test="courseId != null">AND c.id=#{courseId}</if><if test="keyword != null and keyword != ''">AND (LOCATE(#{keyword},s.user_name)&gt;0 OR LOCATE(#{keyword},s.nick_name)&gt;0 OR LOCATE(#{keyword},c.title)&gt;0)</if> ORDER BY c.id,s.id LIMIT 10001</select>
+</mapper>

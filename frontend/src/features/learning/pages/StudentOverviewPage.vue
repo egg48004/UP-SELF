@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
+import { followUpApi } from "../../follow-ups/api";
 import { progressApi } from "../progress";
 import type { StudentOverview } from "../progress";
 import { moodChoices, weekDate } from "../../mood/presentation";
@@ -13,6 +14,7 @@ const { t } = useI18n(),
   total = ref(0),
   loading = ref(false),
   error = ref("");
+const reminderCounts = ref<Record<string, number>>({});
 let sequence = 0;
 async function load(n = 1) {
   const active = ++sequence;
@@ -20,14 +22,18 @@ async function load(n = 1) {
   loading.value = true;
   error.value = "";
   try {
-    const r = await progressApi.overview(n, keyword.value);
-    if(active !== sequence) return;
+    const [r, summary] = await Promise.all([
+      progressApi.overview(n, keyword.value),
+      followUpApi.summary(),
+    ]);
+    if (active !== sequence) return;
     rows.value = r.rows;
+    reminderCounts.value = summary.byStudent;
     total.value = r.total;
   } catch (e) {
-    if(active === sequence) error.value = (e as Error).message;
+    if (active === sequence) error.value = (e as Error).message;
   } finally {
-    if(active === sequence) loading.value = false;
+    if (active === sequence) loading.value = false;
   }
 }
 onMounted(() => load());
@@ -65,6 +71,8 @@ onMounted(() => load());
               <th>{{ t("progress.learning") }}</th>
               <th>{{ t("progress.assignments") }}</th>
               <th>{{ t("progress.mood") }}</th>
+              <th>{{ t("mentorNotes.title") }}</th>
+              <th>{{ t("followUps.title") }}</th>
             </tr>
           </thead>
           <tbody>
@@ -122,16 +130,32 @@ onMounted(() => load());
                     }}
                     {{ t("mood.level" + r.moodLevel) }}
                   </p>
-                  <p>{{ t('mood.week', {date: weekDate(r.moodWeek!)}) }}</p>
+                  <p>{{ t("mood.week", { date: weekDate(r.moodWeek!) }) }}</p>
                 </template>
                 <p v-else>
                   {{ t("progress.noMood") }}
                 </p>
                 <RouterLink :to="'/mentor/mood/' + r.studentId">
-                  {{
-                    t("progress.viewMood")
-                  }}
+                  {{ t("progress.viewMood") }}
                 </RouterLink>
+              </td>
+              <td>
+                <RouterLink :to="'/mentor/students/' + r.studentId + '/notes'">
+                  {{ t("mentorNotes.title") }}
+                </RouterLink>
+              </td>
+              <td>
+                <RouterLink
+                  v-if="reminderCounts[String(r.studentId)]"
+                  :to="{
+                    path: '/mentor/follow-ups',
+                    query: { studentId: r.studentId },
+                  }"
+                >
+                  {{ t("followUps.needs") }} ({{
+                    reminderCounts[String(r.studentId)]
+                  }})
+                </RouterLink><span v-else>—</span>
               </td>
             </tr>
           </tbody>

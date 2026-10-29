@@ -1,0 +1,20 @@
+export default {
+  title: "Mentor notes",
+  studentMood: "Student mood",
+  intro: "Private observations and follow-up notes.",
+  privacy:
+    "Only you can read these notes while you are responsible for this student.",
+  add: "Add note",
+  edit: "Edit note",
+  content: "Follow-up note",
+  save: "Save note",
+  saved: "Note saved.",
+  empty: "No notes yet.",
+  help: "Record one useful observation or next step.",
+  required: "Write a note before saving.",
+  back: "Back to students",
+  refreshed: "Refresh notes",
+  created: "Created",
+  updated: "Last edited",
+  leave: "Leave without saving this note?",
+};

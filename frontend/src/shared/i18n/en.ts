@@ -1,3 +1,8 @@
+import reports from "../../features/reports/messages";
+import followUps from "../../features/follow-ups/messages";
+import exports from "../../features/exports/messages";
+import mentorNotes from "../../features/mentor-notes/messages";
+import business from "../../features/business/messages";
 import mood from "../../features/mood/messages";
 import assignment from "../../features/assignments/messages";
 import dashboard from "../../features/dashboard/messages";
@@ -9,6 +14,11 @@ import knowledge from "../../features/knowledge/messages";
 import recording from "../../features/recordings/messages";
 import chat from "../../features/chat/messages";
 export default {
+  reports,
+  followUps,
+  exports,
+  mentorNotes,
+  business,
   chat,
   recording,
   knowledge,

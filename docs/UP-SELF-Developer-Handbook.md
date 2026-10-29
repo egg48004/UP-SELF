@@ -2,7 +2,7 @@
 
 Development standards, feature workflows, local setup and deployment operations
 
-Version 1.0 | 25 October 2026 | Database schema V9
+Version 1.2 | 29 October 2026 | Database schema V14
 
 UP-SELF is a learning platform for a small group of students in Malaysia. This handbook explains how the current application works, how to maintain it, and how to run it on another computer. It covers the Java backend, Vue frontend, permissions, private files, database migrations and release preparation.
 
@@ -27,10 +27,16 @@ The initial audience is 10 to 30 students, primarily in Malaysia. Students use a
 | Personal goals | Student creates, edits, completes, reopens and deletes private goals |
 | Course bookmarks | Student saves accessible courses, removes bookmarks and views saved courses |
 | Self-efficacy | GSE-3 assessment, first-use disclosure, 28-day interval, history and trends; eligible mentors see scores only |
+| Course discussions | Mentor-managed groups; scoped text, images, documents and voice messages |
+| Mentor observations | Author-private follow-up notes for currently assigned students |
+| Business practice | Private guided ideas and one saved MYR batch-cost plan per student |
+| Reports | Student and mentor report another chat sender; administrator reviews private message evidence |
+| Follow-up reminders | Current mentors review three fixed learning and wellbeing signals |
+| CSV exports | Administrator downloads users, courses and learning totals with filters |
 
-The original graduation report contains 61 functional requirements. The current comparison records 24 completed, 6 partially completed and 31 not implemented. Appendix A retains all 61 identifiers and explains the differences. These counts measure coverage of the report, not the usability of the MVP or an academic grade.
+The original graduation report contains 61 functional requirements. The current comparison records 35 completed, 6 partially completed and 20 not implemented. Appendix A retains all 61 identifiers and explains the differences. These counts measure coverage of the report, not the usability of the MVP or an academic grade.
 
-Chat, AI assistance, entrepreneurship tools, badges, daily attendance, risk alerts and full one-to-one appointment scheduling have no complete implementation. A course meeting post is a link announcement, not a booking or conferencing service.
+Course discussions, private mentor notes, guided business ideas and a saved cost calculator are implemented. AI assistance, badges, daily attendance and full one-to-one appointment scheduling remain outside the implemented scope. A course meeting post is a link announcement, not a booking or conferencing service.
 
 ### 1.2 Runtime model
 
@@ -72,7 +78,7 @@ The backend baseline comes from the reference project at `C:\Users\eggma\Desktop
 | Redis on Windows | tporadowski Windows port 5.0.14.1 |
 | Redis for Mac preparation | Upstream 5.0.14 corresponding to the Windows port; target runtime testing pending |
 | Node and npm | 24.22.1 and 11.19.1 |
-| Current Flyway schema | V1 through V9 |
+| Current Flyway schema | V1 through V14 |
 
 The reference Docker image names Amazon Corretto 8u362. That differs from the independent project's installed Oracle 8u231. Do not describe them as the same JDK build or silently switch vendor or update level. The current Linux runtime checks retain the independent project's 8u231 requirement.
 
@@ -153,7 +159,7 @@ Use Java class names in PascalCase, fields and methods in camelCase, and constan
 
 Use request objects to restrict writable fields. Keep audit timestamps, ownership, calculated scores and security fields server-controlled. Avoid passing a database entity with every column directly into a general update operation.
 
-Dedicated projections are part of the privacy boundary. A mentor mood response must not contain a `privateNote` field. A mentor self-efficacy response must not contain the student's three answers. Omitting a visible component on the frontend does not remove a leaked JSON field.
+Dedicated projections are part of the privacy boundary. Mentor mood responses include the journal text and recordings shared with that current mentor; raw storage keys remain private. Mentor observation notes are a separate author-private record. A mentor self-efficacy response must not contain the student's three answers. Omitting a visible component on the frontend does not remove a leaked JSON field.
 
 ### 2.4 Controllers and response contracts
 
@@ -329,7 +335,9 @@ Menu visibility, router guards, method permissions and SQL scope serve different
 | Publish and review assignments | No | Yes, within assigned courses | No | No business-role bypass |
 | Student draft and submitted work | Own work | Submitted work only, within current scope | No | No business-role bypass |
 | Weekly mood level and history | Own | Read-only after disclosure acknowledgment | No | No business-role bypass |
-| Mood private note | Own | No | No | No |
+| Shared mood journal | Own | Current course mentors, read-only | No | No |
+| Mentor observation note | No | Author only, while currently responsible | No | No |
+| Business ideas and cost plan | Own | No | No | No |
 | Self-efficacy score and trend | Own | Read-only after separate acknowledgment | No | No |
 | Individual self-efficacy answers | Own | No | No | No |
 | Personal goals and bookmarks | Own | No | No | No |
@@ -451,15 +459,15 @@ Drafts are private to the student, including a new draft after a previous return
 
 ### 4.10 Weekly mood
 
-Students open My check-in, My mood. Before first use, they read a disclosure naming the current viewers and explaining future mentor relationships and private notes. They explicitly acknowledge it or choose Not now. Deferring does not restrict courses or assignments. The acknowledgment is versioned independently from the self-efficacy disclosure.
+Students open My check-in, My mood. Before first use, they read a disclosure naming the current viewers and explaining journal and recording access under current mentor relationships. They explicitly acknowledge it or choose Not now. Deferring does not restrict courses or assignments. The acknowledgment is versioned independently from the self-efficacy disclosure.
 
-The service uses `Asia/Kuala_Lumpur`. A week begins on Monday at 00:00 and ends just before the next Monday. The stored key is the local Monday date. The student selects Very low, Low, In between, Good or Very good, with text beside the emoji and no preselected value. The optional private note is limited to 2,000 characters.
+The service uses `Asia/Kuala_Lumpur`. A week begins on Monday at 00:00 and ends just before the next Monday. The stored key is the local Monday date. The student selects Very low, Low, In between, Good or Very good, with text beside the emoji and no preselected value. The optional journal text is limited to 2,000 characters and shared with current qualifying course mentors.
 
 Saving requires confirmation. A saved entry cannot be edited or deleted in this MVP. The server accepts only the current week, rejects past or future periods, and permits one entry per student per week. Concurrent duplicates return a conflict after one successful write.
 
 History is paginated. Trend ranges are 4, 12, 26 or 52 weeks, default 12. Missing weeks remain No record. The mood graph connects only adjacent recorded weeks, so it does not draw a line across a missing week. A table provides the same information in text.
 
-Current qualifying mentors can read acknowledged mood levels, dates and history. Their response type and SQL projection exclude private notes. Students keep their own history if enrollment changes. Recording is voluntary; the product has no streak penalty, diagnostic labels or automatic risk classification.
+Current qualifying mentors can read acknowledged mood levels, dates and history. Their response type and SQL projection include the shared journal and permitted recording metadata, without exposing storage keys. Students keep their own history if enrollment changes. Recording is voluntary; the product has no streak penalty, diagnostic labels or automatic risk classification.
 
 ### 4.11 General self efficacy
 
@@ -489,13 +497,73 @@ Ownership and version are part of every read or mutation restriction. A mentor, 
 
 Student overview contains one row per accessible student-course relationship. It includes published chapter completion, assignment state counts and the latest acknowledged shared mood level and week. It offers search, pagination and links to existing teaching and check-in screens.
 
-A draft or missing assignment submission counts as not yet submitted. Archived assignments are excluded. The latest mood may be from a prior week and must retain its actual week label. The overview does not return submission bodies, attachments or private notes. It monitors self-reported chapter completion, not every click or second of video viewing.
+A draft or missing assignment submission counts as not yet submitted. Archived assignments are excluded. The latest mood may be from a prior week and must retain its actual week label. The overview does not return submission bodies, attachments, journal text or private mentor observations. It monitors self-reported chapter completion, not every click or second of video viewing.
 
 ### 4.14 Extending an existing feature
 
 Start from a confirmed FR and inspect the relevant feature's controller, service, mapper, UI and tests. Define the allowed state change and data scope before adding controls. Add a Flyway migration only when the schema or versioned permission data changes; do not revise an executed migration.
 
 Implement the mapper and service operation, then the controller contract and feature API adapter. Add the page interaction using existing UI feedback, permission helpers and i18n. Verify success, validation errors, stale versions, inaccessible records and another user's requests. Finish by testing the action in the real browser for the relevant roles, with an actual database and private file when applicable.
+
+### 4.15 Private mentor observations (FR-60)
+
+Open Students, Student overview, then Mentor notes on a student row. A note belongs to its author and student, rather than a course, so the same mentor does not duplicate notes across shared courses. Current access requires an active student enrolled in at least one published, non-deleted course assigned to that mentor.
+
+Only the author can read and edit a note while that relationship exists. Another responsible mentor sees only their own notes. Students, administrators and internal maintenance have no content bypass. Reassignment or enrollment removal revokes the former mentor's subsequent access. Records remain in MySQL and are not inherited by a replacement mentor. These observations are separate from student journals, which are shared under the check-in rules.
+
+The form accepts plain text up to 2,000 characters. Create and edit use the existing service layer and transaction conventions. Version checks reject conflicting edits with code 409. Audit rows contain IDs and outcomes, never note content. List responses use BaseController pagination and TableDataInfo.
+
+### 4.16 Business practice (FR-44 and FR-46)
+
+Students open My learning, Business practice. Its two sections are My ideas and Cost calculator; the five main student navigation entries remain unchanged. Home offers a short entry card rather than embedding either form. All copy is English and uses the existing i18n keys, reading preferences and shared form styles.
+
+My ideas stores a required name up to 100 characters, plus optional offer, audience, resources and next-step answers up to 500 characters each. Students can create, reopen and edit their own ideas, including incomplete answers. Foreign IDs return the same unavailable response as missing IDs. Editing requires the current version.
+
+The calculator estimates one batch of items in MYR. Materials cost and other costs refer to that whole batch. Quantity is a whole number from 1 through 1,000,000; price is per item. Money inputs are non-negative with up to ten integer and two fractional digits. Total cost is materials plus other costs. Expected revenue is quantity times unit price. Estimated profit is revenue minus total cost; negative results are explicitly labelled as a loss.
+
+The server uses BigDecimal and returns money as decimal strings, including large totals. The frontend formats these strings without floating-point conversion. Calculate does not persist. Save plan stores one current plan per student, independently of ideas; Reload saved plan restores it. Version zero represents no saved plan, first save creates version one, and stale or concurrent saves fail with code 409. Changing inputs clears the displayed result until another calculation. Students own both their ideas and cost plan; mentors, administrators and maintenance cannot access them.
+
+New database objects and role permissions are in V13__mentor_notes_and_business_practice.sql. The existing Maven modules, dependency versions, authentication channels and startup configurations are unchanged.
+
+### 4.17 User reports (FR-34)
+
+In a course discussion, a student or mentor opens another sender's message menu and selects **Report user**. The form offers four reasons: Hurtful behaviour, Spam, Inappropriate content and Other. Details are optional and limited to 500 characters. Reporting oneself or filing another pending report for the same message is rejected. The server checks current group access and derives the accused user and evidence from the saved message.
+
+**My account > My reports** shows the reporter's own status history. **Administrator > Reports** provides Pending, Resolved and Dismissed filters. The administrator opens a report, reads the saved message and attachment metadata, enters a processing note and resolves or dismisses it. Reporting does not automatically disable an account. Account action remains a separate administrator decision.
+
+Evidence is a snapshot of the reported message, not permission to browse the group or download its files. Reports and processing notes are not shown to the accused user. Reporters see their own status and review date, not the administrator's processing note or other reports. Pending reports use a database uniqueness rule; review uses the record version to reject stale changes.
+
+Source: report controllers in `up-self-admin`, the `report` feature in `up-self-biz`, its Mapper XML and `frontend/src/features/reports`.
+
+### 4.18 Mentor follow-up reminders (FR-58)
+
+The mentor home card and **Students > Follow-up reminders** show situations to review. The student overview links to a student's pending reminders. Only a current assigned mentor can read or review them; students, administrators and internal maintenance cannot access this feature.
+
+| Rule | Trigger | Exclusions |
+|---|---|---|
+| Low mood | Levels 1 or 2 in two consecutive Malaysia calendar weeks | A missing week breaks the sequence. If this week's entry exists, use this week and the previous week; otherwise use the last two closed weeks. A new non-low entry ends the reminder. |
+| Paused learning | Enrollment is at least 14 days old, the course has published chapters still incomplete, and no chapter has been visited for at least 14 days | Recently joined students, courses without published chapters and completed courses are excluded. Enrollment time is the fallback when there is no visit. |
+| Overdue work | A published assignment is at least 3 days past its deadline and has never been formally submitted | Saved drafts remain unsubmitted. Returned work already has a submission attempt and is excluded. Undated, draft and archived work is excluded. |
+
+**Mark as reviewed** removes an item from Pending without changing student data. A continuing condition keeps its reviewed state. Once the condition ends and a later episode occurs, the same scoped reminder becomes pending again. Archived courses, changed mentors, inactive enrollment and disabled accounts remove access or end the applicable condition.
+
+Rules refresh daily at 00:05 in `Asia/Kuala_Lumpur`, after application startup, and when the mentor requests the list or summary. The UI provides Pending, Reviewed and Ended views and links to the related course, mood history or assignment and to private mentor notes. These are deterministic follow-up signals, not diagnoses. There is no email, SMS, model inference or missing-mood penalty.
+
+Source: `FollowUpClock`, `FollowUpScheduler`, `FollowUpServiceImpl`, `FollowUpMapper.xml` and `frontend/src/features/follow-ups`. The clock is injected so the weekly and day-based cutoffs can be tested.
+
+### 4.19 CSV exports (FR-54)
+
+**Administrator > Export data** downloads one of three filtered reports. Internal maintenance does not inherit access through its wildcard permission. Each download is an authenticated request and an ordinary local file; there is no background export service.
+
+| CSV | Included fields | Filters |
+|---|---|---|
+| Users | Username, display name, public role, status and creation time | Keyword, role and status; internal maintenance is excluded |
+| Courses | Title, status, assigned mentor, active student count, difficulty and estimated minutes | Keyword and course status |
+| Learning summary | Active student-course pairs, published/completed chapter counts and completion percent; assignment totals for not submitted, waiting for review, graded and returned | Keyword and course; only current published courses and active students/enrollment |
+
+Exports exclude credentials, tokens, journals, mood scores, self-efficacy answers, voice recordings, mentor notes, submission content, chats, reports and private business-practice content. Audit details record the export type and row count. Files use UTF-8 with a BOM, quoted CSV cells and spreadsheet-formula protection. The maximum is 10,000 rows; narrow the filters if that limit is exceeded. CSV is a summary report, not a database backup.
+
+Source: `ExportController`, `ExportServiceImpl`, `ExportMapper.xml`, `CsvWriter` and `frontend/src/features/exports`.
 
 ## 5 Local setup and data migration
 
@@ -589,7 +657,7 @@ For a complete snapshot restoration:
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\database.ps1 -Action Restore -MySqlHome "D:\dev\mysql-5.7.44-winx64"
 ```
 
-The Windows restore tool validates the snapshot manifest and refuses a non-empty target database or upload directory. It supports the archived V5 snapshot, after which the backend applies V6 through V9. This restores only the records present when that snapshot was made.
+The Windows restore tool validates the snapshot manifest and refuses a non-empty target database or upload directory. Restore the current snapshot together with matching source migrations and referenced files. The manifest records its actual versions and counts; a restore includes only the records present at export time.
 
 Use a read-only check to inspect connection, table count and migration history:
 
@@ -719,7 +787,7 @@ Leave that foreground terminal open. This local Redis arrangement discards sessi
 
 Check that the snapshot application and migration credentials match `config/application-local.yml`. The default private upload directory is relative to the project root. Do not copy Windows absolute tool paths.
 
-For the latest Windows data, export and transfer the complete V9 snapshot first, then run this command against an empty target database and empty upload directory:
+For the latest Windows data, export and transfer the complete current snapshot first, then run this command against an empty target database and empty upload directory:
 
 ```bash
 bash scripts/macos/up-self.sh db-restore \
@@ -739,7 +807,7 @@ bash scripts/macos/up-self.sh db-init \
   --root-client-file "$PWD/.local/macos/mysql-root.cnf"
 ```
 
-It creates the empty database and scoped users. The backend then applies V1 through V9 and runs existing bootstrap logic for an empty user table. It does not restore old records. Do not run both alternatives.
+It creates the empty database and scoped users. The backend then applies V1 through V13 and runs existing bootstrap logic for an empty user table. It does not restore old records. Do not run both alternatives.
 
 ### 5.12 Build and start on Mac
 
@@ -785,12 +853,17 @@ Flyway runs as part of Java backend startup. It checks recorded migrations on ea
 | `V7__personal_goals.sql` | Personal learning goals |
 | `V8__course_bookmarks.sql` | Student bookmarks |
 | `V9__general_self_efficacy.sql` | Assessment acknowledgment, records and permissions |
+| `V10__knowledge_check_and_shared_diary.sql` | Mentor questions and shared student journals |
+| `V11__recordings_and_all_diaries_shared.sql` | Recording metadata and journal sharing policy |
+| `V12__course_group_chat.sql` | Course discussion groups, membership, messages and files |
+| `V13__mentor_notes_and_business_practice.sql` | Private mentor notes, student ideas and cost plans |
+| `V14__reports_follow_ups_and_exports.sql` | Private user reports, mentor reminder state and export permissions |
 
 Scripts are in `up-self-admin/src/main/resources/db/draft`. Current configuration enables Flyway, validation and baseline-on-migrate, permits out-of-order migrations and disables placeholder replacement. Migration credentials are separate from application DML credentials.
 
-Add the next migration for a new change; the next integer after V9 is V10. Use `V<number>__<description>.sql`. Never modify an executed migration to adjust an existing installation. Do not hand-create partial business tables before first startup, because baseline behavior can change which versions run.
+Add the next migration for a new change; the next integer after V14 is V15. Use `V<number>__<description>.sql`. Never modify an executed migration to adjust an existing installation. Do not hand-create partial business tables before first startup, because baseline behavior can change which versions run.
 
-An empty database receives V1 through V9. An existing V8 database receives V9. Restoring a valid older snapshot through a supported route preserves its history and allows missing migrations to run, but does not recover later business data. A full V9 restore should not rerun the schema scripts.
+An empty database receives V1 through V14. An existing V13 database receives V14. Restoring a valid older snapshot through a supported route preserves its history and allows missing migrations to run, but does not recover later business data. A full current restore should not rerun the schema scripts.
 
 On failure, preserve the error, database identity and `flyway_schema_history`. Stop before making further changes. Investigate the failed SQL and migration state before considering a controlled recovery. Do not use clean, blind repair or history deletion as a routine startup fix.
 
@@ -981,7 +1054,9 @@ Record one complete list before any actual purchase:
 
 ### 7.1 Recorded evidence and its scope
 
-The latest feature delivery recorded the following results on the existing Windows environment. These are dated verification records, not a claim that all tests were rerun during handbook consolidation.
+The V14 delivery was verified on 29 October 2026: 149 Java tests, 94 frontend tests, TypeScript and production builds passed. The specialist suite passed 125 live API checks and a Chrome workflow covering student and mentor reporting, administrator review, current-mentor reminders, three CSV downloads and wrong-role access. It uses disposable fixtures and removes only its own records and uploaded file. VS Code's combined F5 configuration was used for the running services. These results apply to Windows; they do not establish Mac or Linux runtime success.
+
+The earlier feature delivery recorded the following results on the existing Windows environment. These are dated verification records, not a claim that all tests were rerun during handbook consolidation.
 
 | Evidence recorded on 23 October 2026 | Result |
 |---|---|
@@ -1010,6 +1085,7 @@ Use the platform's fixed tools to build Java and the frontend. Frontend scripts 
 python scripts/verify-goals.py --browser
 python scripts/verify-bookmarks.py --browser
 python scripts/verify-self-efficacy.py --browser
+python scripts/verify-support.py --browser
 ```
 
 The general frontend verification script covers common application flows. Specialist suites create their own isolated accounts and course relationships and clean up only their recorded fixtures. Review each script's setup before running it on a different machine. Do not point verification suites at a live student deployment.
@@ -1083,19 +1159,19 @@ Linux public deployment and Mac runtime testing are still pending. Cost figures 
 
 The identifiers and requirement names follow the original report's 61 FRs. Completed means the current UI, API and persistence cover the main requirement. Partial means a defined subset exists or an implemented rule differs materially from the report. Not implemented means there is no complete workflow; a generic field, sample title or shared component is not completion.
 
-The current total is 24 completed, 6 partial and 31 not implemented. Authentication and general engineering safeguards are not additional numbered FRs. The report's source is Section 5.4.1, report pages 14 through 22, PDF pages 30 through 38. The original report remains a separate academic source and is not rewritten by this handbook.
+The current total is 35 completed, 6 partial and 20 not implemented. Authentication and general engineering safeguards are not additional numbered FRs. The report's source is Section 5.4.1, report pages 14 through 22, PDF pages 30 through 38. The original report remains a separate academic source and is not rewritten by this handbook.
 
 | Area | Completed | Partial | Not implemented |
 |---|---:|---:|---:|
 | Learning FR 01 to 10 | 9 | 1 | 0 |
 | Assignments FR 11 to 18 | 6 | 2 | 0 |
 | Self-efficacy area FR 19 to 27 | 4 | 1 | 4 |
-| Communication FR 28 to 35 | 0 | 0 | 8 |
+| Communication FR 28 to 35 | 6 | 0 | 2 |
 | AI assistance FR 36 to 42 | 0 | 0 | 7 |
-| Entrepreneurship FR 43 to 48 | 0 | 0 | 6 |
-| Administration FR 49 to 55 | 4 | 0 | 3 |
-| Mentor support FR 56 to 61 | 1 | 2 | 3 |
-| Total | 24 | 6 | 31 |
+| Entrepreneurship FR 43 to 48 | 2 | 0 | 4 |
+| Administration FR 49 to 55 | 5 | 0 | 2 |
+| Mentor support FR 56 to 61 | 3 | 2 | 1 |
+| Total | 35 | 6 | 20 |
 
 ### A2 Complete requirement matrix
 
@@ -1128,13 +1204,13 @@ The current total is 24 completed, 6 partial and 31 not implemented. Authenticat
 | FR-25 | Confidence Assessment | Completed | GSE-3, complete server scoring, 28-day interval, history and trend. Mentors see shared scores, not answers. Target-population validation is separate. |
 | FR-26 | Earn Badge | Not implemented | No badge rules or award records. |
 | FR-27 | View Learning Analytics | Not implemented | Chapter percentages exist, but no separate learning analytics workflow or trend dashboard. |
-| FR-28 | Send Message | Not implemented | Course posts are announcements, not chat messages. |
-| FR-29 | Receive Message | Not implemented | No chat conversation or receiving workflow. |
-| FR-30 | Upload File in Chat | Not implemented | Teaching resources and assignment attachments are not chat files. |
-| FR-31 | Create Group Chat | Not implemented | No group chat creation. |
-| FR-32 | Manage Group Members | Not implemented | Course enrollment is not chat membership. |
+| FR-28 | Send Message | Completed | Students and the responsible mentor send scoped text messages in course discussion groups. |
+| FR-29 | Receive Message | Completed | The visible room receives new messages through five-second polling and loads earlier history by cursor; no private messaging workflow. |
+| FR-30 | Upload File in Chat | Completed | Authenticated discussion attachments support images, documents and voice; previews, downloads and playback enforce membership. |
+| FR-31 | Create Group Chat | Completed | The current course mentor creates and maintains discussion groups within a published course. |
+| FR-32 | Manage Group Members | Completed | The current mentor adds enrolled students and removes members; revoked membership blocks subsequent reads and writes. |
 | FR-33 | Block User | Not implemented | No user-block relationship. |
-| FR-34 | Report User | Not implemented | No reporting and moderation workflow. |
+| FR-34 | Report User | Completed | Private message-based reports, own status history and administrator resolution or dismissal; no automatic account ban. |
 | FR-35 | Filter Inappropriate Content | Not implemented | File format checks do not filter harmful content. |
 | FR-36 | Ask Learning Questions | Not implemented | No AI question service or screen. |
 | FR-37 | Generate Learning Summary | Not implemented | No AI summary generation. |
@@ -1144,9 +1220,9 @@ The current total is 24 completed, 6 partial and 31 not implemented. Authenticat
 | FR-41 | Generate Encouragement Messages | Not implemented | Fixed UI encouragement is not generated content. |
 | FR-42 | Recommend Learning Goals | Not implemented | No personalized goal recommendation. |
 | FR-43 | View Entrepreneurship Content | Not implemented | Generic courses and business-themed DEMO titles are not a delivered entrepreneurship curriculum. |
-| FR-44 | Use Business Idea Template | Not implemented | No guided business-idea template entry and storage. |
+| FR-44 | Use Business Idea Template | Completed | Student-owned guided idea name, offer, audience, resources and next step; partial answers persist and can be edited. |
 | FR-45 | View Entrepreneur Stories | Not implemented | No delivered entrepreneur-story collection. |
-| FR-46 | Use Cost Calculator | Not implemented | No cost/profit calculator. |
+| FR-46 | Use Cost Calculator | Completed | Server-side MYR batch cost, expected revenue and estimated profit/loss; one versioned saved plan per student. |
 | FR-47 | Participate in Market Simulation | Not implemented | No market simulation. |
 | FR-48 | Receive Peer Feedback | Not implemented | No peer review of business ideas. |
 | FR-49 | Manage Students | Completed | Create, edit, enable/disable and reset permitted student accounts; disable replaces deletion. |
@@ -1154,13 +1230,13 @@ The current total is 24 completed, 6 partial and 31 not implemented. Authenticat
 | FR-51 | Manage User Roles | Completed | Assign existing public roles; no custom role-permission editor. |
 | FR-52 | Manage Courses | Completed | Course setup, allocation, publication, archive and content management. |
 | FR-53 | Manage Assignments | Not implemented | Report assigns this to administrators. Current business rule assigns it only to mentors and protects submission content. |
-| FR-54 | Export System Data | Not implemented | No administrative business-report export. SQL backup is not this FR. |
+| FR-54 | Export System Data | Completed | Administrator downloads filtered users, courses and learning-summary CSV files. Private content and credentials are excluded. |
 | FR-55 | Configure Accessibility Settings | Not implemented | This report item is platform defaults set by an administrator; only personal browser settings exist. |
 | FR-56 | View Student Overview Dashboard | Completed | Scoped student-course completion, assignment counts and latest shared mood, with detail links. |
 | FR-57 | Monitor Student Progress | Partial | Mentor sees self-reported chapter completion, not detailed video duration or an activity event stream. |
-| FR-58 | Receive At-Risk Student Alerts | Not implemented | No risk inference or automatic alerts. |
+| FR-58 | Receive At-Risk Student Alerts | Completed | Current mentors see rule-based follow-up reminders for low mood, paused learning and overdue work; reviewed states persist. No diagnostic inference or external notifications. |
 | FR-59 | Send Bulk Encouragement Messages | Not implemented | A course announcement is not per-student bulk delivery. |
-| FR-60 | Add Mentor Notes | Not implemented | A student's private note is not a mentor observation note. |
+| FR-60 | Add Mentor Notes | Completed | Author-private mentor observations, with create, paginated history and edit, accessible only while currently responsible for the student. |
 | FR-61 | Schedule One-on-One Check-In | Partial | Meeting announcements store a time and link; no individual booking, confirmation, cancellation or conflict checks. |
 
 ### A3 Report changes and future work
@@ -1168,6 +1244,8 @@ The current total is 24 completed, 6 partial and 31 not implemented. Authenticat
 Keep the distinction between report coverage and intentional product choices. The partial daily-mood requirement is not fixed by relabeling a weekly entry as daily. The unimplemented administrator-assignment requirement is not completed by giving administrators access to student submissions when the current privacy rule excludes them.
 
 Update academic descriptions to match chapter-based self-reporting, current history semantics, controlled resubmission, assignment archive, weekly mood and the GSE-3 implementation. Explain these changes directly. New deletion/reopening controls for personal goals are management details rather than additional numbered FRs.
+
+FR-34 uses message-based private moderation rather than automatic sanctions. FR-54 is limited to three CSV summaries, not unrestricted personal-data export. FR-58 uses the three agreed follow-up rules and an in-app mentor list, rather than diagnostic scoring or external notifications. These are the confirmed product interpretations for this delivery.
 
 Plan the next change from the remaining report requirements and the current code. Do not reimplement completed goals, bookmarks or assessments, or add unrelated infrastructure to make the FR count appear larger.
 
@@ -1393,6 +1471,32 @@ Use the common contracts in Section 2. A paginated response has top-level rows a
 
 An unauthenticated request, wrong channel, wrong role and inaccessible relationship can fail at different layers. Do not infer authorization solely from HTTP status. Handle the JSON business code and test the actual role boundary with direct requests as well as the UI.
 
+### B10 Mentor notes and business practice
+
+Mentor routes use /mentorship/students/{studentId}/notes. GET /student returns scoped student metadata; GET on the base lists the author's notes with current and pageSize. POST creates {content}; PUT /{id} edits {content,version}. All reads and writes require the responsible mentor and enforce author ownership. The /client alias exists for consistent explicit role-denial checks; students have no permission to use it.
+
+Student routes use /client/business. GET /ideas lists private ideas; POST creates {title,offer,audience,resources,nextStep}; GET /ideas/{id} reads one; PUT /ideas/{id} edits those fields plus version. GET /cost-plan returns the current plan or saved:false with version:0. POST /cost-plan/calculate accepts materialsCost, otherCosts, quantity and pricePerItem. PUT /cost-plan saves the same inputs plus version. Money values may be sent as decimal strings. The /business alias applies the same service role checks and never grants management accounts access.
+
+Lists use TableDataInfo; details and calculations use AjaxResult. Run `python scripts/verify-business-notes.py --browser` with local services running. It creates disposable fixtures, checks role and owner denial, relationship revocation, pagination, conflicting edits, decimal arithmetic and Chrome workflows, then removes only its own rows. Logs and screenshots are in .local/mvp-verification.
+
+### B11 Reports follow-ups and exports
+
+| Method | Path | Access and response |
+|---|---|---|
+| POST | `/reports` or `/client/reports` | Student/mentor; messageId, reason and optional details; AjaxResult with report ID |
+| GET | `/reports/mine` or `/client/reports/mine` | Own status history; TableDataInfo |
+| GET | `/moderation/reports` | Public administrator; status filter and TableDataInfo |
+| GET | `/moderation/reports/{id}` | Public administrator; saved evidence in AjaxResult |
+| PUT | `/moderation/reports/{id}` | Public administrator; RESOLVED or DISMISSED, resolution and version |
+| GET | `/follow-ups` | Current mentor; status and optional studentId filters; TableDataInfo |
+| GET | `/follow-ups/summary` | Current mentor; pending total and per-student counts in AjaxResult |
+| PUT | `/follow-ups/{id}/review` | Current mentor; version required |
+| GET | `/exports/users` | Public administrator; keyword, role and status filters; CSV download |
+| GET | `/exports/courses` | Public administrator; keyword and status filters; CSV download |
+| GET | `/exports/learning` | Public administrator; keyword and courseId filters; CSV download |
+
+List pagination follows `current` and `pageSize` through BaseController and TableDataInfo. Management APIs also register `/client` aliases so wrong-role calls are rejected consistently; an alias grants no access. CSV bypasses the JSON success envelope only for a successful download. Error responses retain the existing application envelope.
+
 ## Appendix C Source and maintenance index
 
 ### C1 Backend source map
@@ -1420,6 +1524,13 @@ The following links point to current source files, not a copied implementation i
 - [up-self-biz/src/main/resources/mapper/selfefficacy/SelfEfficacyMapper.xml](../up-self-biz/src/main/resources/mapper/selfefficacy/SelfEfficacyMapper.xml).
 - [up-self-biz/src/main/java/com/upself/biz/selfefficacy/service/SelfEfficacyScale.java](../up-self-biz/src/main/java/com/upself/biz/selfefficacy/service/SelfEfficacyScale.java).
 
+
+New backend sources:
+
+- [ReportServiceImpl.java](../up-self-biz/src/main/java/com/upself/biz/report/service/impl/ReportServiceImpl.java).
+- [FollowUpServiceImpl.java](../up-self-biz/src/main/java/com/upself/biz/followup/service/impl/FollowUpServiceImpl.java).
+- [ExportServiceImpl.java](../up-self-biz/src/main/java/com/upself/biz/reporting/service/impl/ExportServiceImpl.java).
+- [V14 migration](../up-self-admin/src/main/resources/db/draft/V14__reports_follow_ups_and_exports.sql).
 
 ### C2 Frontend and operational source map
 

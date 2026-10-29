@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.upself.biz.report.mapper.ReportMapper">
+ <select id="name" resultType="string">SELECT CONCAT(nick_name,' (',user_name,')') FROM sys_user WHERE id=#{id}</select>
+ <insert id="insert" useGeneratedKeys="true" keyProperty="id">INSERT INTO user_report(reporter_id,accused_id,message_id,reporter_name,accused_name,course_title,group_title,message_body,attachment_summary,reason,details) VALUES(#{reporterId},#{accusedId},#{messageId},#{reporterName},#{accusedName},#{courseTitle},#{groupTitle},#{messageBody},#{attachmentSummary},#{reason},#{details})</insert>
+ <select id="mine" resultType="com.upself.biz.report.dto.ReportBodies$Own">SELECT id,accused_name,reason,status,create_time,reviewed_at FROM user_report WHERE reporter_id=#{owner} ORDER BY id DESC</select>
+ <select id="list" resultType="com.upself.biz.report.domain.UserReport">SELECT id,reporter_name,accused_name,reason,status,version,create_time,reviewed_at FROM user_report <where><if test="status != null and status != ''">status=#{status}</if></where> ORDER BY id DESC</select>
+ <select id="detail" resultType="com.upself.biz.report.domain.UserReport">SELECT * FROM user_report WHERE id=#{id}</select>
+ <update id="review">UPDATE user_report SET status=#{status},resolution=#{resolution},reviewed_by=#{actor},reviewed_at=NOW(6),pending_key=NULL,version=version+1 WHERE id=#{id} AND version=#{version} AND status='PENDING'</update>
+</mapper>

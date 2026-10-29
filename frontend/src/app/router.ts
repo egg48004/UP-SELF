@@ -8,33 +8,111 @@ const login = () => import("../features/auth/pages/LoginPage.vue");
 export const router = createRouter({
   history: createWebHashHistory(),
   routes: [
-
     { path: "/login", component: login },
     { path: "/internal/login", component: login, meta: { internal: true } },
     {
       path: "/",
       component: AppLayout,
       children: [
-        {path:'student/courses/:id/discussions',component:()=>import('../features/chat/pages/CourseDiscussionsPage.vue'),meta:{roles:['student'],permission:'chat:read'}},
-        {path:'manage/courses/:id/discussions',component:()=>import('../features/chat/pages/CourseDiscussionsPage.vue'),meta:{roles:['mentor'],permission:'chat:read'}},
+        {
+          path: "profile/reports",
+          component: () =>
+            import("../features/reports/pages/MyReportsPage.vue"),
+          meta: { roles: ["student", "mentor"], permission: "reports:own" },
+        },
+        {
+          path: "manage/reports",
+          component: () =>
+            import("../features/reports/pages/AdminReportsPage.vue"),
+          meta: { roles: ["platform_admin"], permission: "reports:review" },
+        },
+        {
+          path: "manage/reports/:id",
+          component: () =>
+            import("../features/reports/pages/ReportReviewPage.vue"),
+          meta: { roles: ["platform_admin"], permission: "reports:review" },
+        },
+        {
+          path: "manage/exports",
+          component: () => import("../features/exports/pages/ExportPage.vue"),
+          meta: { roles: ["platform_admin"], permission: "exports:read" },
+        },
+        {
+          path: "mentor/follow-ups",
+          component: () =>
+            import("../features/follow-ups/pages/FollowUpsPage.vue"),
+          meta: { roles: ["mentor"], permission: "followups:read" },
+        },
+        {
+          path: "mentor/students/:studentId/notes",
+          component: () =>
+            import("../features/mentor-notes/pages/MentorNotesPage.vue"),
+          meta: { roles: ["mentor"], permission: "mentorship:notes:read" },
+        },
+        {
+          path: "student/business",
+          component: () =>
+            import("../features/business/pages/BusinessPracticePage.vue"),
+          meta: { roles: ["student"], permission: "business:own" },
+        },
+        {
+          path: "student/business/ideas",
+          component: () => import("../features/business/pages/IdeasPage.vue"),
+          meta: { roles: ["student"], permission: "business:own" },
+        },
+        {
+          path: "student/business/ideas/new",
+          component: () =>
+            import("../features/business/pages/IdeaEditPage.vue"),
+          meta: { roles: ["student"], permission: "business:own" },
+        },
+        {
+          path: "student/business/ideas/:id",
+          component: () =>
+            import("../features/business/pages/IdeaEditPage.vue"),
+          meta: { roles: ["student"], permission: "business:own" },
+        },
+        {
+          path: "student/business/costs",
+          component: () =>
+            import("../features/business/pages/CostCalculatorPage.vue"),
+          meta: { roles: ["student"], permission: "business:own" },
+        },
+
+        {
+          path: "student/courses/:id/discussions",
+          component: () =>
+            import("../features/chat/pages/CourseDiscussionsPage.vue"),
+          meta: { roles: ["student"], permission: "chat:read" },
+        },
+        {
+          path: "manage/courses/:id/discussions",
+          component: () =>
+            import("../features/chat/pages/CourseDiscussionsPage.vue"),
+          meta: { roles: ["mentor"], permission: "chat:read" },
+        },
         {
           path: "student/knowledge",
-          component: () => import("../features/knowledge/pages/StudentKnowledgePage.vue"),
+          component: () =>
+            import("../features/knowledge/pages/StudentKnowledgePage.vue"),
           meta: { roles: ["student"], permission: "knowledge:own:read" },
         },
         {
           path: "mentor/knowledge",
-          component: () => import("../features/knowledge/pages/MentorKnowledgePage.vue"),
+          component: () =>
+            import("../features/knowledge/pages/MentorKnowledgePage.vue"),
           meta: { roles: ["mentor"], permission: "knowledge:questions:manage" },
         },
         {
           path: "student/self-efficacy",
-          component: () => import("../features/self-efficacy/pages/StudentSelfEfficacyPage.vue"),
+          component: () =>
+            import("../features/self-efficacy/pages/StudentSelfEfficacyPage.vue"),
           meta: { roles: ["student"], permission: "efficacy:own:read" },
         },
         {
           path: "mentor/self-efficacy/:studentId",
-          component: () => import("../features/self-efficacy/pages/MentorSelfEfficacyPage.vue"),
+          component: () =>
+            import("../features/self-efficacy/pages/MentorSelfEfficacyPage.vue"),
           meta: { roles: ["mentor"], permission: "efficacy:students:read" },
         },
         {
@@ -82,7 +160,8 @@ export const router = createRouter({
         },
         {
           path: "student/saved-courses",
-          component: () => import("../features/learning/pages/SavedCoursesPage.vue"),
+          component: () =>
+            import("../features/learning/pages/SavedCoursesPage.vue"),
           meta: { roles: ["student"], permission: "learning:bookmark:own" },
         },
         {

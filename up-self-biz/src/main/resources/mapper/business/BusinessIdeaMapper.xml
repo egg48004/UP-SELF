@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.upself.biz.business.mapper.BusinessIdeaMapper">
+ <select id="list" resultType="com.upself.biz.business.domain.BusinessIdea">SELECT * FROM business_idea WHERE student_id=#{studentId} ORDER BY id DESC</select>
+ <select id="own" resultType="com.upself.biz.business.domain.BusinessIdea">SELECT * FROM business_idea WHERE id=#{id} AND student_id=#{studentId}</select>
+ <insert id="insert" useGeneratedKeys="true" keyProperty="id">INSERT INTO business_idea(student_id,title,offer,audience,resources,next_step) VALUES(#{studentId},#{title},#{offer},#{audience},#{resources},#{nextStep})</insert>
+ <update id="edit">UPDATE business_idea SET title=#{title},offer=#{offer},audience=#{audience},resources=#{resources},next_step=#{nextStep},version=version+1 WHERE id=#{id} AND student_id=#{studentId} AND version=#{version}</update>
+</mapper>

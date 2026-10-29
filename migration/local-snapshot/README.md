@@ -2,7 +2,7 @@
 
 This directory contains a dated export of the independent UP-SELF development database and its matching private uploads. Inspect manifest.json for the actual creation time, migration versions, file counts and SHA-256 values.
 
-The latest export was refreshed on 28 October 2026 after the demo-account reset, with migrations V1 through V12 applied. It includes six students, two mentors, one administrator, the unchanged internal maintenance account, and the current synthetic demonstration records. Current public demo logins are listed in [config/demo-accounts.yml](../../config/demo-accounts.yml). Use manifest.json as the authority for the snapshot's exact contents and export time.
+The latest export was refreshed on 29 October 2026 after the report, follow-up and CSV delivery, with migrations V1 through V14 applied. It includes six students, two mentors, one administrator, the unchanged internal maintenance account, and the current synthetic demonstration records, including six business ideas, six cost plans and nine private mentor notes. Current public demo logins are listed in [config/demo-accounts.yml](../../config/demo-accounts.yml). Use manifest.json as the authority for the snapshot's exact contents and export time.
 
 This is an export, not a live database mirror. Later changes appear here only after another export. Applying Flyway migrations creates missing schema and permissions; it does not transfer records created on another computer.
 

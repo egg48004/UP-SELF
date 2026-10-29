@@ -1,8 +1,10 @@
 # UP SELF
 
-UP-SELF is a Java and Vue learning platform for a small student group in Malaysia. It includes course allocation and teaching content, private media, assignments and feedback, weekly mood, learning progress, private goals, bookmarks and general self-efficacy assessments.
+UP-SELF is a Java and Vue learning platform for a small student group in Malaysia. It includes course allocation and teaching content, private media, assignments and feedback, weekly mood, learning progress, private goals, bookmarks, general self-efficacy assessments, course discussions, private mentor notes and student business practice.
 
 Read the [Developer Handbook](docs/UP-SELF-Developer-Handbook.md) for architecture, roles, workflows, setup, migration, deployment costs and the complete 61-FR comparison. A [paginated Word edition](docs/UP-SELF-Developer-Handbook.docx) is available. The [documentation index](docs/README.md) links to individual chapters.
+
+The current MVP also includes private chat-based user reports with administrator review, current-mentor follow-up reminders and three administrator CSV reports. See [feature workflows](docs/UP-SELF-Developer-Handbook.md#417-user-reports-fr-34).
 
 ## Windows startup
 
@@ -27,7 +29,7 @@ Current local service settings and original bootstrap credentials are in config/
 
 Public roles are Student, Mentor and Administrator; maintenance uses only the internal login entry. Password login is enabled and TOTP is disabled. The six demo students have course progress, submitted and reviewed work, goals, mood and self-belief history, and course discussion messages. These are synthetic demonstration records.
 
-Current schema is **V12**. Java startup applies missing Flyway migrations. Git transfers code, not live database writes. The local migration snapshot has been refreshed with the current demo accounts, data and referenced learning media. Export it again after making further database or upload changes. See [setup and data migration](docs/UP-SELF-Developer-Handbook.md#5-local-setup-and-data-migration).
+Current schema is **V14**. Java startup applies missing Flyway migrations. Git transfers code, not live database writes. The local migration snapshot has been refreshed with the current demo accounts, data and referenced learning media. Export it again after making further database or upload changes. See [setup and data migration](docs/UP-SELF-Developer-Handbook.md#5-local-setup-and-data-migration).
 
 ## Versions and deployment
 

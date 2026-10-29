@@ -1,5 +1,5 @@
 {
-  "createdAt": "2026-10-28T11:17:48.4488210+08:00",
+  "createdAt": "2026-10-29T14:28:06.9424143+08:00",
   "database": "up_self_dev",
   "source": "Independent UP-SELF local database; reference database excluded",
   "mysql": "5.7.44",
@@ -18,7 +18,9 @@
     "9",
     "10",
     "11",
-    "12"
+    "12",
+    "13",
+    "14"
   ],
   "rowCounts": {
     "sys_user": 10,
@@ -29,7 +31,7 @@
     "assignment_file": 0,
     "mood_notice_ack": 6,
     "mood_entry": 29,
-    "learning_chapter_progress": 39
+    "learning_chapter_progress": 40
   },
   "uploadFileCount": 12,
   "files": {
@@ -38,8 +40,8 @@
       "sha256": "28c3c4dca38416a5f4fb4201fba1cf388bc36a5a3e8cff91949eef4d70052fdf"
     },
     "up_self_dev.sql": {
-      "bytes": 310200,
-      "sha256": "bd290018cd25a9b78374ad89035bcc785bebc7e5f35f797f93108684e72e1d81"
+      "bytes": 336011,
+      "sha256": "97efff242c4c959eea38b93854965d268e5cbdc92e3abf087afcbbb5a1aba3e6"
     },
     "uploads/143e063d68cc419da1581675c8f069d8.vtt": {
       "bytes": 109,

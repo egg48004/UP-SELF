@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.upself.biz.followup.mapper.FollowUpMapper">
+ <sql id="pairs">FROM learning_course c JOIN learning_enrollment e ON e.course_id=c.id AND e.active=1 JOIN sys_user u ON u.id=e.student_id AND u.role_id=10 AND u.status='0' WHERE c.mentor_id=#{mentor} AND c.deleted=0 AND c.status='PUBLISHED'</sql>
+ <select id="mentors" resultType="long">SELECT id FROM sys_user WHERE role_id=20 AND status='0'</select>
+ <select id="lockMentor" resultType="long">SELECT id FROM sys_user WHERE id=#{id} AND role_id=20 AND status='0' FOR UPDATE</select>
+ <select id="moods" resultType="com.upself.biz.followup.domain.FollowUpReminder">
+ SELECT DISTINCT #{mentor} AS mentor_id,u.id AS student_id,'MOOD' AS kind,0 AS scope_key,
+ 'Two consecutive weeks with a low mood check-in.' AS reason,
+ IF(EXISTS(SELECT 1 FROM mood_entry m WHERE m.student_id=u.id AND m.week_start=#{week}),#{week},#{previous}) AS event_date
+ <include refid="pairs"/>
+ AND EXISTS(SELECT 1 FROM mood_notice_ack n WHERE n.student_id=u.id AND n.notice_version=#{notice})
+ AND EXISTS(SELECT 1 FROM mood_entry a JOIN mood_entry b ON b.student_id=a.student_id AND b.week_start=DATE_SUB(a.week_start,INTERVAL 7 DAY)
+ WHERE a.student_id=u.id AND a.mood_level IN (1,2) AND b.mood_level IN (1,2)
+ AND a.week_start=IF(EXISTS(SELECT 1 FROM mood_entry m WHERE m.student_id=u.id AND m.week_start=#{week}),#{week},#{previous}))
+ </select>
+ <select id="activity" resultType="com.upself.biz.followup.domain.FollowUpReminder">
+ SELECT #{mentor} AS mentor_id,u.id AS student_id,'ACTIVITY' AS kind,c.id AS scope_key,c.id AS course_id,
+ 'No chapter opened for at least 14 days; learning is not complete.' AS reason,
+ DATE_FORMAT(COALESCE((SELECT MAX(p.last_visited_at) FROM learning_chapter_progress p JOIN learning_chapter ch ON ch.id=p.chapter_id WHERE p.student_id=u.id AND ch.course_id=c.id),e.create_time),'%Y-%m-%d') AS event_date
+ <include refid="pairs"/>
+ AND e.create_time &lt;= #{cutoff}
+ AND EXISTS(SELECT 1 FROM learning_chapter ch WHERE ch.course_id=c.id AND ch.deleted=0 AND ch.status='PUBLISHED')
+ AND EXISTS(SELECT 1 FROM learning_chapter ch WHERE ch.course_id=c.id AND ch.deleted=0 AND ch.status='PUBLISHED' AND NOT EXISTS(SELECT 1 FROM learning_chapter_progress p WHERE p.chapter_id=ch.id AND p.student_id=u.id AND p.completed_at IS NOT NULL))
+ AND COALESCE((SELECT MAX(p.last_visited_at) FROM learning_chapter_progress p JOIN learning_chapter ch ON ch.id=p.chapter_id WHERE p.student_id=u.id AND ch.course_id=c.id),e.create_time) &lt;= #{cutoff}
+ </select>
+ <select id="overdue" resultType="com.upself.biz.followup.domain.FollowUpReminder">
+ SELECT #{mentor} AS mentor_id,u.id AS student_id,'ASSIGNMENT' AS kind,a.id AS scope_key,c.id AS course_id,a.id AS assignment_id,
+ CONCAT('Assignment overdue by at least 3 days: ',LEFT(a.title,150)) AS reason,DATE_FORMAT(a.due_at,'%Y-%m-%d') AS event_date
+ FROM assignment a JOIN learning_course c ON c.id=a.course_id JOIN learning_enrollment e ON e.course_id=c.id AND e.active=1
+ JOIN sys_user u ON u.id=e.student_id AND u.role_id=10 AND u.status='0'
+ WHERE c.mentor_id=#{mentor} AND c.deleted=0 AND c.status='PUBLISHED' AND a.status='PUBLISHED' AND a.due_at IS NOT NULL AND a.due_at &lt;= #{cutoff}
+ AND NOT EXISTS(SELECT 1 FROM assignment_submission sub WHERE sub.assignment_id=a.id AND sub.student_id=u.id AND sub.attempt_no&gt;0)
+ </select>
+ <select id="existing" resultType="com.upself.biz.followup.domain.FollowUpReminder">SELECT * FROM follow_up_reminder WHERE mentor_id=#{mentorId} AND student_id=#{studentId} AND kind=#{kind} AND scope_key=#{scopeKey}</select>
+ <insert id="insert" useGeneratedKeys="true" keyProperty="id">INSERT INTO follow_up_reminder(mentor_id,student_id,kind,scope_key,course_id,assignment_id,reason,event_date) VALUES(#{mentorId},#{studentId},#{kind},#{scopeKey},#{courseId},#{assignmentId},#{reason},#{eventDate})</insert>
+ <update id="reactivate">UPDATE follow_up_reminder SET active=1,reviewed=0,reviewed_at=NULL,detected_at=NOW(6),event_date=#{eventDate},reason=#{reason},version=version+1 WHERE id=#{id} AND active=0</update>
+ <update id="endMissing">UPDATE follow_up_reminder SET active=0,version=version+1 WHERE mentor_id=#{mentor} AND active=1 <if test="ids.size()>0">AND id NOT IN <foreach collection="ids" item="id" open="(" separator="," close=")">#{id}</foreach></if></update>
+ <sql id="visible">EXISTS(SELECT 1 FROM learning_course c JOIN learning_enrollment e ON e.course_id=c.id AND e.active=1 JOIN sys_user s ON s.id=e.student_id AND s.role_id=10 AND s.status='0' WHERE e.student_id=r.student_id AND c.mentor_id=#{mentor} AND c.deleted=0 AND c.status='PUBLISHED' AND (r.course_id IS NULL OR r.course_id=c.id))</sql>
+ <sql id="columns">r.*,u.nick_name AS student_name,u.user_name AS username,c.title AS course_title</sql>
+ <select id="list" resultType="com.upself.biz.followup.domain.FollowUpReminder">SELECT <include refid="columns"/> FROM follow_up_reminder r JOIN sys_user u ON u.id=r.student_id LEFT JOIN learning_course c ON c.id=r.course_id WHERE r.mentor_id=#{mentor} AND <include refid="visible"/>
+ <choose><when test="status == 'PENDING'">AND r.active=1 AND r.reviewed=0</when><when test="status == 'REVIEWED'">AND r.active=1 AND r.reviewed=1</when><when test="status == 'ENDED'">AND r.active=0</when></choose>
+ <if test="studentId != null">AND r.student_id=#{studentId}</if> ORDER BY r.detected_at DESC,r.id DESC</select>
+ <select id="own" resultType="com.upself.biz.followup.domain.FollowUpReminder">SELECT <include refid="columns"/> FROM follow_up_reminder r JOIN sys_user u ON u.id=r.student_id LEFT JOIN learning_course c ON c.id=r.course_id WHERE r.id=#{id} AND r.mentor_id=#{mentor} AND <include refid="visible"/></select>
+ <update id="review">UPDATE follow_up_reminder r SET r.reviewed=1,r.reviewed_at=NOW(6),r.version=r.version+1 WHERE r.id=#{id} AND r.mentor_id=#{mentor} AND r.active=1 AND r.reviewed=0 AND r.version=#{version} AND <include refid="visible"/></update>
+</mapper>

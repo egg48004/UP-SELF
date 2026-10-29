@@ -7,7 +7,6 @@ import { learningApi } from "../../learning/api";
 import type { Course } from "../../learning/types";
 import { assignmentApi } from "../../assignments/api";
 import type { Assignment } from "../../assignments/types";
-import CourseCard from "../../learning/components/CourseCard.vue";
 import AsyncState from "../../../shared/ui/AsyncState.vue";
 const { t } = useI18n(),
   courses = ref<Course[]>([]),
@@ -64,7 +63,16 @@ onMounted(load);
       </section>
       <div class="dashboard-grid">
         <section class="panel">
-          <h2><span aria-hidden="true">🧭 </span>{{ t("efficacy.checkIn") }}</h2>
+          <h2><span aria-hidden="true">💡 </span>{{ t("business.title") }}</h2>
+          <p>{{ t("business.homeHelp") }}</p>
+          <RouterLink class="button-link" to="/student/business">
+            {{ t("business.title") }} <span aria-hidden="true">→</span>
+          </RouterLink>
+        </section>
+        <section class="panel">
+          <h2>
+            <span aria-hidden="true">🧭 </span>{{ t("efficacy.checkIn") }}
+          </h2>
           <p>{{ t("mood.homeHelp") }}</p>
           <RouterLink class="button-link" to="/student/mood">
             {{ t("efficacy.checkIn") }} →
@@ -93,12 +101,10 @@ onMounted(load);
           <p v-if="!courses.length">
             {{ t("dashboard.emptyCourses") }}
           </p>
-          <CourseCard
-            v-for="(c, index) in courses"
-            :key="c.id"
-            :course="c"
-            :index="index"
-          /><RouterLink to="/student/courses">
+          <RouterLink v-for="c in courses" :key="c.id" class="dashboard-row" :to="'/student/courses/'+c.id">
+            <strong>{{ c.title }}</strong><span aria-hidden="true">→</span>
+          </RouterLink>
+          <RouterLink to="/student/courses">
             {{ t("dashboard.continueLearning") }} →
           </RouterLink>
         </section>
@@ -106,3 +112,5 @@ onMounted(load);
     </AsyncState>
   </section>
 </template>
+
+<style scoped>.dashboard-grid{align-items:start}</style>

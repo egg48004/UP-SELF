@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
+import { followUpApi } from "../../follow-ups/api";
 import { assignmentApi } from "../../assignments/api";
 import type { Assignment } from "../../assignments/types";
 import AsyncState from "../../../shared/ui/AsyncState.vue";
+const pendingReminders = ref<number | null>(null),
+  reminderError = ref("");
 const { t } = useI18n(),
   work = ref<Assignment[]>([]),
   busy = ref(true),
@@ -19,7 +22,18 @@ async function load() {
     busy.value = false;
   }
 }
-onMounted(load);
+async function loadReminders() {
+  reminderError.value = "";
+  try {
+    pendingReminders.value = (await followUpApi.summary()).total;
+  } catch (e) {
+    reminderError.value = (e as Error).message;
+  }
+}
+onMounted(() => {
+  load();
+  loadReminders();
+});
 </script>
 <template>
   <section>
@@ -28,6 +42,18 @@ onMounted(load);
     </p>
     <h1>{{ t("dashboard.mentorTitle") }}</h1>
     <p>{{ t("dashboard.mentorIntro") }}</p>
+    <section class="panel">
+      <h2>{{ t("followUps.title") }}</h2>
+      <p v-if="pendingReminders !== null">
+        {{ t("followUps.pending", { count: pendingReminders }) }}
+      </p>
+      <p v-if="reminderError" role="alert">
+        {{ reminderError }}
+      </p>
+      <RouterLink to="/mentor/follow-ups">
+        {{ t("followUps.title") }}
+      </RouterLink>
+    </section>
     <section class="panel">
       <h2>{{ t("progress.overview") }}</h2>
       <p>{{ t("progress.overviewHelp") }}</p>

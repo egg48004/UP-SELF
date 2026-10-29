@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.upself.biz.business.mapper.CostPlanMapper">
+ <select id="own" resultType="com.upself.biz.business.domain.CostPlan">SELECT * FROM student_cost_plan WHERE student_id=#{studentId}</select>
+ <insert id="insert">INSERT INTO student_cost_plan(student_id,materials_cost,other_costs,quantity,price_per_item) VALUES(#{studentId},#{materialsCost},#{otherCosts},#{quantity},#{pricePerItem})</insert>
+ <update id="edit">UPDATE student_cost_plan SET materials_cost=#{materialsCost},other_costs=#{otherCosts},quantity=#{quantity},price_per_item=#{pricePerItem},version=version+1 WHERE student_id=#{studentId} AND version=#{version}</update>
+</mapper>

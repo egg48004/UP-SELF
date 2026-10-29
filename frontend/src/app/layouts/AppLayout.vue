@@ -27,9 +27,24 @@ const navigation = computed(() =>
         ? "dashboard.internalNav"
         : "dashboard.adminNav",
 );
-const learningPaths = ["/student/courses", "/student/saved-courses", "/student/history"];
-const studentPaths = ["/mentor/students", "/mentor/mood", "/mentor/self-efficacy", "/mentor/knowledge"];
-const checkInPaths = ["/student/mood", "/student/self-efficacy", "/student/knowledge"];
+const learningPaths = [
+  "/student/business",
+  "/student/courses",
+  "/student/saved-courses",
+  "/student/history",
+];
+const studentPaths = [
+  "/mentor/follow-ups",
+  "/mentor/students",
+  "/mentor/mood",
+  "/mentor/self-efficacy",
+  "/mentor/knowledge",
+];
+const checkInPaths = [
+  "/student/mood",
+  "/student/self-efficacy",
+  "/student/knowledge",
+];
 function within(path: string) {
   return route.path === path || route.path.startsWith(path + "/");
 }
@@ -37,14 +52,20 @@ function link(to: string, key: string, icon = "", paths = [to]) {
   return { to, label: t(key), icon, active: paths.some(within) };
 }
 const mainLinks = computed(() => {
-  const home = link(auth.homePath, "dashboard.home", auth.isStudent ? "🏠" : "");
+  const home = link(
+    auth.homePath,
+    "dashboard.home",
+    auth.isStudent ? "🏠" : "",
+  );
   if (auth.isStudent) {
     return [
       home,
       link("/student/courses", "navigation.myLearning", "📚", learningPaths),
       link("/student/assignments", "assignment.title", "📝"),
       link("/student/mood", "efficacy.checkIn", "🧭", checkInPaths),
-      ...(auth.can("goals:own") ? [link("/student/goals", "goal.title", "🌱")] : []),
+      ...(auth.can("goals:own")
+        ? [link("/student/goals", "goal.title", "🌱")]
+        : []),
     ];
   }
   if (auth.isMentor) {
@@ -57,42 +78,106 @@ const mainLinks = computed(() => {
   }
   return [
     home,
-    ...(auth.can("system:user:list") ? [link("/manage/accounts", "accounts")] : []),
+    ...(auth.can("system:user:list")
+      ? [link("/manage/accounts", "accounts")]
+      : []),
     link("/manage/courses", "dashboard.courseAllocation"),
+    ...(!auth.isMaintenance && auth.can("reports:review")
+      ? [link("/manage/reports", "reports.title")]
+      : []),
+    ...(!auth.isMaintenance && auth.can("exports:read")
+      ? [link("/manage/exports", "exports.title")]
+      : []),
   ];
 });
 const sectionLinks = computed(() => {
+  if (within("/profile"))
+    return {
+      label: t("reports.account"),
+      items: [
+        link("/profile/security", "changePassword"),
+        ...(auth.isStudent || auth.isMentor
+          ? [link("/profile/reports", "reports.mine")]
+          : []),
+      ],
+    };
+  if (auth.isStudent && within("/student/business"))
+    return {
+      label: t("business.sections"),
+      items: [
+        link("/student/business/ideas", "business.ideas"),
+        link("/student/business/costs", "business.calculator"),
+      ],
+    };
   if (auth.isStudent && checkInPaths.some(within)) {
-    return { label: t("efficacy.checkInSections"), items: [
-      link("/student/mood", "mood.myMood"),
-      ...(auth.can("efficacy:own:read") ? [link("/student/self-efficacy", "efficacy.title")] : []),
-      ...(auth.can("knowledge:own:read") ? [link("/student/knowledge", "knowledge.title")] : []),
-    ] };
+    return {
+      label: t("efficacy.checkInSections"),
+      items: [
+        link("/student/mood", "mood.myMood"),
+        ...(auth.can("efficacy:own:read")
+          ? [link("/student/self-efficacy", "efficacy.title")]
+          : []),
+        ...(auth.can("knowledge:own:read")
+          ? [link("/student/knowledge", "knowledge.title")]
+          : []),
+      ],
+    };
   }
   if (auth.isStudent && learningPaths.some(within)) {
     return {
       label: t("navigation.learningSections"),
       items: [
         link("/student/courses", "myCourses"),
-        ...(auth.can("learning:bookmark:own") ? [link("/student/saved-courses", "bookmark.title")] : []),
+        ...(auth.can("learning:bookmark:own")
+          ? [link("/student/saved-courses", "bookmark.title")]
+          : []),
         link("/student/history", "progress.history"),
+        ...(auth.can("business:own")
+          ? [link("/student/business", "business.title")]
+          : []),
       ],
     };
   }
   if (auth.isMentor && studentPaths.some(within)) {
     if (route.params.studentId) {
-      return { label: t("efficacy.studentCheckIns"), items: [
-        link("/mentor/mood/" + route.params.studentId, "mood.myMood"),
-        ...(auth.can("efficacy:students:read") ? [link("/mentor/self-efficacy/" + route.params.studentId, "efficacy.title")] : []),
-        ...(auth.can("knowledge:questions:manage") ? [link("/mentor/knowledge", "knowledge.questions")] : []),
-      ] };
+      return {
+        label: t("navigation.studentSections"),
+        items: [
+          link(
+            "/mentor/mood/" + route.params.studentId,
+            "mentorNotes.studentMood",
+          ),
+          ...(auth.can("efficacy:students:read")
+            ? [
+                link(
+                  "/mentor/self-efficacy/" + route.params.studentId,
+                  "efficacy.title",
+                ),
+              ]
+            : []),
+          ...(auth.can("knowledge:questions:manage")
+            ? [link("/mentor/knowledge", "knowledge.questions")]
+            : []),
+          ...(auth.can("mentorship:notes:read")
+            ? [
+                link(
+                  "/mentor/students/" + route.params.studentId + "/notes",
+                  "mentorNotes.title",
+                ),
+              ]
+            : []),
+        ],
+      };
     }
     return {
       label: t("navigation.studentSections"),
       items: [
         link("/mentor/students", "progress.overview"),
+        link("/mentor/follow-ups", "followUps.title"),
         link("/mentor/mood", "efficacy.studentCheckIns"),
-        ...(auth.can("knowledge:questions:manage") ? [link("/mentor/knowledge", "knowledge.questions")] : []),
+        ...(auth.can("knowledge:questions:manage")
+          ? [link("/mentor/knowledge", "knowledge.questions")]
+          : []),
       ],
     };
   }
@@ -142,7 +227,11 @@ async function logout() {
       >
         <span aria-hidden="true">Aa</span>
       </RouterLink>
-      <NavigationLinks class="main-nav" :label="t(navigation)" :items="mainLinks" />
+      <NavigationLinks
+        class="main-nav"
+        :label="t(navigation)"
+        :items="mainLinks"
+      />
     </header>
     <main id="main" tabindex="-1" class="main-content">
       <p v-if="error" role="alert">
