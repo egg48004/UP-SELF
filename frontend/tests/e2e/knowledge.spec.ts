@@ -179,7 +179,7 @@ test("knowledge and diaries: mentor authoring, student answers, sharing and role
     await screenshot(student, "knowledge-student-accessible.png");
     await student.goto("/#/preferences");
     await student
-      .getByRole("button", { name: "Reset settings", exact: true })
+      .getByRole("button", { name: "Use platform defaults", exact: true })
       .click();
     await student.setViewportSize({ width: 1365, height: 900 });
     await student.goto("/#/student/mood");

@@ -15,6 +15,21 @@ export const router = createRouter({
       component: AppLayout,
       children: [
         {
+          path: "manage/accessibility",
+          component: () =>
+            import("../features/preferences/pages/PlatformDefaultsPage.vue"),
+          meta: {
+            roles: ["platform_admin"],
+            permission: "settings:accessibility:edit",
+          },
+        },
+        {
+          path: "student/statistics",
+          component: () =>
+            import("../features/learning/pages/LearningStatisticsPage.vue"),
+          meta: { roles: ["student"], permission: "learning:statistics:own" },
+        },
+        {
           path: "profile/reports",
           component: () =>
             import("../features/reports/pages/MyReportsPage.vue"),

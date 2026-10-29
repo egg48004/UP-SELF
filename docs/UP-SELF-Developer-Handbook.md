@@ -2,7 +2,7 @@
 
 Development standards, feature workflows, local setup and deployment operations
 
-Version 1.2 | 29 October 2026 | Database schema V14
+Version 1.3 | 29 October 2026 | Database schema V15
 
 UP-SELF is a learning platform for a small group of students in Malaysia. This handbook explains how the current application works, how to maintain it, and how to run it on another computer. It covers the Java backend, Vue frontend, permissions, private files, database migrations and release preparation.
 
@@ -33,8 +33,10 @@ The initial audience is 10 to 30 students, primarily in Malaysia. Students use a
 | Reports | Student and mentor report another chat sender; administrator reviews private message evidence |
 | Follow-up reminders | Current mentors review three fixed learning and wellbeing signals |
 | CSV exports | Administrator downloads users, courses and learning totals with filters |
+| Platform reading defaults | Administrator sets starting size, contrast and reduced motion; personal browser choices take priority |
+| Learning statistics | Student sees current-course chapter completion and assignment totals within My learning |
 
-The original graduation report contains 61 functional requirements. The current comparison records 35 completed, 6 partially completed and 20 not implemented. Appendix A retains all 61 identifiers and explains the differences. These counts measure coverage of the report, not the usability of the MVP or an academic grade.
+The original graduation report contains 61 functional requirements. The current comparison records 37 completed, 6 partially completed and 18 not implemented. Appendix A retains all 61 identifiers and explains the differences. These counts measure coverage of the report, not the usability of the MVP or an academic grade.
 
 Course discussions, private mentor notes, guided business ideas and a saved cost calculator are implemented. AI assistance, badges, daily attendance and full one-to-one appointment scheduling remain outside the implemented scope. A course meeting post is a link announcement, not a booking or conferencing service.
 
@@ -78,7 +80,7 @@ The backend baseline comes from the reference project at `C:\Users\eggma\Desktop
 | Redis on Windows | tporadowski Windows port 5.0.14.1 |
 | Redis for Mac preparation | Upstream 5.0.14 corresponding to the Windows port; target runtime testing pending |
 | Node and npm | 24.22.1 and 11.19.1 |
-| Current Flyway schema | V1 through V14 |
+| Current Flyway schema | V1 through V15 |
 
 The reference Docker image names Amazon Corretto 8u362. That differs from the independent project's installed Oracle 8u231. Do not describe them as the same JDK build or silently switch vendor or update level. The current Linux runtime checks retain the independent project's 8u231 requirement.
 
@@ -565,6 +567,28 @@ Exports exclude credentials, tokens, journals, mood scores, self-efficacy answer
 
 Source: `ExportController`, `ExportServiceImpl`, `ExportMapper.xml`, `CsvWriter` and `frontend/src/features/exports`.
 
+### 4.20 Platform reading defaults (FR-55)
+
+The administrator opens **Home > Platform reading defaults** and chooses the starting text size, contrast and reduced-motion setting. The form saves one database record through the existing System module. It does not add a main navigation item. Only the public platform-administrator role can update it; mentors, students and internal maintenance cannot. Stale concurrent saves return 409 and preserve the unsaved form until the administrator reloads the current record.
+
+The app reads the non-personal defaults when it starts and again when Aa opens. The public GET returns only size, contrast, motion and version, with no-store caching. Authenticated writes retain role, permission, validation and audit checks. Failed reads leave the personal controls usable with standard fallbacks and the operating system's reduced-motion preference. Aa provides a retry action.
+
+Personal settings remain browser-based. The v2 browser record saves only fields a person changes. Downloaded defaults are not saved as personal overrides. **Use platform defaults** clears those overrides; an operating-system preference for reduced motion still applies unless the person explicitly chooses otherwise. Existing v1 records are preserved as personal choices because the old format cannot distinguish automatic defaults from deliberate selections. The same reset button lets those browsers follow the new platform defaults.
+
+Source: `AccessibilityController`, `AccessibilityServiceImpl`, `AccessibilityMapper.xml` and `frontend/src/features/preferences`. No generic configuration framework or additional cache is introduced.
+
+### 4.21 Student learning statistics (FR-27)
+
+**My learning > Learning stats** shows current courses, completed/published chapter counts, overall chapter progress and four assignment states. Students can refresh the values and open their courses from the paginated list. The five main student navigation entries remain unchanged. Mentors continue to use the existing student overview rather than another student's private statistics screen; administrators continue to use the permitted CSV summaries.
+
+All figures come from the current student's active enrollment in published, non-deleted courses. Only published, non-deleted chapters and published assignments count. Archived courses, draft content, revoked enrollment and other students' records are excluded. The API derives the student ID from authentication and accepts no target-student selector.
+
+Overall completion is completed chapters divided by published chapters across all included courses, rounded to the nearest whole percent. It is not an average of course percentages. For example, one completed chapter out of four is 25%, even if one small course is already complete. Empty courses add to the course count but not the chapter denominator. A zero denominator shows an explanatory empty state.
+
+Assignment states are Not submitted, Waiting for feedback, Feedback ready and Changes requested. An absent submission or an unsent draft is Not submitted. A returned attempt remains Changes requested. The read model never selects answer text, feedback, scores, journals or assessment answers. Statistics reuse existing progress and submission rows; no activity event stream, watched-minute estimate or mastery score is collected. Reopening a chapter or changing its publication/access state changes the current totals.
+
+Source: the shared `statisticsRows` SQL fragment in `ProgressMapper.xml`, `ProgressServiceImpl`, `LearningStatistics` DTOs and `frontend/src/features/learning/pages/LearningStatisticsPage.vue`. Totals use AjaxResult; paginated courses retain BaseController, PageHelper and TableDataInfo. Text counts accompany native progress bars, and the layout supports the existing Aa settings.
+
 ## 5 Local setup and data migration
 
 ### 5.1 Choose the correct startup route
@@ -858,12 +882,13 @@ Flyway runs as part of Java backend startup. It checks recorded migrations on ea
 | `V12__course_group_chat.sql` | Course discussion groups, membership, messages and files |
 | `V13__mentor_notes_and_business_practice.sql` | Private mentor notes, student ideas and cost plans |
 | `V14__reports_follow_ups_and_exports.sql` | Private user reports, mentor reminder state and export permissions |
+| `V15__accessibility_defaults_and_learning_statistics.sql` | One platform-default record and settings/statistics permissions |
 
 Scripts are in `up-self-admin/src/main/resources/db/draft`. Current configuration enables Flyway, validation and baseline-on-migrate, permits out-of-order migrations and disables placeholder replacement. Migration credentials are separate from application DML credentials.
 
-Add the next migration for a new change; the next integer after V14 is V15. Use `V<number>__<description>.sql`. Never modify an executed migration to adjust an existing installation. Do not hand-create partial business tables before first startup, because baseline behavior can change which versions run.
+Add the next migration for a new change; the next integer after V15 is V16. Use `V<number>__<description>.sql`. Never modify an executed migration to adjust an existing installation. Do not hand-create partial business tables before first startup, because baseline behavior can change which versions run.
 
-An empty database receives V1 through V14. An existing V13 database receives V14. Restoring a valid older snapshot through a supported route preserves its history and allows missing migrations to run, but does not recover later business data. A full current restore should not rerun the schema scripts.
+An empty database receives V1 through V15. An existing V14 database receives V15. Restoring a valid older snapshot through a supported route preserves its history and allows missing migrations to run, but does not recover later business data. A full current restore should not rerun the schema scripts.
 
 On failure, preserve the error, database identity and `flyway_schema_history`. Stop before making further changes. Investigate the failed SQL and migration state before considering a controlled recovery. Do not use clean, blind repair or history deletion as a routine startup fix.
 
@@ -1054,6 +1079,8 @@ Record one complete list before any actual purchase:
 
 ### 7.1 Recorded evidence and its scope
 
+The V15 delivery was verified on 29 October 2026: 158 Java tests, 103 frontend tests, TypeScript and production builds passed. ESLint reported zero errors and 48 existing warnings. The local specialist run passed 167 checks including its Chrome scenario, covering default persistence, stale and concurrent writes, role denial, weighted statistics, publication/enrollment changes, paging, personal overrides, recovery from a defaults outage and mobile layout. In Chrome, marking a real chapter complete changed the displayed totals from 2/4 (50%) to 3/4 (75%). Disposable records were removed and the prior platform values restored. The role-navigation Chrome regression also passed, including keyboard access, the same five main student links, current mentor/admin menus and 320/390/768-pixel layouts with extra-large text. The services were started through the existing VS Code F5 compound.
+
 The V14 delivery was verified on 29 October 2026: 149 Java tests, 94 frontend tests, TypeScript and production builds passed. The specialist suite passed 125 live API checks and a Chrome workflow covering student and mentor reporting, administrator review, current-mentor reminders, three CSV downloads and wrong-role access. It uses disposable fixtures and removes only its own records and uploaded file. VS Code's combined F5 configuration was used for the running services. These results apply to Windows; they do not establish Mac or Linux runtime success.
 
 The earlier feature delivery recorded the following results on the existing Windows environment. These are dated verification records, not a claim that all tests were rerun during handbook consolidation.
@@ -1086,6 +1113,7 @@ python scripts/verify-goals.py --browser
 python scripts/verify-bookmarks.py --browser
 python scripts/verify-self-efficacy.py --browser
 python scripts/verify-support.py --browser
+python scripts/verify-settings-stats.py --browser
 ```
 
 The general frontend verification script covers common application flows. Specialist suites create their own isolated accounts and course relationships and clean up only their recorded fixtures. Review each script's setup before running it on a different machine. Do not point verification suites at a live student deployment.
@@ -1159,19 +1187,19 @@ Linux public deployment and Mac runtime testing are still pending. Cost figures 
 
 The identifiers and requirement names follow the original report's 61 FRs. Completed means the current UI, API and persistence cover the main requirement. Partial means a defined subset exists or an implemented rule differs materially from the report. Not implemented means there is no complete workflow; a generic field, sample title or shared component is not completion.
 
-The current total is 35 completed, 6 partial and 20 not implemented. Authentication and general engineering safeguards are not additional numbered FRs. The report's source is Section 5.4.1, report pages 14 through 22, PDF pages 30 through 38. The original report remains a separate academic source and is not rewritten by this handbook.
+The current total is 37 completed, 6 partial and 18 not implemented. Authentication and general engineering safeguards are not additional numbered FRs. The report's source is Section 5.4.1, report pages 14 through 22, PDF pages 30 through 38. The original report remains a separate academic source and is not rewritten by this handbook.
 
 | Area | Completed | Partial | Not implemented |
 |---|---:|---:|---:|
 | Learning FR 01 to 10 | 9 | 1 | 0 |
 | Assignments FR 11 to 18 | 6 | 2 | 0 |
-| Self-efficacy area FR 19 to 27 | 4 | 1 | 4 |
+| Self-efficacy area FR 19 to 27 | 5 | 1 | 3 |
 | Communication FR 28 to 35 | 6 | 0 | 2 |
 | AI assistance FR 36 to 42 | 0 | 0 | 7 |
 | Entrepreneurship FR 43 to 48 | 2 | 0 | 4 |
-| Administration FR 49 to 55 | 5 | 0 | 2 |
+| Administration FR 49 to 55 | 6 | 0 | 1 |
 | Mentor support FR 56 to 61 | 3 | 2 | 1 |
-| Total | 35 | 6 | 20 |
+| Total | 37 | 6 | 18 |
 
 ### A2 Complete requirement matrix
 
@@ -1203,7 +1231,7 @@ The current total is 35 completed, 6 partial and 20 not implemented. Authenticat
 | FR-24 | Manage Goal | Completed | Edit, complete, reopen, filter and delete own goals with version checks. Delete/reopen extend management without adding a new FR. |
 | FR-25 | Confidence Assessment | Completed | GSE-3, complete server scoring, 28-day interval, history and trend. Mentors see shared scores, not answers. Target-population validation is separate. |
 | FR-26 | Earn Badge | Not implemented | No badge rules or award records. |
-| FR-27 | View Learning Analytics | Not implemented | Chapter percentages exist, but no separate learning analytics workflow or trend dashboard. |
+| FR-27 | View Learning Analytics | Completed | My learning includes a private statistics page with weighted chapter completion, assignment-state totals and paginated course progress. Reuses current records; no time or mastery estimates. |
 | FR-28 | Send Message | Completed | Students and the responsible mentor send scoped text messages in course discussion groups. |
 | FR-29 | Receive Message | Completed | The visible room receives new messages through five-second polling and loads earlier history by cursor; no private messaging workflow. |
 | FR-30 | Upload File in Chat | Completed | Authenticated discussion attachments support images, documents and voice; previews, downloads and playback enforce membership. |
@@ -1231,7 +1259,7 @@ The current total is 35 completed, 6 partial and 20 not implemented. Authenticat
 | FR-52 | Manage Courses | Completed | Course setup, allocation, publication, archive and content management. |
 | FR-53 | Manage Assignments | Not implemented | Report assigns this to administrators. Current business rule assigns it only to mentors and protects submission content. |
 | FR-54 | Export System Data | Completed | Administrator downloads filtered users, courses and learning-summary CSV files. Private content and credentials are excluded. |
-| FR-55 | Configure Accessibility Settings | Not implemented | This report item is platform defaults set by an administrator; only personal browser settings exist. |
+| FR-55 | Configure Accessibility Settings | Completed | Administrator maintains persisted starting size, contrast and reduced motion. Personal Aa choices take priority; no additional main navigation entry. |
 | FR-56 | View Student Overview Dashboard | Completed | Scoped student-course completion, assignment counts and latest shared mood, with detail links. |
 | FR-57 | Monitor Student Progress | Partial | Mentor sees self-reported chapter completion, not detailed video duration or an activity event stream. |
 | FR-58 | Receive At-Risk Student Alerts | Completed | Current mentors see rule-based follow-up reminders for low mood, paused learning and overdue work; reviewed states persist. No diagnostic inference or external notifications. |
@@ -1497,6 +1525,17 @@ Lists use TableDataInfo; details and calculations use AjaxResult. Run `python sc
 
 List pagination follows `current` and `pageSize` through BaseController and TableDataInfo. Management APIs also register `/client` aliases so wrong-role calls are rejected consistently; an alias grants no access. CSV bypasses the JSON success envelope only for a successful download. Error responses retain the existing application envelope.
 
+### B12 Platform defaults and student statistics
+
+| Method | Path | Access and response |
+|---|---|---|
+| GET | `/accessibility/defaults` | Public, non-personal size/contrast/motion/version in AjaxResult; no-store |
+| PUT | `/accessibility/defaults` | Public platform-administrator role and settings:accessibility:edit; validated size, contrast, motion and version |
+| GET | `/client/learning/statistics` | Student with learning:statistics:own; authenticated student's totals in AjaxResult |
+| GET | `/client/learning/statistics/courses` | Same scope; current/pageSize and TableDataInfo |
+
+The settings controller also has a `/client/accessibility/defaults` alias for role rejection through the student channel. Only the exact GET `/accessibility/defaults` is anonymous; PUT is not whitelisted. Progress-controller `/learning` aliases retain their existing role checks. None of the statistics routes can select another student by ID.
+
 ## Appendix C Source and maintenance index
 
 ### C1 Backend source map
@@ -1531,6 +1570,14 @@ New backend sources:
 - [FollowUpServiceImpl.java](../up-self-biz/src/main/java/com/upself/biz/followup/service/impl/FollowUpServiceImpl.java).
 - [ExportServiceImpl.java](../up-self-biz/src/main/java/com/upself/biz/reporting/service/impl/ExportServiceImpl.java).
 - [V14 migration](../up-self-admin/src/main/resources/db/draft/V14__reports_follow_ups_and_exports.sql).
+
+Additional V15 sources:
+
+- [AccessibilityController.java](../up-self-admin/src/main/java/com/upself/web/controller/system/AccessibilityController.java).
+- [AccessibilityServiceImpl.java](../up-self-system/src/main/java/com/upself/system/service/impl/AccessibilityServiceImpl.java).
+- [AccessibilityMapper.xml](../up-self-system/src/main/resources/mapper/system/AccessibilityMapper.xml).
+- [ProgressMapper.xml](../up-self-biz/src/main/resources/mapper/learning/ProgressMapper.xml).
+- [V15 migration](../up-self-admin/src/main/resources/db/draft/V15__accessibility_defaults_and_learning_statistics.sql).
 
 ### C2 Frontend and operational source map
 

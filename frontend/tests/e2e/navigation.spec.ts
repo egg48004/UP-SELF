@@ -46,7 +46,10 @@ test("role navigation: five student entries, grouped learning, Aa and management
     await learning.focus(); await student.keyboard.press("Enter");
     await expect(student).toHaveURL(/\/student\/courses$/);
     const sections = student.getByRole("navigation", { name: "My learning sections", exact: true });
-    await expect(sections.getByRole("link")).toHaveCount(3);
+    await expect(sections.getByRole("link")).toHaveCount(5);
+    await sections.getByRole("link",{name:"Learning stats",exact:true}).click();
+    await expect(student.getByRole("heading",{name:"Learning stats",exact:true})).toBeVisible();
+    await sections.getByRole("link",{name:"My courses",exact:true}).click();
     await expect(learning).toHaveAttribute("aria-current", "page");
     await expect(sections.getByRole("link", { name: "My courses", exact: true })).toHaveAttribute("aria-current", "page");
     await sections.getByRole("link", { name: "Saved courses", exact: true }).click();
@@ -90,7 +93,7 @@ test("role navigation: five student entries, grouped learning, Aa and management
     await student.screenshot({ path: path.join(screenshots, "navigation-student-mobile-accessible.png"), fullPage: true });
     await student.reload();
     await expect(student.locator("html")).toHaveAttribute("data-size", "extraLarge");
-    await settings.click(); await student.getByRole("button", { name: "Reset settings", exact: true }).click();
+    await settings.click(); await student.getByRole("button", { name: "Use platform defaults", exact: true }).click();
     await student.setViewportSize({ width: 390, height: 844 });
     await learning.click(); await settled(student); await visibleNavigation(student);
     await student.screenshot({ path: path.join(screenshots, "navigation-student-mobile.png"), fullPage: true });
@@ -106,7 +109,7 @@ test("role navigation: five student entries, grouped learning, Aa and management
     for (const name of ["Home", "Teaching courses", "Assignments", "Students"]) await expect(teaching.getByRole("link", { name, exact: true })).toBeVisible();
     await teaching.getByRole("link", { name: "Students", exact: true }).click();
     const students = mentor.getByRole("navigation", { name: "Student sections", exact: true });
-    await expect(students.getByRole("link")).toHaveCount(2);
+    await expect(students.getByRole("link")).toHaveCount(4);
     await students.getByRole("link", { name: "Student check-ins", exact: true }).click();
     await expect(mentor.getByRole("heading", { name: "Student check-ins", exact: true })).toBeVisible();
     await expect(teaching.getByRole("link", { name: "Students", exact: true })).toHaveAttribute("aria-current", "page");
@@ -126,7 +129,7 @@ test("role navigation: five student entries, grouped learning, Aa and management
     await mentor.goto("/#/student/saved-courses"); await expect(mentor).toHaveURL(/\/403$/);
     const admin = await login("admin", "admin01");
     const management = primary(admin, "Administrator");
-    await expect(management.getByRole("link")).toHaveCount(3);
+    await expect(management.getByRole("link")).toHaveCount(5);
     for (const [name, heading] of [["Accounts", "Accounts"], ["Course allocation", "Courses"], ["Home", "Administration"]]) {
       await management.getByRole("link", { name, exact: true }).click();
       await expect(admin.getByRole("heading", { name: heading, exact: true })).toBeVisible();

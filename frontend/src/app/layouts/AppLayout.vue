@@ -28,6 +28,7 @@ const navigation = computed(() =>
         : "dashboard.adminNav",
 );
 const learningPaths = [
+  "/student/statistics",
   "/student/business",
   "/student/courses",
   "/student/saved-courses",
@@ -132,6 +133,9 @@ const sectionLinks = computed(() => {
           ? [link("/student/saved-courses", "bookmark.title")]
           : []),
         link("/student/history", "progress.history"),
+        ...(auth.can("learning:statistics:own")
+          ? [link("/student/statistics", "stats.title")]
+          : []),
         ...(auth.can("business:own")
           ? [link("/student/business", "business.title")]
           : []),

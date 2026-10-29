@@ -558,9 +558,10 @@ test("real administrator → mentor → student learning workflow", async ({
       "highContrast",
     );
     await student
-      .getByRole("button", { name: "Reset settings", exact: true })
+      .getByRole("button", { name: "Use platform defaults", exact: true })
       .click();
-    await expect(student.getByLabel("Text size")).toHaveValue("standard");
+    const defaults = (await (await student.request.get("/api/accessibility/defaults")).json()).data;
+    await expect(student.getByLabel("Text size")).toHaveValue(defaults.size);
     await student.goto("/#/manage/courses");
     await expect(student).toHaveURL(/\/403/);
     await expect(

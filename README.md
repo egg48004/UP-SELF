@@ -6,6 +6,8 @@ Read the [Developer Handbook](docs/UP-SELF-Developer-Handbook.md) for architectu
 
 The current MVP also includes private chat-based user reports with administrator review, current-mentor follow-up reminders and three administrator CSV reports. See [feature workflows](docs/UP-SELF-Developer-Handbook.md#417-user-reports-fr-34).
 
+Platform administrators can set starting reading defaults from Home. Students keep their personal Aa choices and can open **My learning > Learning stats** for current-course progress and assignment totals.
+
 ## Windows startup
 
 Configure the fixed tool paths with scripts/configure-local.ps1, install the locked frontend dependencies and build. Open open-vscode.cmd, which selects the generated .local/up-self.code-workspace. Wait for Java import, then use the existing Backend + Frontend configuration and F5. Do not open another backend or Vite instance on the same ports.
@@ -29,7 +31,7 @@ Current local service settings and original bootstrap credentials are in config/
 
 Public roles are Student, Mentor and Administrator; maintenance uses only the internal login entry. Password login is enabled and TOTP is disabled. The six demo students have course progress, submitted and reviewed work, goals, mood and self-belief history, and course discussion messages. These are synthetic demonstration records.
 
-Current schema is **V14**. Java startup applies missing Flyway migrations. Git transfers code, not live database writes. The local migration snapshot has been refreshed with the current demo accounts, data and referenced learning media. Export it again after making further database or upload changes. See [setup and data migration](docs/UP-SELF-Developer-Handbook.md#5-local-setup-and-data-migration).
+Current schema is **V15**. Java startup applies missing Flyway migrations. Git transfers code, not live database writes. The local migration snapshot has been refreshed with the current demo accounts, data and referenced learning media. Export it again after making further database or upload changes. See [setup and data migration](docs/UP-SELF-Developer-Handbook.md#5-local-setup-and-data-migration).
 
 ## Versions and deployment
 

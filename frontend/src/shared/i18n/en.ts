@@ -1,3 +1,5 @@
+import readingDefaults from "../../features/preferences/messages";
+import stats from "../../features/learning/statisticsMessages";
 import reports from "../../features/reports/messages";
 import followUps from "../../features/follow-ups/messages";
 import exports from "../../features/exports/messages";
@@ -14,6 +16,8 @@ import knowledge from "../../features/knowledge/messages";
 import recording from "../../features/recordings/messages";
 import chat from "../../features/chat/messages";
 export default {
+  readingDefaults,
+  stats,
   reports,
   followUps,
   exports,

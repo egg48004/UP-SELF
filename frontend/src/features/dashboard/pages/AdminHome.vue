@@ -30,6 +30,18 @@ const { t } = useI18n(),
       }}
     </p>
     <div class="dashboard-grid">
+      <section
+        v-if="!auth.isMaintenance && auth.can('settings:accessibility:edit')"
+        class="panel"
+      >
+        <h2>{{ t("readingDefaults.title") }}</h2>
+        <p>{{ t("readingDefaults.intro") }}</p>
+        <RouterLink to="/manage/accessibility">
+          {{
+            t("readingDefaults.title")
+          }}
+        </RouterLink>
+      </section>
       <section v-if="!auth.isMaintenance" class="panel">
         <h2>{{ t("reports.title") }}</h2>
         <p>{{ t("reports.adminHelp") }}</p>
