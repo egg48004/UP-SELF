@@ -11,6 +11,8 @@ export interface ChatMember {
   nickName: string;
   userName: string;
   active: boolean;
+  hidden: boolean;
+  hideAllowed: boolean;
 }
 export interface ChatFile {
   id: number;
@@ -27,6 +29,8 @@ export interface ChatMessage {
   groupId: number;
   senderId: number;
   senderName: string;
+  senderRole: "student" | "mentor" | "LEGACY";
+  hideAllowed: boolean;
   body: string;
   clientKey: string;
   createTime: string;
@@ -35,4 +39,11 @@ export interface ChatMessage {
 export interface MessageBatch {
   rows: ChatMessage[];
   hasMore: boolean;
+  nextCursor: number;
+}
+
+export interface ChatSync {
+  group: ChatGroup;
+  messages: MessageBatch;
+  hiddenStudentIds: number[];
 }

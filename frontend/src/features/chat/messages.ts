@@ -1,5 +1,17 @@
 export default {
   title: "Discussion",
+  mentor: "Mentor",
+  hideMessages: "Hide messages",
+  showMessages: "Show messages",
+  hideConfirm:
+    "Hide {name}'s messages in this group? Hidden only for you. They can still see your messages. Mentor messages stay visible.",
+  hideHelp:
+    "Hide a classmate's messages only for you, in this group. Mentor messages stay visible.",
+  hiddenCount: "Hidden classmates: {count}.",
+  legacyHelp: "Some older messages stay visible to protect teaching information.",
+  hiddenNotice: "Messages hidden for you in this group.",
+  manageHidden: "Manage in Members",
+  latest: "Back to latest messages",
   groups: "Course discussions",
   help: "Talk with your group. Help each other learn.",
   back: "Back to course",
@@ -45,8 +57,7 @@ export default {
   hideImage: "Hide image",
   download: "Download",
   recorderHelp: "Record, listen, then upload.",
-  audioHelp:
-    "60 seconds · 5 MB. Press Send to share.",
+  audioHelp: "60 seconds · 5 MB. Press Send to share.",
   uploadFirst: "Upload or delete your recording before sending.",
   invalidFile: "Choose a supported file within the size limit.",
   tooMany: "Send or remove your five pending files first.",
@@ -55,7 +66,7 @@ export default {
   connection: "Updates paused. We will retry. You can also refresh.",
   refresh: "Refresh discussion",
   retrySend:
-    "Sending was not confirmed. Your message is kept. Press Send to retry.",
+    "Your text and pending files are kept. Change the message if needed, then try again.",
   leave: "You have unsent text or a recording. Leave this discussion?",
   readDenied: "This discussion is no longer available to you.",
   leaveFiles:

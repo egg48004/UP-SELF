@@ -28,8 +28,8 @@ def audio():
   w.writeframes(b''.join(struct.pack('<h',int(2000*math.sin(2*math.pi*440*i/8000))) for i in range(8000)))
  return b.getvalue()
 def main():
- config=(R/'config/application-local.yml').read_text(encoding='utf-8-sig')
- password=re.search(r'^\s{4}admin01:\s*(.*?)\s*$',config,re.M).group(1).strip('"\'')
+ config=(R/'config/demo-accounts.yml').read_text(encoding='utf-8-sig')
+ password=re.search(r'^  password:\s*(.*?)\s*$',config,re.M).group(1).strip('"\'')
  a.clear_our_rate_limits()
  admin=call('admin login','/empLogin','POST',{'username':'admin01','password':password})['token'];tokens.append((admin,False))
  actors={}

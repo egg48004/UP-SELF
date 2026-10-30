@@ -31,10 +31,12 @@ Current local service settings and original bootstrap credentials are in config/
 
 Public roles are Student, Mentor and Administrator; maintenance uses only the internal login entry. Password login is enabled and TOTP is disabled. The six demo students have course progress, submitted and reviewed work, goals, mood and self-belief history, and course discussion messages. These are synthetic demonstration records.
 
-Current schema is **V15**. Java startup applies missing Flyway migrations. Git transfers code, not live database writes. The local migration snapshot has been refreshed with the current demo accounts, data and referenced learning media. Export it again after making further database or upload changes. See [setup and data migration](docs/UP-SELF-Developer-Handbook.md#5-local-setup-and-data-migration).
+Current schema is **V16**. Java startup applies missing Flyway migrations. Git transfers code, not live database writes. The local migration snapshot has been refreshed with the current demo accounts, data and referenced learning media. Export it again after making further database or upload changes. See [setup and data migration](docs/UP-SELF-Developer-Handbook.md#5-local-setup-and-data-migration).
 
 ## Versions and deployment
 
 Retain Java 8u231, Maven 3.10.0, MySQL 5.7.44, the Windows Redis 5.0.14.1 port, Node 24.22.1 and npm 11.19.1. Backend dependencies follow the existing POMs and frontend dependencies follow package-lock.json. Full versions and the Mac Redis platform mapping are in the handbook.
 
 Linux production templates are prepared in deploy/linux; actual Linux runtime validation and public deployment are pending. No cloud purchase is required for local development or a local graduation demonstration.
+
+Course discussions also provide per-group **Hide messages / Show messages** for student peers and a small pre-send text/attachment-name filter. Mentor teaching remains visible. See [discussion safety](docs/UP-SELF-Developer-Handbook.md#422-course-discussions-visibility-and-filtering-fr-28-through-fr-35).

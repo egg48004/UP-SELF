@@ -15,7 +15,9 @@
  <select id="isMember" resultType="int">SELECT COUNT(*) FROM chat_member WHERE group_id=#{groupId} AND student_id=#{studentId} AND active=1</select>
  <select id="members" resultType="com.upself.biz.chat.domain.ChatMember">
   SELECT m.student_id,m.active,u.nick_name,u.user_name FROM chat_member m JOIN sys_user u ON u.id=m.student_id
-  WHERE m.group_id=#{id} AND m.active=1 ORDER BY u.nick_name,u.id
+  WHERE m.group_id=#{groupId} AND (m.active=1
+  <if test="viewerId != null">OR EXISTS(SELECT 1 FROM chat_hidden_peer h WHERE h.group_id=m.group_id AND h.viewer_id=#{viewerId} AND h.student_id=m.student_id)</if>)
+  ORDER BY u.nick_name,u.id
  </select>
  <select id="candidates" resultType="com.upself.biz.chat.domain.ChatMember">
   SELECT u.id AS student_id,u.nick_name,u.user_name,1 AS active FROM learning_enrollment e JOIN sys_user u ON u.id=e.student_id
@@ -24,16 +26,33 @@
  <select id="eligible" resultType="int">SELECT COUNT(*) FROM learning_enrollment e JOIN sys_user u ON u.id=e.student_id WHERE e.course_id=#{courseId} AND e.student_id=#{studentId} AND e.active=1 AND u.role_id=10 AND u.status='0'</select>
  <insert id="addMember">INSERT INTO chat_member(group_id,student_id,active) VALUES(#{groupId},#{studentId},1) ON DUPLICATE KEY UPDATE active=1,joined_at=CURRENT_TIMESTAMP</insert>
  <update id="removeMember">UPDATE chat_member SET active=0 WHERE group_id=#{groupId} AND student_id=#{studentId}</update>
- <sql id="messageColumns">m.id,m.group_id,m.sender_id,m.body,m.client_key,m.create_time,u.nick_name AS sender_name</sql>
+ <sql id="messageColumns">m.id,m.group_id,m.sender_id,m.sender_role,(u.role_id=10) AS student_sender,m.body,m.client_key,m.create_time,u.nick_name AS sender_name</sql>
+ <sql id="hiddenByViewer">
+  m.sender_role='student' AND EXISTS(
+   SELECT 1 FROM chat_hidden_peer h
+   JOIN chat_group hg ON hg.id=h.group_id JOIN learning_course hc ON hc.id=hg.course_id
+   WHERE h.group_id=m.group_id AND h.viewer_id=#{viewerId} AND h.student_id=m.sender_id
+   AND (hc.mentor_id IS NULL OR hc.mentor_id != m.sender_id))
+ </sql>
  <select id="messages" resultType="com.upself.biz.chat.domain.ChatMessage">
-  SELECT <include refid="messageColumns"/> FROM chat_message m JOIN sys_user u ON u.id=m.sender_id WHERE m.group_id=#{groupId}
+  SELECT <include refid="messageColumns"/> FROM chat_message m JOIN sys_user u ON u.id=m.sender_id
+  WHERE m.group_id=#{groupId} AND m.id &lt;= #{ceiling}
+  <if test="viewerId != null">AND NOT (<include refid="hiddenByViewer"/>)</if>
   <choose><when test="afterId != null">AND m.id &gt; #{afterId} ORDER BY m.id ASC</when>
-  <otherwise><if test="beforeId != null">AND m.id &lt; #{beforeId}</if> ORDER BY m.id DESC</otherwise></choose>
-  LIMIT 31
+  <otherwise><if test="beforeId != null">AND m.id &lt; #{beforeId}</if> ORDER BY m.id DESC</otherwise></choose> LIMIT 31
  </select>
+ <select id="latestMessageId" resultType="long">SELECT COALESCE(MAX(id),0) FROM chat_message WHERE group_id=#{id}</select>
+ <select id="batchMessageFiles" resultType="com.upself.biz.chat.domain.ChatFile">
+  SELECT id,group_id,owner_id,message_id,original_name,mime_type,size_bytes,alt_text FROM chat_file
+  WHERE message_id IN <foreach collection="ids" item="id" open="(" close=")" separator=",">#{id}</foreach> ORDER BY id
+ </select>
+ <select id="hiddenStudents" resultType="long">SELECT student_id FROM chat_hidden_peer WHERE group_id=#{groupId} AND viewer_id=#{viewerId} ORDER BY student_id</select>
+ <insert id="hidePeer">INSERT INTO chat_hidden_peer(group_id,viewer_id,student_id) VALUES(#{groupId},#{viewerId},#{studentId}) ON DUPLICATE KEY UPDATE student_id=VALUES(student_id)</insert>
+ <delete id="showPeer">DELETE FROM chat_hidden_peer WHERE group_id=#{groupId} AND viewer_id=#{viewerId} AND student_id=#{studentId}</delete>
+ <select id="hiddenMessage" resultType="int">SELECT COUNT(*) FROM chat_message m WHERE m.id=#{id} AND (<include refid="hiddenByViewer"/>)</select>
  <select id="message" resultType="com.upself.biz.chat.domain.ChatMessage">SELECT <include refid="messageColumns"/> FROM chat_message m JOIN sys_user u ON u.id=m.sender_id WHERE m.id=#{id}</select>
  <select id="byKey" resultType="com.upself.biz.chat.domain.ChatMessage">SELECT * FROM chat_message WHERE group_id=#{groupId} AND sender_id=#{senderId} AND client_key=#{clientKey}</select>
- <insert id="insertMessage" useGeneratedKeys="true" keyProperty="id">INSERT INTO chat_message(group_id,sender_id,body,client_key) VALUES(#{groupId},#{senderId},#{body},#{clientKey})</insert>
+ <insert id="insertMessage" useGeneratedKeys="true" keyProperty="id">INSERT INTO chat_message(group_id,sender_id,sender_role,body,client_key) VALUES(#{groupId},#{senderId},#{senderRole},#{body},#{clientKey})</insert>
  <select id="messageFiles" resultType="com.upself.biz.chat.domain.ChatFile">SELECT id,group_id,owner_id,message_id,original_name,mime_type,size_bytes,alt_text FROM chat_file WHERE message_id=#{id} ORDER BY id</select>
  <select id="file" resultType="com.upself.biz.chat.domain.ChatFile">SELECT * FROM chat_file WHERE id=#{id}</select>
  <insert id="insertFile" useGeneratedKeys="true" keyProperty="id">INSERT INTO chat_file(group_id,owner_id,storage_key,original_name,mime_type,size_bytes,alt_text) VALUES(#{groupId},#{ownerId},#{storageKey},#{originalName},#{mimeType},#{sizeBytes},#{altText})</insert>

@@ -5,6 +5,7 @@ import type {
   ChatMessage,
   ChatFile,
   MessageBatch,
+  ChatSync,
 } from "./types";
 export function createChatApi(student: boolean) {
   const base = student ? "/client/chat" : "/chat";
@@ -45,6 +46,19 @@ export function createChatApi(student: boolean) {
       data<MessageBatch>(`${base}/groups/${id}/messages`, {
         params: cursor,
         signal,
+      }),
+    sync: (id: number, afterId?: number, signal?: AbortSignal) =>
+      data<ChatSync>(`${base}/groups/${id}/sync`, {
+        params: { afterId },
+        signal,
+      }),
+    hide: (id: number, studentId: number) =>
+      request(`${base}/groups/${id}/hidden-peers/${studentId}`, {
+        method: "PUT",
+      }),
+    show: (id: number, studentId: number) =>
+      request(`${base}/groups/${id}/hidden-peers/${studentId}`, {
+        method: "DELETE",
       }),
     send: (id: number, body: string, fileIds: number[], clientKey: string) =>
       data<ChatMessage>(`${base}/groups/${id}/messages`, {

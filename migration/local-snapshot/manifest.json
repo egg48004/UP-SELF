@@ -1,5 +1,5 @@
 {
-  "createdAt": "2026-10-29T15:44:04.2508573+08:00",
+  "createdAt": "2026-10-30T14:18:52.9211933+08:00",
   "database": "up_self_dev",
   "source": "Independent UP-SELF local database; reference database excluded",
   "mysql": "5.7.44",
@@ -21,7 +21,8 @@
     "12",
     "13",
     "14",
-    "15"
+    "15",
+    "16"
   ],
   "rowCounts": {
     "sys_user": 10,
@@ -41,8 +42,8 @@
       "sha256": "28c3c4dca38416a5f4fb4201fba1cf388bc36a5a3e8cff91949eef4d70052fdf"
     },
     "up_self_dev.sql": {
-      "bytes": 340614,
-      "sha256": "daffb9aaaa4a2cb2d148552bfeceab63daa286c365b2d5b64e117dd0ee81d741"
+      "bytes": 363328,
+      "sha256": "ab22d38d4814b9917335ec6cbb4eb2a319e451f71f85aca171a2ac48ec973623"
     },
     "uploads/143e063d68cc419da1581675c8f069d8.vtt": {
       "bytes": 109,

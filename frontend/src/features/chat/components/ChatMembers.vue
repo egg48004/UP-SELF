@@ -10,6 +10,7 @@ const props = defineProps<{
   manager: boolean;
   closed: boolean;
 }>();
+const emit = defineEmits<{ visibilityChanged: [] }>();
 const { t } = useI18n();
 const members = ref<ChatMember[]>([]),
   candidates = ref<ChatMember[]>([]),
@@ -27,6 +28,26 @@ async function load() {
     if (props.manager) candidates.value = await props.api.candidates(props.id);
   } catch (e) {
     error.value = (e as Error).message;
+  }
+}
+async function toggle(m: ChatMember) {
+  if (
+    !m.hidden &&
+    !(await confirmAction(t("chat.hideConfirm", { name: m.nickName })))
+  )
+    return;
+  busy.value = true;
+  error.value = "";
+  try {
+    await (m.hidden
+      ? props.api.show(props.id, m.studentId)
+      : props.api.hide(props.id, m.studentId));
+    emit("visibilityChanged");
+    await load();
+  } catch (e) {
+    error.value = (e as Error).message;
+  } finally {
+    busy.value = false;
   }
 }
 async function add() {
@@ -61,6 +82,9 @@ onMounted(load);
 <template>
   <section>
     <p>{{ t("chat.mentorIncluded") }}</p>
+    <p v-if="!manager" class="muted">
+      {{ t("chat.hideHelp") }}
+    </p>
     <p v-if="manager">
       {{ t("chat.memberHelp") }}
     </p>
@@ -80,14 +104,25 @@ onMounted(load);
           {{ s.nickName }} ({{ s.userName }})
         </option>
       </select><el-button native-type="submit" :disabled="!selected" :loading="busy">
-        {{
-          t("chat.add")
-        }}
+        {{ t("chat.add") }}
       </el-button>
     </form>
     <ul class="content-list">
       <li v-for="m in members" :key="m.studentId">
         <span>{{ m.nickName }} <small>{{ m.userName }}</small></span><el-button
+          v-if="!manager && (m.hideAllowed || m.hidden)"
+          :disabled="busy"
+          :aria-label="
+            t(m.hidden ? 'chat.showMessages' : 'chat.hideMessages') +
+              ': ' +
+              m.nickName
+          "
+          @click="toggle(m)"
+        >
+          {{
+            t(m.hidden ? "chat.showMessages" : "chat.hideMessages")
+          }}
+        </el-button><el-button
           v-if="manager"
           :disabled="busy"
           :aria-label="t('chat.remove') + ': ' + m.nickName"

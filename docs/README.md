@@ -1,6 +1,6 @@
 # UP SELF documentation
 
-The [Developer Handbook](UP-SELF-Developer-Handbook.md) is the maintained documentation source. The [Word edition](UP-SELF-Developer-Handbook.docx) contains a populated contents page, internal navigation and page numbers. It is the published 25 October edition; the Markdown source includes the later V15 changes.
+The [Developer Handbook](UP-SELF-Developer-Handbook.md) is the maintained documentation source. The [Word edition](UP-SELF-Developer-Handbook.docx) contains a populated contents page, internal navigation and page numbers. It is the published 25 October edition; the Markdown source includes the later V16 changes.
 
 | Read about | Handbook section |
 |---|---|

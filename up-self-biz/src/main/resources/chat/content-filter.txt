@@ -1,0 +1,18 @@
+# Small, explicit rules for course discussion text and attachment metadata.
+# Literal words/phrases, not regular expressions. Review with course staff.
+# Case, compatibility characters, punctuation and whitespace are normalized.
+i will kill you
+i am going to kill you
+kill yourself
+you should die
+you are an idiot
+you're an idiot
+you are stupid
+you're stupid
+shut up idiot
+fucking idiot
+autistic freak
+retarded freak
+kau bodoh
+bodoh kau
+pergi mati

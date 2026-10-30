@@ -7,7 +7,7 @@ import ReportDialog from "../../reports/components/ReportDialog.vue";
 import { useAuthStore } from "../../auth/store";
 import type { ChatMessage } from "../types";
 import type { ChatGroup } from "../types";
-import { useDiscussion, mergeMessages } from "../composables/useDiscussion";
+import { useDiscussion } from "../composables/useDiscussion";
 import AudioRecorder from "../../recordings/components/AudioRecorder.vue";
 import ChatAttachment from "./ChatAttachment.vue";
 import ChatMembers from "./ChatMembers.vue";
@@ -22,9 +22,20 @@ const emit = defineEmits<{
 const { t } = useI18n();
 const auth = useAuthStore(),
   reportMessage = ref<ChatMessage>();
-const room = useDiscussion(props.api, props.id),
-  { group, rows, drafts, loading, error, connection, hasEarlier, denied } =
-    room;
+const room = useDiscussion(props.api, props.id, atBottom),
+  {
+    group,
+    rows,
+    drafts,
+    loading,
+    error,
+    connection,
+    hasEarlier,
+    hasLater,
+    hiddenStudentIds,
+    historyBusy,
+    denied,
+  } = room;
 const text = ref(""),
   recording = ref<File | null>(null),
   active = ref(false),
@@ -40,7 +51,8 @@ const text = ref(""),
   imageInput = ref<HTMLInputElement | null>(null);
 let requestKey = crypto.randomUUID(),
   lastPayload = "",
-  disposed = false;
+  disposed = false,
+  loadingEarlier = false;
 const pending = computed(
   () =>
     !!text.value.trim() ||
@@ -70,6 +82,7 @@ async function bottom() {
 watch(
   () => rows.value.at(-1)?.id,
   async (now, old) => {
+    if (loadingEarlier) return;
     if (now === old) return;
     const follow = !old || atBottom();
     await nextTick();
@@ -166,7 +179,8 @@ async function send() {
       requestKey,
     );
     if (disposed) return;
-    rows.value = mergeMessages(rows.value, [m]);
+    room.append([m]);
+    if (hasLater.value) await room.latest();
     text.value = "";
     drafts.value = [];
     lastPayload = "";
@@ -179,12 +193,47 @@ async function send() {
     if (!disposed) busy.value = "";
   }
 }
+async function hidePeer(m: ChatMessage) {
+  if (!(await confirmAction(t("chat.hideConfirm", { name: m.senderName }))))
+    return;
+  busy.value = "hide";
+  error.value = "";
+  try {
+    await props.api.hide(props.id, m.senderId);
+    if (disposed) return;
+    room.forgetPeer(m.senderId);
+    await room.latest();
+    notice.value = t("chat.hiddenNotice");
+  } catch (e) {
+    if (!disposed) error.value = (e as Error).message;
+  } finally {
+    if (!disposed) busy.value = "";
+  }
+}
+async function visibilityChanged() {
+  // Remove attached images/audio immediately, including any active playback.
+  rows.value = [];
+  await room.latest();
+}
+async function showLatest() {
+  if (hasLater.value) await room.latest();
+  await bottom();
+}
+watch(hasLater, (value) => {
+  if (value) newMessages.value = true;
+});
 async function earlier() {
+  loadingEarlier = true;
   const el = list.value,
-    previous = el?.scrollHeight || 0;
-  await room.earlier();
-  await nextTick();
-  if (el) el.scrollTop = el.scrollHeight - previous;
+    previous = el?.scrollHeight || 0,
+    top = el?.scrollTop || 0;
+  try {
+    await room.earlier();
+    await nextTick();
+    if (el) el.scrollTop = Math.max(0, top + el.scrollHeight - previous);
+  } finally {
+    loadingEarlier = false;
+  }
 }
 async function saveGroup() {
   if (!edit.value) return;
@@ -231,7 +280,7 @@ onBeforeUnmount(() => {
     />
     <AsyncState
       :loading="loading"
-      :error="denied ? error : ''"
+      :error="denied || !group ? error : ''"
       @retry="room.load"
     >
       <template v-if="group && !denied">
@@ -259,6 +308,18 @@ onBeforeUnmount(() => {
         <p v-if="connection" role="status">
           {{ t("chat.connection") }}
         </p>
+        <p v-if="hiddenStudentIds.length" role="status" class="muted">
+          <span>{{ t("chat.hiddenCount", { count: hiddenStudentIds.length }) }}</span>
+          <button type="button" class="plain-link" @click="membersOpen = true">
+            {{ t("chat.manageHidden") }}
+          </button>
+        </p>
+        <p
+          v-if="rows.some(m => m.senderRole === 'LEGACY' && hiddenStudentIds.includes(m.senderId))"
+          class="muted"
+        >
+          {{ t("chat.legacyHelp") }}
+        </p>
         <div
           ref="list"
           class="message-list"
@@ -266,7 +327,7 @@ onBeforeUnmount(() => {
           aria-label="Messages"
           @scroll="atBottom() && (newMessages = false)"
         >
-          <el-button v-if="hasEarlier" @click="earlier">
+          <el-button v-if="hasEarlier" :disabled="historyBusy" @click="earlier">
             {{ t("chat.earlier") }}
           </el-button>
           <p v-if="!rows.length">
@@ -275,7 +336,9 @@ onBeforeUnmount(() => {
           <ol>
             <li v-for="m in rows" :key="m.id" class="message">
               <div class="message-heading">
-                <strong>{{ m.senderName }}</strong><time :datetime="m.createTime">{{
+                <strong>{{ m.senderName }}</strong><span v-if="m.senderRole === 'mentor'" class="muted">{{
+                  t("chat.mentor")
+                }}</span><time :datetime="m.createTime">{{
                   new Date(m.createTime).toLocaleString("en-MY")
                 }}</time>
                 <details
@@ -287,6 +350,14 @@ onBeforeUnmount(() => {
                   >
                     ⋯
                   </summary>
+                  <button
+                    v-if="!manager && m.hideAllowed"
+                    type="button"
+                    :disabled="!!busy"
+                    @click="hidePeer(m)"
+                  >
+                    {{ t("chat.hideMessages") }}
+                  </button>
                   <button type="button" @click="reportMessage = m">
                     {{ t("reports.report") }}
                   </button>
@@ -304,8 +375,12 @@ onBeforeUnmount(() => {
             </li>
           </ol>
         </div>
-        <el-button v-if="newMessages" @click="bottom">
-          {{ t("chat.newMessages") }} ↓
+        <el-button
+          v-if="newMessages || hasLater"
+          :disabled="historyBusy"
+          @click="showLatest"
+        >
+          {{ t(hasLater ? "chat.latest" : "chat.newMessages") }} <span aria-hidden="true">↓</span>
         </el-button>
         <p class="sr-only" role="status">
           {{ newMessages ? t("chat.updates") : "" }}
@@ -416,6 +491,7 @@ onBeforeUnmount(() => {
             :api="api"
             :manager="manager"
             :closed="closed"
+            @visibility-changed="visibilityChanged"
           />
         </el-dialog>
         <el-dialog
@@ -456,6 +532,16 @@ onBeforeUnmount(() => {
 <style scoped>
 .chat-room {
   min-width: 0;
+}
+.plain-link {
+  color: var(--primary);
+  background: none;
+  border: 0;
+  padding: 0.5rem;
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+  min-height: 44px;
 }
 .message-list {
   max-height: 32rem;

@@ -2,7 +2,7 @@
 
 Development standards, feature workflows, local setup and deployment operations
 
-Version 1.3 | 29 October 2026 | Database schema V15
+Version 1.4 | 30 October 2026 | Database schema V16
 
 UP-SELF is a learning platform for a small group of students in Malaysia. This handbook explains how the current application works, how to maintain it, and how to run it on another computer. It covers the Java backend, Vue frontend, permissions, private files, database migrations and release preparation.
 
@@ -36,7 +36,7 @@ The initial audience is 10 to 30 students, primarily in Malaysia. Students use a
 | Platform reading defaults | Administrator sets starting size, contrast and reduced motion; personal browser choices take priority |
 | Learning statistics | Student sees current-course chapter completion and assignment totals within My learning |
 
-The original graduation report contains 61 functional requirements. The current comparison records 37 completed, 6 partially completed and 18 not implemented. Appendix A retains all 61 identifiers and explains the differences. These counts measure coverage of the report, not the usability of the MVP or an academic grade.
+The original graduation report contains 61 functional requirements. The current comparison records 39 completed, 6 partially completed and 16 not implemented. Appendix A retains all 61 identifiers and explains the differences. These counts measure coverage of the report, not the usability of the MVP or an academic grade.
 
 Course discussions, private mentor notes, guided business ideas and a saved cost calculator are implemented. AI assistance, badges, daily attendance and full one-to-one appointment scheduling remain outside the implemented scope. A course meeting post is a link announcement, not a booking or conferencing service.
 
@@ -80,7 +80,7 @@ The backend baseline comes from the reference project at `C:\Users\eggma\Desktop
 | Redis on Windows | tporadowski Windows port 5.0.14.1 |
 | Redis for Mac preparation | Upstream 5.0.14 corresponding to the Windows port; target runtime testing pending |
 | Node and npm | 24.22.1 and 11.19.1 |
-| Current Flyway schema | V1 through V15 |
+| Current Flyway schema | V1 through V16 |
 
 The reference Docker image names Amazon Corretto 8u362. That differs from the independent project's installed Oracle 8u231. Do not describe them as the same JDK build or silently switch vendor or update level. The current Linux runtime checks retain the independent project's 8u231 requirement.
 
@@ -589,6 +589,28 @@ Assignment states are Not submitted, Waiting for feedback, Feedback ready and Ch
 
 Source: the shared `statisticsRows` SQL fragment in `ProgressMapper.xml`, `ProgressServiceImpl`, `LearningStatistics` DTOs and `frontend/src/features/learning/pages/LearningStatisticsPage.vue`. Totals use AjaxResult; paginated courses retain BaseController, PageHelper and TableDataInfo. Text counts accompany native progress bars, and the layout supports the existing Aa settings.
 
+### 4.22 Course discussions, visibility and filtering (FR-28 through FR-35)
+
+Open **Course > Discussion**. The current assigned mentor creates groups and adds or removes enrolled students. Reading requires current course access and active group membership; closed groups keep readable history but reject messages and uploads. Administrators and internal maintenance have no general chat-content access. Reporting remains available through the message menu and administrator report workflow described in section 4.17.
+
+**Hide messages** is a personal setting for one course group. A student opens another student's message menu or Members, confirms Hide messages, and can later choose Show messages in Members. It hides that person's student messages, images, files and voice for that viewer only. The other student is not notified and can still see the viewer's messages. Other groups, group membership and other participants' views are unchanged. Removed hidden members remain in the viewer's Members settings until restored, so the preference can still be cleared.
+
+The service derives the viewer from authentication. SQL excludes hidden messages before the 30-row cursor page is selected, and file endpoints apply the same restriction. Hiding unmounts loaded image and audio components, stops playback and revokes their object URLs. This cannot erase a file someone already downloaded or copied. New messages record the authenticated sender's role at send time. Mentor messages and the current course mentor's messages stay visible. Pre-V16 records did not store this role; V16 labels them LEGACY and keeps them visible rather than guessing from today's account role. The frontend does not decide which role a sender has.
+
+The content filter checks discussion text, attachment display names and image descriptions. The small literal phrase list is [content-filter.txt](../up-self-biz/src/main/resources/chat/content-filter.txt). It normalizes case, compatibility characters, whitespace and punctuation, then matches complete words or phrases. It allows ordinary learning terms, links and requests for help. Both students and mentors use it. A match returns code 422 with a short English explanation; input and pending attachments remain available for correction. There is no automatic account penalty, text replacement or report creation. Staff should review the shipped initial phrases before real student use. It is a limited rule filter, not comprehensive multilingual moderation.
+
+Image pixels, document bodies and recordings are not scanned. Mood journals and assignments are outside this chat filter. Existing report and member-management controls handle material that the literal rules do not catch. Voice remains an uploaded recording, with no transcription, live call or model service.
+
+While a room is visible, one combined **sync** request returns current group status, newer messages and the viewer's hidden IDs every five seconds. Inactive tabs pause; failures retry after fifteen seconds. A page with more new messages is drained in successive short requests. The server captures a committed upper message ID before reading a batch and returns an independent nextCursor, including across hidden-only tails. Message attachment metadata is loaded in one batch query per non-empty result, rather than once per message. Existing message and member indexes are retained; hiding uses a group/viewer/student primary key.
+
+The browser keeps at most 200 loaded message rows. Earlier messages remain in MySQL and load through the existing history button. Reading older history preserves that window and offers **Back to latest messages**; a refresh of history preserves the unsent composer and uploaded drafts. Mutating visibility invalidates in-flight responses, and the next sync detects visibility changes made in another tab.
+
+Message writes retain course-then-group locking and unique client request keys. File validation and disk writing finish before the short database transaction; that transaction rechecks course publication, current mentor or enrollment, membership, group status and the five-draft cap before inserting metadata. Failure removes the new unused file. Each account can run one upload at a time within this single application process. Existing Redis rate limiting permits 60 message-send attempts and 20 upload attempts per user per minute. Limits are per user rather than shared school IP; validation failures and retries count as attempts.
+
+Keep the present monolith and versions. A future push receiver can replace polling behind the feature API, and file storage can move behind the existing private storage service when measured load warrants it. Those changes must retain authorization, cursor ordering, idempotency and private attachment checks. FR-59 mentor encouragement is not part of this delivery.
+
+Source: `ChatController`, `ChatServiceImpl`, `ChatContentFilter`, `ChatMapper.xml`, `frontend/src/features/chat`, and V16. Run `scripts/verify-chat-safety.py --browser` with the local F5 services running; it creates and removes disposable fixtures. `scripts/verify-chat.py --browser` retains the original text/image/file/recording regression workflow.
+
 ## 5 Local setup and data migration
 
 ### 5.1 Choose the correct startup route
@@ -883,12 +905,13 @@ Flyway runs as part of Java backend startup. It checks recorded migrations on ea
 | `V13__mentor_notes_and_business_practice.sql` | Private mentor notes, student ideas and cost plans |
 | `V14__reports_follow_ups_and_exports.sql` | Private user reports, mentor reminder state and export permissions |
 | `V15__accessibility_defaults_and_learning_statistics.sql` | One platform-default record and settings/statistics permissions |
+| `V16__chat_visibility_and_content_filter.sql` | Message role-at-send, per-viewer course-group hiding and student hide permission |
 
 Scripts are in `up-self-admin/src/main/resources/db/draft`. Current configuration enables Flyway, validation and baseline-on-migrate, permits out-of-order migrations and disables placeholder replacement. Migration credentials are separate from application DML credentials.
 
-Add the next migration for a new change; the next integer after V15 is V16. Use `V<number>__<description>.sql`. Never modify an executed migration to adjust an existing installation. Do not hand-create partial business tables before first startup, because baseline behavior can change which versions run.
+Add the next migration for a new change; the next integer after V16 is V17. Use `V<number>__<description>.sql`. Never modify an executed migration to adjust an existing installation. Do not hand-create partial business tables before first startup, because baseline behavior can change which versions run.
 
-An empty database receives V1 through V15. An existing V14 database receives V15. Restoring a valid older snapshot through a supported route preserves its history and allows missing migrations to run, but does not recover later business data. A full current restore should not rerun the schema scripts.
+An empty database receives V1 through V16. An existing V15 database receives V16. Restoring a valid older snapshot through a supported route preserves its history and allows missing migrations to run, but does not recover later business data. A full current restore should not rerun the schema scripts.
 
 On failure, preserve the error, database identity and `flyway_schema_history`. Stop before making further changes. Investigate the failed SQL and migration state before considering a controlled recovery. Do not use clean, blind repair or history deletion as a routine startup fix.
 
@@ -1079,6 +1102,10 @@ Record one complete list before any actual purchase:
 
 ### 7.1 Recorded evidence and its scope
 
+The V16 delivery was verified on 30 October 2026: 172 Java tests and 111 frontend tests passed, along with TypeScript and the production build. ESLint reported zero errors and the same 48 existing warnings. The chat-safety specialist run passed 125 checks including its real Chrome three-role scenario. The original discussion regression passed 85 API checks and its Chrome scenario. Coverage includes text/image/file/recording exchange, rejected wording with retained drafts, role and membership revocation, course-group hide/show, hidden attachment denial, protected mentor and legacy messages, cursor backlog, bounded history, initial connection failure and retry, and per-user limits. A separate Chrome check verified personal Aa high contrast, extra-large text and a 320-pixel layout.
+
+A local Windows smoke check ran 30 polling clients for three cycles (90 successful requests), alongside course, statistics and assignment reads and a 1 MB upload. The recorded chat median was 14.0 ms and the 95th percentile was 71.6 ms. This is a local concurrency check, not a Hostinger/VPS capacity result. Disposable users, courses and files were removed. The existing VS Code F5 compound started the two services with Java Ready and the three existing workspace warnings. Dependency manifests, startup configuration, earlier migrations and all 1,947 reference-project files were unchanged.
+
 The V15 delivery was verified on 29 October 2026: 158 Java tests, 103 frontend tests, TypeScript and production builds passed. ESLint reported zero errors and 48 existing warnings. The local specialist run passed 167 checks including its Chrome scenario, covering default persistence, stale and concurrent writes, role denial, weighted statistics, publication/enrollment changes, paging, personal overrides, recovery from a defaults outage and mobile layout. In Chrome, marking a real chapter complete changed the displayed totals from 2/4 (50%) to 3/4 (75%). Disposable records were removed and the prior platform values restored. The role-navigation Chrome regression also passed, including keyboard access, the same five main student links, current mentor/admin menus and 320/390/768-pixel layouts with extra-large text. The services were started through the existing VS Code F5 compound.
 
 The V14 delivery was verified on 29 October 2026: 149 Java tests, 94 frontend tests, TypeScript and production builds passed. The specialist suite passed 125 live API checks and a Chrome workflow covering student and mentor reporting, administrator review, current-mentor reminders, three CSV downloads and wrong-role access. It uses disposable fixtures and removes only its own records and uploaded file. VS Code's combined F5 configuration was used for the running services. These results apply to Windows; they do not establish Mac or Linux runtime success.
@@ -1187,19 +1214,19 @@ Linux public deployment and Mac runtime testing are still pending. Cost figures 
 
 The identifiers and requirement names follow the original report's 61 FRs. Completed means the current UI, API and persistence cover the main requirement. Partial means a defined subset exists or an implemented rule differs materially from the report. Not implemented means there is no complete workflow; a generic field, sample title or shared component is not completion.
 
-The current total is 37 completed, 6 partial and 18 not implemented. Authentication and general engineering safeguards are not additional numbered FRs. The report's source is Section 5.4.1, report pages 14 through 22, PDF pages 30 through 38. The original report remains a separate academic source and is not rewritten by this handbook.
+The current total is 39 completed, 6 partial and 16 not implemented. Authentication and general engineering safeguards are not additional numbered FRs. The report's source is Section 5.4.1, report pages 14 through 22, PDF pages 30 through 38. The original report remains a separate academic source and is not rewritten by this handbook.
 
 | Area | Completed | Partial | Not implemented |
 |---|---:|---:|---:|
 | Learning FR 01 to 10 | 9 | 1 | 0 |
 | Assignments FR 11 to 18 | 6 | 2 | 0 |
 | Self-efficacy area FR 19 to 27 | 5 | 1 | 3 |
-| Communication FR 28 to 35 | 6 | 0 | 2 |
+| Communication FR 28 to 35 | 8 | 0 | 0 |
 | AI assistance FR 36 to 42 | 0 | 0 | 7 |
 | Entrepreneurship FR 43 to 48 | 2 | 0 | 4 |
 | Administration FR 49 to 55 | 6 | 0 | 1 |
 | Mentor support FR 56 to 61 | 3 | 2 | 1 |
-| Total | 37 | 6 | 18 |
+| Total | 39 | 6 | 16 |
 
 ### A2 Complete requirement matrix
 
@@ -1237,9 +1264,9 @@ The current total is 37 completed, 6 partial and 18 not implemented. Authenticat
 | FR-30 | Upload File in Chat | Completed | Authenticated discussion attachments support images, documents and voice; previews, downloads and playback enforce membership. |
 | FR-31 | Create Group Chat | Completed | The current course mentor creates and maintains discussion groups within a published course. |
 | FR-32 | Manage Group Members | Completed | The current mentor adds enrolled students and removes members; revoked membership blocks subsequent reads and writes. |
-| FR-33 | Block User | Not implemented | No user-block relationship. |
+| FR-33 | Block User | Completed | Confirmed adjustment: students hide another student's messages and attachments for their own view in one course group, and can restore them. The other person is not notified or removed. Mentor and uncertain legacy teaching records remain visible. |
 | FR-34 | Report User | Completed | Private message-based reports, own status history and administrator resolution or dismissal; no automatic account ban. |
-| FR-35 | Filter Inappropriate Content | Not implemented | File format checks do not filter harmful content. |
+| FR-35 | Filter Inappropriate Content | Completed | Small explicit phrase list checks discussion text, file names and image descriptions before sharing. Both students and mentors follow it. Rejection preserves unsent input. No inspection of image, document or audio contents. |
 | FR-36 | Ask Learning Questions | Not implemented | No AI question service or screen. |
 | FR-37 | Generate Learning Summary | Not implemented | No AI summary generation. |
 | FR-38 | Explain Difficult Concepts | Not implemented | No AI concept explanation. |
@@ -1536,6 +1563,23 @@ List pagination follows `current` and `pageSize` through BaseController and Tabl
 
 The settings controller also has a `/client/accessibility/defaults` alias for role rejection through the student channel. Only the exact GET `/accessibility/defaults` is anonymous; PUT is not whitelisted. Progress-controller `/learning` aliases retain their existing role checks. None of the statistics routes can select another student by ID.
 
+### B13 Course discussion safety
+
+Prefixes: `/chat` and `/client/chat`. `chat:read` and the service's current role/course/group checks apply to all reads. Management and student aliases do not bypass the service checks.
+
+| Method | Path after prefix | Permission | Response |
+|---|---|---|---|
+| GET | `/groups/{id}/sync?afterId=...` | `chat:read`; current student member or current mentor | Data |
+| GET | `/groups/{id}/messages?afterId=...` or `?beforeId=...` | `chat:read`; one cursor only | Data |
+| GET | `/groups/{id}/members` | `chat:read`; includes only the viewer's visibility preferences | Data |
+| PUT | `/groups/{id}/hidden-peers/{studentId}` | `chat:hide`; student viewer and another current student member | Data |
+| DELETE | `/groups/{id}/hidden-peers/{studentId}` | `chat:hide`; student viewer clearing their own setting | Data |
+| POST | `/groups/{id}/messages` | `chat:send`; current published/active group; per-user limit | Data |
+| POST | `/groups/{id}/files` | `chat:send`; multipart file and optional altText; per-user limit | Data |
+| GET | `/files/{id}/content` | `chat:read`; current scope and visibility restriction | File |
+
+Sync returns `data: {group, messages: {rows, hasMore, nextCursor}, hiddenStudentIds}`. Without afterId it returns the latest visible window; with afterId it returns newer visible rows in ascending order, at most 30. Follow nextCursor even when rows is empty; when hasMore is true request the next batch promptly. Earlier-history navigation uses beforeId on the messages endpoint. Message objects include authenticated senderRole and hideAllowed. Send input remains body, fileIds and clientKey; sender identity and role supplied by a client are never trusted. Code 422 requests a wording change; code 429 requests a pause. Preserve the unsent composer on either error.
+
 ## Appendix C Source and maintenance index
 
 ### C1 Backend source map
@@ -1578,6 +1622,16 @@ Additional V15 sources:
 - [AccessibilityMapper.xml](../up-self-system/src/main/resources/mapper/system/AccessibilityMapper.xml).
 - [ProgressMapper.xml](../up-self-biz/src/main/resources/mapper/learning/ProgressMapper.xml).
 - [V15 migration](../up-self-admin/src/main/resources/db/draft/V15__accessibility_defaults_and_learning_statistics.sql).
+
+Additional V16 sources:
+
+- [ChatController.java](../up-self-admin/src/main/java/com/upself/web/controller/chat/ChatController.java).
+- [ChatServiceImpl.java](../up-self-biz/src/main/java/com/upself/biz/chat/service/impl/ChatServiceImpl.java).
+- [ChatContentFilter.java](../up-self-biz/src/main/java/com/upself/biz/chat/service/ChatContentFilter.java).
+- [ChatMapper.xml](../up-self-biz/src/main/resources/mapper/chat/ChatMapper.xml).
+- [V16 migration](../up-self-admin/src/main/resources/db/draft/V16__chat_visibility_and_content_filter.sql).
+- [useDiscussion.ts](../frontend/src/features/chat/composables/useDiscussion.ts).
+- [Chat safety verification](../scripts/verify-chat-safety.py).
 
 ### C2 Frontend and operational source map
 
