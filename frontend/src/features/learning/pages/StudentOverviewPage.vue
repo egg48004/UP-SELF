@@ -42,6 +42,13 @@ onMounted(() => load());
   <section>
     <h1>{{ t("progress.overview") }}</h1>
     <p>{{ t("progress.overviewHelp") }}</p>
+    <p>
+      <RouterLink to="/mentor/students/encouragement">
+        {{
+          t("encouragement.compose")
+        }}
+      </RouterLink>
+    </p>
     <form class="search-bar" @submit.prevent="load()">
       <label class="sr-only" for="overview-search">{{
         t("progress.search")
@@ -71,6 +78,7 @@ onMounted(() => load());
               <th>{{ t("progress.learning") }}</th>
               <th>{{ t("progress.assignments") }}</th>
               <th>{{ t("progress.mood") }}</th>
+              <th>{{ t("encouragement.title") }}</th>
               <th>{{ t("mentorNotes.title") }}</th>
               <th>{{ t("followUps.title") }}</th>
             </tr>
@@ -137,6 +145,16 @@ onMounted(() => load());
                 </p>
                 <RouterLink :to="'/mentor/mood/' + r.studentId">
                   {{ t("progress.viewMood") }}
+                </RouterLink>
+              </td>
+              <td>
+                <RouterLink
+                  :to="{
+                    path: '/mentor/students/encouragement',
+                    query: { studentId: r.studentId },
+                  }"
+                >
+                  {{ t("encouragement.compose") }}
                 </RouterLink>
               </td>
               <td>

@@ -63,6 +63,17 @@ onMounted(load);
       </section>
       <div class="dashboard-grid">
         <section class="panel">
+          <h2>
+            <span aria-hidden="true">🌱 </span>{{ t("encouragement.title") }}
+          </h2>
+          <p>{{ t("encouragement.homeHelp") }}</p>
+          <RouterLink to="/student/encouragement">
+            {{
+              t("encouragement.view")
+            }}
+          </RouterLink>
+        </section>
+        <section class="panel">
           <h2><span aria-hidden="true">💡 </span>{{ t("business.title") }}</h2>
           <p>{{ t("business.homeHelp") }}</p>
           <RouterLink class="button-link" to="/student/business">
@@ -101,7 +112,12 @@ onMounted(load);
           <p v-if="!courses.length">
             {{ t("dashboard.emptyCourses") }}
           </p>
-          <RouterLink v-for="c in courses" :key="c.id" class="dashboard-row" :to="'/student/courses/'+c.id">
+          <RouterLink
+            v-for="c in courses"
+            :key="c.id"
+            class="dashboard-row"
+            :to="'/student/courses/' + c.id"
+          >
             <strong>{{ c.title }}</strong><span aria-hidden="true">→</span>
           </RouterLink>
           <RouterLink to="/student/courses">
@@ -113,4 +129,8 @@ onMounted(load);
   </section>
 </template>
 
-<style scoped>.dashboard-grid{align-items:start}</style>
+<style scoped>
+.dashboard-grid {
+  align-items: start;
+}
+</style>

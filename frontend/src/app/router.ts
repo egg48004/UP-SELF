@@ -15,6 +15,24 @@ export const router = createRouter({
       component: AppLayout,
       children: [
         {
+          path: "student/encouragement",
+          component: () =>
+            import("../features/encouragement/pages/StudentEncouragementPage.vue"),
+          meta: {
+            roles: ["student"],
+            permission: "mentorship:encouragement:read",
+          },
+        },
+        {
+          path: "mentor/students/encouragement",
+          component: () =>
+            import("../features/encouragement/pages/MentorEncouragementPage.vue"),
+          meta: {
+            roles: ["mentor"],
+            permission: "mentorship:encouragement:send",
+          },
+        },
+        {
           path: "manage/accessibility",
           component: () =>
             import("../features/preferences/pages/PlatformDefaultsPage.vue"),

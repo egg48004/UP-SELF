@@ -63,6 +63,24 @@ onMounted(() => {
     </section>
     <div class="dashboard-grid">
       <section class="panel">
+        <h2>{{ t("encouragement.title") }}</h2>
+        <RouterLink to="/mentor/students/encouragement">
+          {{
+            t("encouragement.compose")
+          }}
+        </RouterLink>
+        <p>
+          <RouterLink
+            :to="{
+              path: '/mentor/students/encouragement',
+              query: { tab: 'history' },
+            }"
+          >
+            {{ t("encouragement.history") }}
+          </RouterLink>
+        </p>
+      </section>
+      <section class="panel">
         <h2>{{ t("efficacy.studentCheckIns") }}</h2>
         <p>{{ t("efficacy.mentorIntro") }}</p>
         <RouterLink class="button-link" to="/mentor/mood">

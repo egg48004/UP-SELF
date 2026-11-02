@@ -2,7 +2,7 @@
 
 Development standards, feature workflows, local setup and deployment operations
 
-Version 1.4 | 30 October 2026 | Database schema V16
+Version 1.5 | 30 October 2026 | Database schema V17
 
 UP-SELF is a learning platform for a small group of students in Malaysia. This handbook explains how the current application works, how to maintain it, and how to run it on another computer. It covers the Java backend, Vue frontend, permissions, private files, database migrations and release preparation.
 
@@ -36,7 +36,7 @@ The initial audience is 10 to 30 students, primarily in Malaysia. Students use a
 | Platform reading defaults | Administrator sets starting size, contrast and reduced motion; personal browser choices take priority |
 | Learning statistics | Student sees current-course chapter completion and assignment totals within My learning |
 
-The original graduation report contains 61 functional requirements. The current comparison records 39 completed, 6 partially completed and 16 not implemented. Appendix A retains all 61 identifiers and explains the differences. These counts measure coverage of the report, not the usability of the MVP or an academic grade.
+The original graduation report contains 61 functional requirements. The current comparison records 40 completed, 6 partially completed and 15 not implemented. Appendix A retains all 61 identifiers and explains the differences. These counts measure coverage of the report, not the usability of the MVP or an academic grade.
 
 Course discussions, private mentor notes, guided business ideas and a saved cost calculator are implemented. AI assistance, badges, daily attendance and full one-to-one appointment scheduling remain outside the implemented scope. A course meeting post is a link announcement, not a booking or conferencing service.
 
@@ -80,7 +80,7 @@ The backend baseline comes from the reference project at `C:\Users\eggma\Desktop
 | Redis on Windows | tporadowski Windows port 5.0.14.1 |
 | Redis for Mac preparation | Upstream 5.0.14 corresponding to the Windows port; target runtime testing pending |
 | Node and npm | 24.22.1 and 11.19.1 |
-| Current Flyway schema | V1 through V16 |
+| Current Flyway schema | V1 through V17 |
 
 The reference Docker image names Amazon Corretto 8u362. That differs from the independent project's installed Oracle 8u231. Do not describe them as the same JDK build or silently switch vendor or update level. The current Linux runtime checks retain the independent project's 8u231 requirement.
 
@@ -563,7 +563,7 @@ Source: `FollowUpClock`, `FollowUpScheduler`, `FollowUpServiceImpl`, `FollowUpMa
 | Courses | Title, status, assigned mentor, active student count, difficulty and estimated minutes | Keyword and course status |
 | Learning summary | Active student-course pairs, published/completed chapter counts and completion percent; assignment totals for not submitted, waiting for review, graded and returned | Keyword and course; only current published courses and active students/enrollment |
 
-Exports exclude credentials, tokens, journals, mood scores, self-efficacy answers, voice recordings, mentor notes, submission content, chats, reports and private business-practice content. Audit details record the export type and row count. Files use UTF-8 with a BOM, quoted CSV cells and spreadsheet-formula protection. The maximum is 10,000 rows; narrow the filters if that limit is exceeded. CSV is a summary report, not a database backup.
+Exports exclude credentials, tokens, journals, mood scores, self-efficacy answers, voice recordings, mentor notes, submission content, chats, encouragement messages, reports and private business-practice content. Audit details record the export type and row count. Files use UTF-8 with a BOM, quoted CSV cells and spreadsheet-formula protection. The maximum is 10,000 rows; narrow the filters if that limit is exceeded. CSV is a summary report, not a database backup.
 
 Source: `ExportController`, `ExportServiceImpl`, `ExportMapper.xml`, `CsvWriter` and `frontend/src/features/exports`.
 
@@ -607,9 +607,29 @@ The browser keeps at most 200 loaded message rows. Earlier messages remain in My
 
 Message writes retain course-then-group locking and unique client request keys. File validation and disk writing finish before the short database transaction; that transaction rechecks course publication, current mentor or enrollment, membership, group status and the five-draft cap before inserting metadata. Failure removes the new unused file. Each account can run one upload at a time within this single application process. Existing Redis rate limiting permits 60 message-send attempts and 20 upload attempts per user per minute. Limits are per user rather than shared school IP; validation failures and retries count as attempts.
 
-Keep the present monolith and versions. A future push receiver can replace polling behind the feature API, and file storage can move behind the existing private storage service when measured load warrants it. Those changes must retain authorization, cursor ordering, idempotency and private attachment checks. FR-59 mentor encouragement is not part of this delivery.
+Keep the present monolith and versions. A future push receiver can replace polling behind the feature API, and file storage can move behind the existing private storage service when measured load warrants it. Those changes must retain authorization, cursor ordering, idempotency and private attachment checks. Mentor encouragement uses the separate recipient-scoped workflow in section 4.23 and shares the literal text filter.
 
 Source: `ChatController`, `ChatServiceImpl`, `ChatContentFilter`, `ChatMapper.xml`, `frontend/src/features/chat`, and V16. Run `scripts/verify-chat-safety.py --browser` with the local F5 services running; it creates and removes disposable fixtures. `scripts/verify-chat.py --browser` retains the original text/image/file/recording regression workflow.
+
+### 4.23 Mentor encouragement (FR-59)
+
+Mentors open **Home > Send a message**, or **Students > Send a message**. The link on a student-overview row preselects that student after a server scope check. The same page has Send a message and Sent messages sections. Students open **Home > Encouragement > View messages**. The five student and four mentor main navigation entries are unchanged.
+
+The mentor chooses one to 100 distinct students and writes up to 2,000 characters of plain text. Selection survives recipient search and paging. Names can be removed individually or cleared together. Candidates are active student accounts with active enrollment in a published, non-deleted course currently assigned to that mentor. A student shared across several qualifying courses appears once. The service derives sender identity from authentication and rechecks all recipients when sending. A foreign, disabled or no-longer-assigned recipient rejects the entire batch rather than delivering to only some students.
+
+One database message holds the text, author, request key, recipient count and timestamp. A unique recipient relation records each addressed student. The existing ChatContentFilter checks the body once before the batch is inserted. The send endpoint uses the existing Redis limiter at 20 attempts per mentor per minute. Requests that reach the send method count toward the limit, including filtering and business-scope failures. There is no background polling, external messaging service or additional infrastructure.
+
+Writes use a short READ_COMMITTED transaction. The service finds one qualifying course witness per recipient, locks those course rows in ascending ID order, then locks the affected accounts in ascending order. It checks that every recipient still qualifies through those locked courses before inserting the message and recipient batch. Course reassignment, enrollment changes and account changes therefore cannot silently turn a validated batch into a partial send. The author/request-key uniqueness rule makes repeated sends idempotent. Reusing a key with different text or recipients returns 409. The post-lock key query clears MyBatis local query caching so a cached missing result cannot conceal a concurrently committed send.
+
+The frontend keeps the same request key when retrying an unchanged draft, and creates a new key when text or recipients change. Sending disables conflicting controls. A network or filter failure preserves text and selection. The user can inspect Sent messages if delivery is uncertain. A confirmed send clears the draft and shows a short success message. Navigation guards protect an unsent draft; text is not automatically persisted across a browser reload.
+
+The student inbox returns only the received text, author display name, timestamp and message ID. It never returns the other recipients, total recipient count or routing metadata. The author can page through their own history and expand a message's recipient list. Other mentors, administrators and maintenance cannot inspect that history or another student's inbox. Authentication channels and service role checks apply to both controller aliases.
+
+Delivered messages remain in the student's inbox and the original author's history when a course ends or responsibility changes. Sending new messages and finding recipients always require a current qualifying relationship. A replacement mentor sees their own sent messages and cannot inherit the previous mentor's history. Peer hiding in a course discussion has no effect on mentor encouragement. There are no student replies, read receipts, unread counters, file attachments, edits or deletion controls in this FR-59 scope.
+
+The student page uses short English labels, plain text, sender names and timestamps, the existing Aa preferences, keyboard controls and paged cards. The home card is an entry link and does not couple existing home data loading to an extra inbox request.
+
+Sources: `EncouragementController`, `EncouragementServiceImpl`, `EncouragementMapper.xml`, V17, and `frontend/src/features/encouragement`. They extend the existing Mentorship package and mapper scan. Run `scripts/verify-encouragement.py --browser` with local F5 services running; the verifier creates and removes disposable accounts, courses and messages.
 
 ## 5 Local setup and data migration
 
@@ -906,12 +926,13 @@ Flyway runs as part of Java backend startup. It checks recorded migrations on ea
 | `V14__reports_follow_ups_and_exports.sql` | Private user reports, mentor reminder state and export permissions |
 | `V15__accessibility_defaults_and_learning_statistics.sql` | One platform-default record and settings/statistics permissions |
 | `V16__chat_visibility_and_content_filter.sql` | Message role-at-send, per-viewer course-group hiding and student hide permission |
+| `V17__mentor_encouragement_messages.sql` | Mentor message, recipient relationships and function permissions |
 
 Scripts are in `up-self-admin/src/main/resources/db/draft`. Current configuration enables Flyway, validation and baseline-on-migrate, permits out-of-order migrations and disables placeholder replacement. Migration credentials are separate from application DML credentials.
 
-Add the next migration for a new change; the next integer after V16 is V17. Use `V<number>__<description>.sql`. Never modify an executed migration to adjust an existing installation. Do not hand-create partial business tables before first startup, because baseline behavior can change which versions run.
+Add the next migration for a new change; the next integer after V17 is V18. Use `V<number>__<description>.sql`. Never modify an executed migration to adjust an existing installation. Do not hand-create partial business tables before first startup, because baseline behavior can change which versions run.
 
-An empty database receives V1 through V16. An existing V15 database receives V16. Restoring a valid older snapshot through a supported route preserves its history and allows missing migrations to run, but does not recover later business data. A full current restore should not rerun the schema scripts.
+An empty database receives V1 through V17. An existing V16 database receives V17. Restoring a valid older snapshot through a supported route preserves its history and allows missing migrations to run, but does not recover later business data. A full current restore should not rerun the schema scripts.
 
 On failure, preserve the error, database identity and `flyway_schema_history`. Stop before making further changes. Investigate the failed SQL and migration state before considering a controlled recovery. Do not use clean, blind repair or history deletion as a routine startup fix.
 
@@ -1102,6 +1123,10 @@ Record one complete list before any actual purchase:
 
 ### 7.1 Recorded evidence and its scope
 
+The V17 delivery was verified on 30 October 2026: 187 Java tests and 118 frontend tests passed, with TypeScript and the production build. ESLint reported zero errors and the 48 existing warnings. The local FR-59 verifier passed 159 checks including its Chrome workflow. It covered one-person and bulk delivery, unique candidates across shared courses, search/paging, filtered drafts, all-or-nothing validation, role/channel denial, recipient privacy, history ownership, reassignment, disabled sessions, request-key reuse and five concurrent conflicting-payload races. Chrome completed a real server send and deliberately dropped its response; retry recovered the same delivery, with one copy in each student inbox. Student, mentor and administrator pages were tested, including an empty inbox, pagination, refresh, keyboard input, high contrast, extra-large text and a 320-pixel layout. Main navigation stayed at five student, four mentor and five administrator entries.
+
+The existing VS Code F5 compound started both services with Java Ready and the three existing workspace warnings. No reference-project files, dependency manifests, startup files or previously applied migrations changed. Disposable accounts, courses, groups and encouragement messages were removed; the independent snapshot was refreshed through V17. These are local Windows results; Mac/Linux runtime validation is unchanged.
+
 The V16 delivery was verified on 30 October 2026: 172 Java tests and 111 frontend tests passed, along with TypeScript and the production build. ESLint reported zero errors and the same 48 existing warnings. The chat-safety specialist run passed 125 checks including its real Chrome three-role scenario. The original discussion regression passed 85 API checks and its Chrome scenario. Coverage includes text/image/file/recording exchange, rejected wording with retained drafts, role and membership revocation, course-group hide/show, hidden attachment denial, protected mentor and legacy messages, cursor backlog, bounded history, initial connection failure and retry, and per-user limits. A separate Chrome check verified personal Aa high contrast, extra-large text and a 320-pixel layout.
 
 A local Windows smoke check ran 30 polling clients for three cycles (90 successful requests), alongside course, statistics and assignment reads and a 1 MB upload. The recorded chat median was 14.0 ms and the 95th percentile was 71.6 ms. This is a local concurrency check, not a Hostinger/VPS capacity result. Disposable users, courses and files were removed. The existing VS Code F5 compound started the two services with Java Ready and the three existing workspace warnings. Dependency manifests, startup configuration, earlier migrations and all 1,947 reference-project files were unchanged.
@@ -1214,7 +1239,7 @@ Linux public deployment and Mac runtime testing are still pending. Cost figures 
 
 The identifiers and requirement names follow the original report's 61 FRs. Completed means the current UI, API and persistence cover the main requirement. Partial means a defined subset exists or an implemented rule differs materially from the report. Not implemented means there is no complete workflow; a generic field, sample title or shared component is not completion.
 
-The current total is 39 completed, 6 partial and 16 not implemented. Authentication and general engineering safeguards are not additional numbered FRs. The report's source is Section 5.4.1, report pages 14 through 22, PDF pages 30 through 38. The original report remains a separate academic source and is not rewritten by this handbook.
+The current total is 40 completed, 6 partial and 15 not implemented. Authentication and general engineering safeguards are not additional numbered FRs. The report's source is Section 5.4.1, report pages 14 through 22, PDF pages 30 through 38. The original report remains a separate academic source and is not rewritten by this handbook.
 
 | Area | Completed | Partial | Not implemented |
 |---|---:|---:|---:|
@@ -1225,8 +1250,8 @@ The current total is 39 completed, 6 partial and 16 not implemented. Authenticat
 | AI assistance FR 36 to 42 | 0 | 0 | 7 |
 | Entrepreneurship FR 43 to 48 | 2 | 0 | 4 |
 | Administration FR 49 to 55 | 6 | 0 | 1 |
-| Mentor support FR 56 to 61 | 3 | 2 | 1 |
-| Total | 39 | 6 | 16 |
+| Mentor support FR 56 to 61 | 4 | 2 | 0 |
+| Total | 40 | 6 | 15 |
 
 ### A2 Complete requirement matrix
 
@@ -1290,7 +1315,7 @@ The current total is 39 completed, 6 partial and 16 not implemented. Authenticat
 | FR-56 | View Student Overview Dashboard | Completed | Scoped student-course completion, assignment counts and latest shared mood, with detail links. |
 | FR-57 | Monitor Student Progress | Partial | Mentor sees self-reported chapter completion, not detailed video duration or an activity event stream. |
 | FR-58 | Receive At-Risk Student Alerts | Completed | Current mentors see rule-based follow-up reminders for low mood, paused learning and overdue work; reviewed states persist. No diagnostic inference or external notifications. |
-| FR-59 | Send Bulk Encouragement Messages | Not implemented | A course announcement is not per-student bulk delivery. |
+| FR-59 | Send Bulk Encouragement Messages | Completed | Mentor selects one or several current students and sends one-way text. Each student has a private inbox; the author has sent history and recipient details. Existing literal content filtering applies. No new main navigation entry. |
 | FR-60 | Add Mentor Notes | Completed | Author-private mentor observations, with create, paginated history and edit, accessible only while currently responsible for the student. |
 | FR-61 | Schedule One-on-One Check-In | Partial | Meeting announcements store a time and link; no individual booking, confirmation, cancellation or conflict checks. |
 
@@ -1580,6 +1605,22 @@ Prefixes: `/chat` and `/client/chat`. `chat:read` and the service's current role
 
 Sync returns `data: {group, messages: {rows, hasMore, nextCursor}, hiddenStudentIds}`. Without afterId it returns the latest visible window; with afterId it returns newer visible rows in ascending order, at most 30. Follow nextCursor even when rows is empty; when hasMore is true request the next batch promptly. Earlier-history navigation uses beforeId on the messages endpoint. Message objects include authenticated senderRole and hideAllowed. Send input remains body, fileIds and clientKey; sender identity and role supplied by a client are never trusted. Code 422 requests a wording change; code 429 requests a pause. Preserve the unsent composer on either error.
 
+### B14 Mentor encouragement
+
+Prefixes: `/encouragement` and `/client/encouragement`. Management tokens use the management prefix and student tokens use `/client`. A cross-channel token is unauthenticated, and a same-channel wrong role is forbidden. Function permissions do not add a main menu.
+
+| Method | Path after prefix | Permission | Response |
+|---|---|---|---|
+| GET | `/students?current=1&pageSize=10&keyword=...` | `mentorship:encouragement:send`; current mentor | Table |
+| GET | `/students/{id}` | `mentorship:encouragement:send`; assigned student preselection | Data |
+| POST | `/messages` | `mentorship:encouragement:send`; current mentor and validated recipients | Data |
+| GET | `/sent?current=1&pageSize=10` | `mentorship:encouragement:send`; original author only | Table |
+| GET | `/sent/{id}` | `mentorship:encouragement:send`; original author and recipient details | Data |
+| GET | `/inbox?current=1&pageSize=10` | `mentorship:encouragement:read`; authenticated student only | Table |
+| GET | `/inbox/{id}` | `mentorship:encouragement:read`; addressed student only | Data |
+
+Send input is `{body, studentIds, clientKey}`. The key has 16 to 64 letters, digits, underscores or hyphens; the frontend generates a UUID. Duplicate student IDs normalize to one recipient. A successful send returns `{id, body, recipientCount, sentAt}` inside AjaxResult. Sent detail returns `{message, recipients}`; each recipient has id, name and username. Inbox rows contain only id, body, mentorName and sentAt. Unknown received-message IDs and IDs addressed to someone else return the same unavailable response. Audit records contain the author, action and message ID, never the message text.
+
 ## Appendix C Source and maintenance index
 
 ### C1 Backend source map
@@ -1632,6 +1673,15 @@ Additional V16 sources:
 - [V16 migration](../up-self-admin/src/main/resources/db/draft/V16__chat_visibility_and_content_filter.sql).
 - [useDiscussion.ts](../frontend/src/features/chat/composables/useDiscussion.ts).
 - [Chat safety verification](../scripts/verify-chat-safety.py).
+
+Additional V17 sources:
+
+- [EncouragementController.java](../up-self-admin/src/main/java/com/upself/web/controller/mentorship/EncouragementController.java).
+- [EncouragementServiceImpl.java](../up-self-biz/src/main/java/com/upself/biz/mentorship/service/impl/EncouragementServiceImpl.java).
+- [EncouragementMapper.xml](../up-self-biz/src/main/resources/mapper/mentorship/EncouragementMapper.xml).
+- [V17 migration](../up-self-admin/src/main/resources/db/draft/V17__mentor_encouragement_messages.sql).
+- [Encouragement frontend](../frontend/src/features/encouragement/README.md).
+- [FR-59 verifier](../scripts/verify-encouragement.py).
 
 ### C2 Frontend and operational source map
 

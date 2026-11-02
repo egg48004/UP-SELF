@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.upself.biz.mentorship.mapper.EncouragementMapper">
+ <sql id="relationship">EXISTS(SELECT 1 FROM learning_enrollment e JOIN learning_course c ON c.id=e.course_id
+  WHERE e.student_id=u.id AND e.active=1 AND c.mentor_id=#{mentorId} AND c.status='PUBLISHED' AND c.deleted=0)</sql>
+ <select id="activeActor" resultType="int">SELECT COUNT(*) FROM sys_user WHERE id=#{id} AND role_id=#{roleId} AND status='0'</select>
+ <select id="students" resultType="com.upself.biz.mentorship.dto.EncouragementBodies$Recipient">
+  SELECT u.id,u.nick_name AS name,u.user_name AS username FROM sys_user u WHERE u.role_id=10 AND u.status='0' AND <include refid="relationship"/>
+  <if test="keyword != null and keyword != ''">AND (u.user_name LIKE CONCAT('%',#{keyword},'%') OR u.nick_name LIKE CONCAT('%',#{keyword},'%'))</if> ORDER BY u.nick_name,u.id
+ </select>
+ <select id="student" resultType="com.upself.biz.mentorship.dto.EncouragementBodies$Recipient">
+  SELECT u.id,u.nick_name AS name,u.user_name AS username FROM sys_user u WHERE u.id=#{studentId} AND u.role_id=10 AND u.status='0' AND <include refid="relationship"/>
+ </select>
+ <select id="witnessCourses" resultType="long">
+  SELECT DISTINCT witnesses.course_id FROM (
+   SELECT MIN(c.id) AS course_id FROM learning_course c JOIN learning_enrollment e ON e.course_id=c.id
+   WHERE c.mentor_id=#{mentorId} AND c.status='PUBLISHED' AND c.deleted=0 AND e.active=1
+   AND e.student_id IN <foreach collection="ids" item="id" open="(" close=")" separator=",">#{id}</foreach>
+   GROUP BY e.student_id
+  ) witnesses ORDER BY witnesses.course_id
+ </select>
+ <select id="lockActors" resultType="com.upself.biz.mentorship.dto.EncouragementBodies$Actor">
+  SELECT id,role_id,status FROM sys_user WHERE id IN <foreach collection="ids" item="id" open="(" close=")" separator=",">#{id}</foreach> ORDER BY id FOR UPDATE
+ </select>
+ <select id="eligibleStudents" resultType="long">
+  SELECT u.id FROM sys_user u WHERE u.role_id=10 AND u.status='0'
+  AND u.id IN <foreach collection="ids" item="id" open="(" close=")" separator=",">#{id}</foreach>
+  AND EXISTS(SELECT 1 FROM learning_enrollment e JOIN learning_course c ON c.id=e.course_id WHERE e.student_id=u.id AND e.active=1
+   AND c.mentor_id=#{mentorId} AND c.status='PUBLISHED' AND c.deleted=0
+   AND c.id IN <foreach collection="courseIds" item="courseId" open="(" close=")" separator=",">#{courseId}</foreach>) ORDER BY u.id
+ </select>
+ <!-- Recheck committed state after waiting on locks; a cached null must not hide a concurrent send. -->
+ <select id="byKey" useCache="false" flushCache="true" resultType="com.upself.biz.mentorship.domain.EncouragementMessage">SELECT * FROM encouragement_message WHERE mentor_id=#{mentorId} AND client_key=#{clientKey}</select>
+ <select id="recipientIds" resultType="long">SELECT student_id FROM encouragement_recipient WHERE message_id=#{id} ORDER BY student_id</select>
+ <insert id="insert" useGeneratedKeys="true" keyProperty="id">INSERT INTO encouragement_message(mentor_id,body,client_key,recipient_count) VALUES(#{mentorId},#{body},#{clientKey},#{recipientCount})</insert>
+ <insert id="insertRecipients">INSERT INTO encouragement_recipient(message_id,student_id) VALUES <foreach collection="ids" item="id" separator=",">(#{messageId},#{id})</foreach></insert>
+ <select id="history" resultType="com.upself.biz.mentorship.domain.EncouragementMessage">SELECT id,body,recipient_count,sent_at FROM encouragement_message WHERE mentor_id=#{id} ORDER BY id DESC</select>
+ <select id="own" resultType="com.upself.biz.mentorship.domain.EncouragementMessage">SELECT id,body,recipient_count,sent_at FROM encouragement_message WHERE id=#{id} AND mentor_id=#{mentorId}</select>
+ <select id="recipients" resultType="com.upself.biz.mentorship.dto.EncouragementBodies$Recipient">
+  SELECT u.id,u.nick_name AS name,u.user_name AS username FROM encouragement_recipient r JOIN sys_user u ON u.id=r.student_id
+  JOIN encouragement_message m ON m.id=r.message_id WHERE m.id=#{id} AND m.mentor_id=#{mentorId} ORDER BY u.nick_name,u.id
+ </select>
+ <select id="inbox" resultType="com.upself.biz.mentorship.dto.EncouragementBodies$InboxMessage">
+  SELECT m.id,m.body,m.sent_at,u.nick_name AS mentor_name FROM encouragement_recipient r
+  JOIN encouragement_message m ON m.id=r.message_id JOIN sys_user u ON u.id=m.mentor_id
+  WHERE r.student_id=#{id} ORDER BY m.id DESC
+ </select>
+ <select id="received" resultType="com.upself.biz.mentorship.dto.EncouragementBodies$InboxMessage">
+  SELECT m.id,m.body,m.sent_at,u.nick_name AS mentor_name FROM encouragement_recipient r
+  JOIN encouragement_message m ON m.id=r.message_id JOIN sys_user u ON u.id=m.mentor_id
+  WHERE r.student_id=#{studentId} AND m.id=#{id}
+ </select>
+</mapper>
