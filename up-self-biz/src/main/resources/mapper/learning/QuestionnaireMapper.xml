@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.upself.biz.learning.mapper.QuestionnaireMapper">
+ <select id="visible" resultType="com.upself.biz.learning.dto.QuestionnaireView">SELECT id,title,url FROM questionnaire_link WHERE visible=1 ORDER BY id DESC</select>
+ <select id="visibleById" resultType="com.upself.biz.learning.dto.QuestionnaireView">SELECT id,title,url FROM questionnaire_link WHERE id=#{id} AND visible=1</select>
+ <select id="authored" resultType="com.upself.biz.learning.domain.Questionnaire">SELECT * FROM questionnaire_link WHERE created_by=#{owner} ORDER BY id DESC</select>
+ <select id="owned" resultType="com.upself.biz.learning.domain.Questionnaire">SELECT * FROM questionnaire_link WHERE id=#{id} AND created_by=#{owner}</select>
+ <insert id="insert" useGeneratedKeys="true" keyProperty="id">INSERT INTO questionnaire_link(created_by,title,url,visible) VALUES(#{createdBy},#{title},#{url},#{visible})</insert>
+ <update id="update">UPDATE questionnaire_link SET title=#{item.title},url=#{item.url},visible=#{item.visible},version=version+1 WHERE id=#{item.id} AND created_by=#{item.createdBy} AND version=#{expected}</update>
+ <update id="visibility">UPDATE questionnaire_link SET visible=#{visible},version=version+1 WHERE id=#{id} AND created_by=#{owner} AND version=#{expected}</update>
+ <delete id="delete">DELETE FROM questionnaire_link WHERE id=#{id} AND created_by=#{owner} AND version=#{expected}</delete>
+</mapper>

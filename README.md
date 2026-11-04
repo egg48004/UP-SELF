@@ -33,7 +33,7 @@ Current local service settings and original bootstrap credentials are in config/
 
 Public roles are Student, Mentor and Administrator; maintenance uses only the internal login entry. Password login is enabled and TOTP is disabled. The six demo students have course progress, submitted and reviewed work, goals, mood and self-belief history, and course discussion messages. These are synthetic demonstration records.
 
-Current schema is **V18**. Java startup applies missing Flyway migrations. Git transfers code, not live database writes. The local migration snapshot has been refreshed with the current demo accounts, data and referenced learning media. Export it again after making further database or upload changes. See [setup and data migration](docs/UP-SELF-Developer-Handbook.md#5-local-setup-and-data-migration).
+Current schema is **V19**. Java startup applies missing Flyway migrations. Git transfers code, not live database writes. The local migration snapshot has been refreshed with the current demo accounts, data and referenced learning media. Export it again after making further database or upload changes. See [setup and data migration](docs/UP-SELF-Developer-Handbook.md#5-local-setup-and-data-migration).
 
 ## Versions and deployment
 
@@ -45,4 +45,8 @@ Course discussions also provide per-group **Hide messages / Show messages** for 
 
 Mentors can send one-way encouragement to one or several currently assigned students from Home or Students. Each student has their own inbox, and the sender has private sent history. See [mentor encouragement](docs/UP-SELF-Developer-Handbook.md#423-mentor-encouragement-fr-59).
 
-FR-26 milestone badges are implemented in V18 and appear within Learning stats. The backend passed its API and transaction checks. Frontend build/browser acceptance is pending: the current Windows policy blocks esbuild.exe. See handbook section 4.24 before treating this delivery as fully accepted. The 2 November transfer ZIP remains an unchanged V17 backup and does not contain this feature; make a fresh complete package when moving the latest code/data.
+FR-26 milestone badges are implemented in V18 and appear within Learning stats. The backend passed its API/transaction checks, and the optional local WASM mode now passes frontend build and Chrome acceptance. See handbook section 4.24 before treating this delivery as fully accepted. The 2 November transfer ZIP remains an unchanged V17 backup and does not contain this feature; make a fresh complete package when moving the latest code/data.
+
+Platform-wide Questionnaires are available in student My check-in. Mentors manage their own links and visibility from Home or Students. Students need no course enrollment. V19/API and Chrome browser checks passed through the optional local WASM compiler mode. See handbook section 4.25.
+
+WASM compatibility update, 4 November: this cloud Windows now uses the opt-in `.local/esbuild-wasm.enabled` mode with official esbuild-wasm 0.28.2. Other machines retain native startup when the marker is absent. See Developer Handbook 5.16. All 129 frontend tests, production build, actual F5 launch and Chrome three-role badge/questionnaire workflows passed. Earlier pending-acceptance statements describe the initial native compiler restriction and are superseded by this verification. Refresh a migration package to include the current code; existing dated ZIPs are unchanged.

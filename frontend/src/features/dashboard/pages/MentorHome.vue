@@ -63,6 +63,13 @@ onMounted(() => {
     </section>
     <div class="dashboard-grid">
       <section class="panel">
+        <h2>{{ t("questionnaire.title") }}</h2>
+        <p>{{ t("questionnaire.manageIntro") }}</p>
+        <RouterLink to="/mentor/questionnaires">
+          {{ t("questionnaire.title") }} →
+        </RouterLink>
+      </section>
+      <section class="panel">
         <h2>{{ t("encouragement.title") }}</h2>
         <RouterLink to="/mentor/students/encouragement">
           {{

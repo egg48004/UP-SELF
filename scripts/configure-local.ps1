@@ -21,6 +21,11 @@ $workspace.settings | Add-Member NoteProperty 'maven.executable.path' (Join-Path
 $workspace.settings | Add-Member NoteProperty 'terminal.integrated.env.windows' @{JAVA_HOME=$tools.javaHome;PATH=($tools.nodeHome+';'+(Join-Path $tools.javaHome 'bin')+';'+(Join-Path $tools.mavenHome 'bin')+';${env:PATH}')} -Force
 foreach ($launch in $workspace.launch.configurations) {
     if ($launch.type -eq 'node') { $launch.runtimeExecutable = Join-Path $tools.nodeHome 'node.exe' }
+    if ($launch.type -eq 'node' -and (Test-Path -LiteralPath (Join-Path $localDirectory 'esbuild-wasm.enabled'))) {
+        $hook=[Uri]::new((Join-Path $tools.projectRoot 'frontend/tools/esbuild-compat.mjs')).AbsoluteUri
+        $launch | Add-Member NoteProperty runtimeArgs @('--import',$hook) -Force
+    }
+
 }
 $workspaceFile = Join-Path $localDirectory 'up-self.code-workspace'
 $workspace | ConvertTo-Json -Depth 30 | Set-Content -LiteralPath $workspaceFile -Encoding UTF8

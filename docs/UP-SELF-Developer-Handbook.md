@@ -2,7 +2,7 @@
 
 Development standards, feature workflows, local setup and deployment operations
 
-Version 1.7 | 3 November 2026 | Database schema V18
+Version 1.9 | 4 November 2026 | Database schema V19
 
 UP-SELF is a learning platform for a small group of students in Malaysia. This handbook explains how the current application works, how to maintain it, and how to run it on another computer. It covers the Java backend, Vue frontend, permissions, private files, database migrations and release preparation.
 
@@ -35,10 +35,11 @@ The initial audience is 10 to 30 students, primarily in Malaysia. Students use a
 | CSV exports | Administrator downloads users, courses and learning totals with filters |
 | Platform reading defaults | Administrator sets starting size, contrast and reduced motion; personal browser choices take priority |
 | Learning statistics | Student sees current-course chapter completion and assignment totals within My learning |
+| Platform questionnaires | Mentors manage their own external HTTPS links and visibility; all students read visible links without course enrollment |
 
-The original graduation report contains 61 functional requirements. The current comparison records 40 completed, 7 partially completed and 14 not implemented. Appendix A retains all 61 identifiers and explains the differences. These counts measure coverage of the report, not the usability of the MVP or an academic grade.
+The original graduation report contains 61 functional requirements. The current comparison records 41 completed, 6 partially completed and 14 not implemented. Appendix A retains all 61 identifiers and explains the differences. These counts measure coverage of the report, not the usability of the MVP or an academic grade.
 
-Course discussions, private mentor notes, guided business ideas and a saved cost calculator are implemented. AI assistance, daily attendance and full one-to-one appointment scheduling remain outside the implemented scope. Personal badge code and backend workflows are implemented, with frontend acceptance pending the Windows execution-policy issue described in section 4.24. A course meeting post is a link announcement, not a booking or conferencing service.
+Course discussions, private mentor notes, guided business ideas and a saved cost calculator are implemented. AI assistance, daily attendance and full one-to-one appointment scheduling remain outside the implemented scope. Personal badges and global questionnaire workflows have passed frontend acceptance through the optional WASM compatibility mode described in section 5.16. A course meeting post is a link announcement, not a booking or conferencing service.
 
 ### 1.2 Runtime model
 
@@ -80,7 +81,7 @@ UP-SELF is now the independent engineering baseline. The backend architecture or
 | Redis on Windows | tporadowski Windows port 5.0.14.1 |
 | Redis for Mac preparation | Upstream 5.0.14 corresponding to the Windows port; target runtime testing pending |
 | Node and npm | 24.22.1 and 11.19.1 |
-| Current Flyway schema | V1 through V18 |
+| Current Flyway schema | V1 through V19 |
 
 The reference Docker image names Amazon Corretto 8u362. That differs from the independent project's installed Oracle 8u231. Do not describe them as the same JDK build or silently switch vendor or update level. The current Linux runtime checks retain the independent project's 8u231 requirement.
 
@@ -653,7 +654,25 @@ Sources: `BadgeController`, `BadgeServiceImpl`, `BadgeMapper.xml`, V18, the exis
 
 **Acceptance on 3 November:** Maven package and 197 Java tests passed. TypeScript passed; ESLint reported zero errors and the same 48 existing warnings. The real local verifier passed 90 API/database checks including backfill, ownership/channel denial, duplicate and concurrent awards, retained history and all three transaction rollbacks under an account-scoped simulated insert failure. Disposable fixtures/triggers were removed. An early verifier cleanup condition removed old audit rows; they were restored by original ID from the pre-V18 backup and every original audit row was compared exactly. Cleanup now includes an audit-ID floor; a complete rerun passed.
 
-**Frontend verification remains pending.** Windows administrator policy rejects the existing esbuild.exe, so the normal frontend build and Vitest fail before transformations; the F5 Vite process can start but cannot compile main.ts. The owner cannot change that policy, and it was not bypassed. The new six frontend unit tests and `tests/e2e/badges.spec.ts` are prepared, not reported as passing. Run normal install/build/unit tests and `scripts/verify-badges.py --browser` on the destination Windows computer with services running. The verifier normally cleans its fixtures; `--keep-fixture` is for a deliberate manual browser handoff followed by `--cleanup-fixture`. A test-only `--pymysql-path` can point to an existing temporary client where the native MySQL client is blocked; it is not an application dependency.
+**Frontend acceptance completed on 4 November:** 129 frontend tests and the normal production build passed with official esbuild-wasm 0.28.2. Chrome exercised chapter completion/undo, goal completion, formal assignment submission, inline badge announcements, persisted badges after reload, error recovery, 320px layout and student/mentor/administrator boundaries. The complete badge verifier passed 91 checks including Chrome. Initial native esbuild blocking remains an OS condition; the optional mode in section 5.16 resolves development without changing OS security settings.
+
+### 4.25 Platform questionnaires (teacher-requested addition)
+
+Questionnaires are platform-wide external survey links. Students open **My check-in > Questionnaires**. Every signed-in active student can read visible links, including students with no course enrollment. Knowledge check remains the separate course-based Yes / No / Not sure workflow. This addition is not assigned a new number in the original 61-FR matrix; its totals remain unchanged.
+
+Mentors open **Home > Questionnaires** or **Students > Questionnaires**. They can add a title and HTTPS URL, edit their own links, show/hide them for all students, and delete them with confirmation. A new link defaults to Hidden; checking Visible to all students during creation publishes it immediately. Each mentor manages only records they authored. Other mentors, public administrators and internal maintenance do not gain ownership through wildcard permission. No main navigation entry, course field or enrollment relationship is added.
+
+Titles use 1–150 characters after trimming; URLs use up to 2,000 characters. The backend accepts absolute HTTPS URLs with a host and valid port, without URL credentials or whitespace/control characters. It stores the link without fetching it. The student component checks the scheme again and opens a native new-tab anchor with noopener/noreferrer, adjacent text and an external-navigation explanation. Existing Aa settings apply. The platform does not embed the form, collect its answers or claim that a student completed it.
+
+Visibility affects future UP-SELF list/detail reads: hidden and missing links return the same 404, and student projections contain only id/title/url. Read responses use Cache-Control: no-store. An already open page updates through Refresh questionnaires; hiding cannot revoke an external link someone already copied. Access and responses on the questionnaire website remain that website's responsibility.
+
+All edits, visibility changes and deletes bind authenticated author and expected version in the mutation SQL. Missing/foreign records return 404; stale versions return 409. A concurrent change has one winner. CRUD audit events store actor/action/record ID, not URLs or survey answers. List controllers verify roles before PageHelper and return the existing TableDataInfo through BaseController. Fixed function permissions are `questionnaires:read` for students and `questionnaires:manage` for mentors. Existing sessions should sign out/in after V19 to load them.
+
+V19 creates `questionnaire_link` and two function permissions. It seeds no survey URL or invented response. Sources: `QuestionnaireController`, `QuestionnaireServiceImpl`, `QuestionnaireMapper.xml`, V19 and `frontend/src/features/questionnaires`. The feature uses the existing learning mapper scan without changing runtime configuration or dependencies.
+
+Acceptance recorded on 4 November: the backend package and **210 Java tests** passed; **88 real API/database checks** passed. They covered two students with zero enrollments, default-hidden creation, global visibility across authors, hidden detail denial, role/channel denial, forged author input, cross-mentor denial, validation, stale edits/deletes, concurrent visibility and pagination. Disposable users and questionnaires were removed; audit logs were retained. The direct URL helper passed 11 Node assertions. TypeScript passed and ESLint reported zero errors with the same 48 existing warnings. The existing VS Code resource-preparation task passed; full frontend/F5 page acceptance remains pending the execution-policy limitation.
+
+Frontend acceptance completed on 4 November with the optional WASM mode: the full 129-test frontend suite and production build passed. The questionnaire verifier passed 89 checks including the actual Chrome workflow for mentor creation, default-hidden state, show/hide, edit, safe new-tab navigation, delete and student refresh without course enrollment. Administrator route denial and a 320px student layout passed. The external navigation test uses a controlled response for example.org; it verifies navigation rather than a real survey vendor's form. Test fixtures were removed and audits retained. Run the two feature browser verifiers sequentially because they use the same default Playwright output directory.
 
 ## 5 Local setup and data migration
 
@@ -890,7 +909,7 @@ bash scripts/macos/up-self.sh db-init \
   --root-client-file "$PWD/.local/macos/mysql-root.cnf"
 ```
 
-It creates the empty database and scoped users. The backend then applies V1 through V18 and runs existing bootstrap logic for an empty user table. It does not restore old records. Do not run both alternatives.
+It creates the empty database and scoped users. The backend then applies V1 through V19 and runs existing bootstrap logic for an empty user table. It does not restore old records. Do not run both alternatives.
 
 ### 5.12 Build and start on Mac
 
@@ -945,12 +964,13 @@ Flyway runs as part of Java backend startup. It checks recorded migrations on ea
 | `V16__chat_visibility_and_content_filter.sql` | Message role-at-send, per-viewer course-group hiding and student hide permission |
 | `V17__mentor_encouragement_messages.sql` | Mentor message, recipient relationships and function permissions |
 | `V18__student_milestone_badges.sql` | One-time student awards, evidence-based credit and own-student permission |
+| `V19__platform_questionnaire_links.sql` | Global external questionnaire links, author/version guards and student/mentor permissions |
 
 Scripts are in `up-self-admin/src/main/resources/db/draft`. Current configuration enables Flyway, validation and baseline-on-migrate, permits out-of-order migrations and disables placeholder replacement. Migration credentials are separate from application DML credentials.
 
-Add the next migration for a new change; the next integer after V18 is V19. Use `V<number>__<description>.sql`. Never modify an executed migration to adjust an existing installation. Do not hand-create partial business tables before first startup, because baseline behavior can change which versions run.
+Add the next migration for a new change; the next integer after V19 is V20. Use `V<number>__<description>.sql`. Never modify an executed migration to adjust an existing installation. Do not hand-create partial business tables before first startup, because baseline behavior can change which versions run.
 
-An empty database receives V1 through V18. An existing V17 database receives V18. Restoring a valid older snapshot through a supported route preserves its history and allows missing migrations to run, but does not recover later business data. A full current restore should not rerun the schema scripts.
+An empty database receives V1 through V19. An existing V18 database receives V19. Restoring a valid older snapshot through a supported route preserves its history and allows missing migrations to run, but does not recover later business data. A full current restore should not rerun the schema scripts.
 
 On failure, preserve the error, database identity and `flyway_schema_history`. Stop before making further changes. Investigate the failed SQL and migration state before considering a controlled recovery. Do not use clean, blind repair or history deletion as a routine startup fix.
 
@@ -981,6 +1001,18 @@ Pulling code is not a request to restore an old snapshot. If both computers have
 | New permissions are absent | Confirm migration success, restart the latest backend and log out and in |
 | Git dubious ownership on Windows | Use the project's existing push helper, which trusts only this path for its commands |
 | No text-to-speech audio | Check target browser and installed English voices; text remains available and errors must be visible |
+
+### 5.16 Optional Windows WASM compiler mode
+
+The cloud Windows application policy blocks native esbuild.exe. This computer uses the official esbuild-wasm **0.28.2**, matching native esbuild **0.28.2**. Only that development dependency was added; every previously locked package version remains unchanged. No OS security setting, Java backend dependency or application business API changed.
+
+The opt-in marker is `.local/esbuild-wasm.enabled`, ignored by Git. Without it, other Windows computers continue through the original native compiler path; Mac launchers are unchanged. To enable this mode, create that marker and rerun `scripts/configure-local.ps1` with the installed tool paths, then reopen/reload the generated workspace. To return to native mode, remove only that marker and regenerate/reload the workspace. Use a fresh terminal after changing modes.
+
+`scripts/frontend.ps1` adds a process-local Node import hook when the marker exists. The generated Windows F5 frontend configuration receives the same import hook as a runtime argument. `frontend/tools/esbuild-compat.mjs` checks exact compiler-version equality, prepends the current Node directory for its child process, and resolves esbuild API imports to the official WASM package. The compiler runs under the existing Node runtime; it is not shipped as part of the student's application bundle. Do not edit node_modules or globally configure NODE_OPTIONS.
+
+Normal commands remain `frontend.cmd dev`, `frontend.cmd build` and `frontend.cmd test`. Dependency installation continues through the lockfile. This mode is local configuration, not a second application architecture. Compilation can cost more CPU/time; the measured full build was about 38 seconds during the F5/browser verification run.
+
+Actual VS Code F5 started the backend and frontend, and Chrome used those services for both three-role workflows. Keep port 8080/5173 free before a new launch. The independent Windows environment remains at schema V19. Historical V17 transfer ZIPs are unchanged; create a fresh complete package before moving this delivery.
 
 ## 6 Deployment and operating costs
 
@@ -1257,19 +1289,19 @@ Linux public deployment and Mac runtime testing are still pending. Cost figures 
 
 The identifiers and requirement names follow the original report's 61 FRs. Completed means the current UI, API and persistence cover the main requirement. Partial means a defined subset exists or an implemented rule differs materially from the report. Not implemented means there is no complete workflow; a generic field, sample title or shared component is not completion.
 
-The current total is 40 completed, 7 partial and 14 not implemented. Authentication and general engineering safeguards are not additional numbered FRs. The report's source is Section 5.4.1, report pages 14 through 22, PDF pages 30 through 38. The original report remains a separate academic source and is not rewritten by this handbook.
+The current total is 41 completed, 6 partial and 14 not implemented. Authentication and general engineering safeguards are not additional numbered FRs. The report's source is Section 5.4.1, report pages 14 through 22, PDF pages 30 through 38. The original report remains a separate academic source and is not rewritten by this handbook.
 
 | Area | Completed | Partial | Not implemented |
 |---|---:|---:|---:|
 | Learning FR 01 to 10 | 9 | 1 | 0 |
 | Assignments FR 11 to 18 | 6 | 2 | 0 |
-| Self-efficacy area FR 19 to 27 | 5 | 2 | 2 |
+| Self-efficacy area FR 19 to 27 | 6 | 1 | 2 |
 | Communication FR 28 to 35 | 8 | 0 | 0 |
 | AI assistance FR 36 to 42 | 0 | 0 | 7 |
 | Entrepreneurship FR 43 to 48 | 2 | 0 | 4 |
 | Administration FR 49 to 55 | 6 | 0 | 1 |
 | Mentor support FR 56 to 61 | 4 | 2 | 0 |
-| Total | 40 | 7 | 14 |
+| Total | 41 | 6 | 14 |
 
 ### A2 Complete requirement matrix
 
@@ -1300,7 +1332,7 @@ The current total is 40 completed, 7 partial and 14 not implemented. Authenticat
 | FR-23 | Create Goal | Completed | Student creates a private title and optional notes, stored in MySQL. |
 | FR-24 | Manage Goal | Completed | Edit, complete, reopen, filter and delete own goals with version checks. Delete/reopen extend management without adding a new FR. |
 | FR-25 | Confidence Assessment | Completed | GSE-3, complete server scoring, 28-day interval, history and trend. Mentors see shared scores, not answers. Target-population validation is separate. |
-| FR-26 | Earn Badge | Partial | Three automatic one-time milestones, V18 backfill, own-student API and Vue panel/inline notices are implemented. Backend tests pass; frontend build and browser acceptance are pending because Windows blocks esbuild.exe. |
+| FR-26 | Earn Badge | Completed | Three one-time personal milestones, evidence-based V18 credit, own-student catalog and inline notices; Chrome workflow and role boundaries verified through the local WASM compatibility mode. |
 | FR-27 | View Learning Analytics | Completed | My learning includes a private statistics page with weighted chapter completion, assignment-state totals and paginated course progress. Reuses current records; no time or mastery estimates. |
 | FR-28 | Send Message | Completed | Students and the responsible mentor send scoped text messages in course discussion groups. |
 | FR-29 | Receive Message | Completed | The visible room receives new messages through five-second polling and loads earlier history by cursor; no private messaging workflow. |
@@ -1645,6 +1677,20 @@ Send input is `{body, studentIds, clientKey}`. The key has 16 to 64 letters, dig
 
 The existing chapter/goal completion envelopes add `earnedBadgeCode`; assignment submit places it inside data. Clients may ignore the additive field. Code meanings and transaction rules are in section 4.24.
 
+### B16 Platform questionnaire links
+
+| Method and route | Access and body |
+|---|---|
+| GET `/client/questionnaires?current=1&pageSize=10` | Student: all visible platform links, TableDataInfo; no course filter |
+| GET `/client/questionnaires/{id}` | Student: one visible `{id,title,url}` object; hidden/missing 404 |
+| GET `/questionnaires/manage?current=1&pageSize=10` | Mentor: own links including visible/version fields, TableDataInfo |
+| POST `/questionnaires` | Mentor: `{title,url,visible}`; omitted visible defaults false; returns new ID |
+| PUT `/questionnaires/{id}` | Author mentor: `{title,url,visible,version}` |
+| PUT `/questionnaires/{id}/visibility` | Author mentor: `{visible,version}` |
+| DELETE `/questionnaires/{id}?version=0` | Author mentor: version-checked removal |
+
+Mutations return the existing AjaxResult. The controller also has the existing dual channel-prefix mapping, but role/channel checks still apply; a student cannot use the client alias to mutate. Students cannot read author/version/visibility metadata. There is no question-answer or response-tracking endpoint. See section 4.25 for global scope and external-link behavior.
+
 ## Appendix C Source and maintenance index
 
 ### C1 Backend source map
@@ -1755,3 +1801,12 @@ Additional V18 sources:
 - [V18 migration](../up-self-admin/src/main/resources/db/draft/V18__student_milestone_badges.sql).
 - [Student badge component](../frontend/src/features/badges/components/BadgesPanel.vue).
 - [Local verifier](../scripts/verify-badges.py).
+
+Additional V19 sources:
+
+- [Questionnaire controller](../up-self-admin/src/main/java/com/upself/web/controller/learning/QuestionnaireController.java).
+- [Questionnaire service](../up-self-biz/src/main/java/com/upself/biz/learning/service/impl/QuestionnaireServiceImpl.java).
+- [Questionnaire mapper](../up-self-biz/src/main/resources/mapper/learning/QuestionnaireMapper.xml).
+- [V19 migration](../up-self-admin/src/main/resources/db/draft/V19__platform_questionnaire_links.sql).
+- [Questionnaire frontend](../frontend/src/features/questionnaires/README.md).
+- [Local questionnaire verifier](../scripts/verify-questionnaires.py).

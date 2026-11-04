@@ -3,6 +3,12 @@ $ErrorActionPreference='Stop'
 . "$PSScriptRoot/dev-tools.ps1"
 $tools=Get-UPSelfTools
 $env:PATH=$tools.nodeHome+';'+$env:PATH
+$compatFile=Join-Path $tools.projectRoot '.local/esbuild-wasm.enabled'
+if (Test-Path -LiteralPath $compatFile) {
+    $hook=[Uri]::new((Join-Path $tools.projectRoot 'frontend/tools/esbuild-compat.mjs')).AbsoluteUri
+    $env:NODE_OPTIONS=($env:NODE_OPTIONS+' --import='+$hook).Trim()
+}
+
 Push-Location -LiteralPath (Join-Path $tools.projectRoot 'frontend')
 try {
     if ($Action -eq 'verify') {

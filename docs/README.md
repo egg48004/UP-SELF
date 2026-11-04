@@ -1,7 +1,7 @@
 # UP SELF documentation
 For another Windows computer or a new development agent, start with [Windows Migration and Development Handoff](Windows-Migration-and-Agent-Handoff.md). It covers the complete database and private-file transfer, new-machine configuration and acceptance. UP-SELF itself is now the engineering baseline; the original reference project is not needed. The dated snapshot collector does not cover all chat/recording files, so follow the complete migration workflow rather than assuming Git includes them.
 
-The [Developer Handbook](UP-SELF-Developer-Handbook.md) is the maintained documentation source. The [Word edition](UP-SELF-Developer-Handbook.docx) contains a populated contents page, internal navigation and page numbers. It is the published 25 October edition; the Markdown source includes the later V18 changes, with badge frontend acceptance explicitly pending.
+The [Developer Handbook](UP-SELF-Developer-Handbook.md) is the maintained documentation source. The [Word edition](UP-SELF-Developer-Handbook.docx) contains a populated contents page, internal navigation and page numbers. It is the published 25 October edition; the Markdown source includes the later V19 changes; badge and questionnaire frontend acceptance passed using the optional local WASM compiler mode.
 
 | Read about | Handbook section |
 |---|---|
@@ -37,3 +37,5 @@ python docs/tools/build_handbook.py --compatibility-only
 ```
 
 The builder is a documentation tool, not an application dependency. It never starts services, restores data or changes runtime versions. Keep render previews, temporary logs and intermediate PDFs outside this directory.
+
+WASM compatibility update, 4 November: this cloud Windows now uses the opt-in `.local/esbuild-wasm.enabled` mode with official esbuild-wasm 0.28.2. Other machines retain native startup when the marker is absent. See Developer Handbook 5.16. All 129 frontend tests, production build, actual F5 launch and Chrome three-role badge/questionnaire workflows passed. Earlier pending-acceptance statements describe the initial native compiler restriction and are superseded by this verification. Refresh a migration package to include the current code; existing dated ZIPs are unchanged.

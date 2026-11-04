@@ -1,6 +1,6 @@
 # Windows Migration and Development Handoff
 
-Updated: 3 November 2026 · schema V18 · inspected committed baseline `6331ec2` plus local badge changes
+Updated: 4 November 2026 · schema V19 · inspected committed baseline `96181b1` plus local questionnaire changes
 
 This guide moves UP-SELF and its data to another Windows computer and gives the next developer a starting point. It covers local development and demonstration, not public deployment. Writing this guide has not exported data, installed software or tested the destination.
 
@@ -264,7 +264,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\database.ps1 -Acti
 if ($LASTEXITCODE -ne 0) { throw 'Post-restore check failed.' }
 ```
 
-Successful history should match `source-state.txt`; the current code baseline is V1–V18; match the actual package history. Keep SQL and files from the same package. If import fails, preserve the error and partial target, determine the cause, then prepare a fresh independent target as appropriate. Do not repeatedly import into partial tables or delete Flyway history.
+Successful history should match `source-state.txt`; the current code baseline is V1–V19; match the actual package history. Keep SQL and files from the same package. If import fails, preserve the error and partial target, determine the cause, then prepare a fresh independent target as appropriate. Do not repeatedly import into partial tables or delete Flyway history.
 
 Actual app/migration credentials stay in their established files. Investigate mismatches instead of resetting every password. Editing `config/demo-accounts.yml` does not change password hashes in MySQL.
 
@@ -371,13 +371,13 @@ Calls follow Controller → Service → Mapper/XML. Reuse BaseController, AjaxRe
 
 ### Schema and remaining scope
 
-The inspected code has V1–V18. **V19 is next only if the current tree still ends at V18.** Never edit executed migrations, delete history or run clean/blind repair to make startup pass. Keep schema changes with their Java/Mapper implementation.
+The inspected code has V1–V19. **V20 is next only if the current tree still ends at V19.** Never edit executed migrations, delete history or run clean/blind repair to make startup pass. Keep schema changes with their Java/Mapper implementation.
 
 `environment/versions.json` contains tool baselines but still has historical `flywaySchemaVersion: 9` and an incomplete feature list. Do not use it as schema/feature-status authority. Use actual migration files, successful database history and the handbook matrix. The published Word edition is dated 25 October; Markdown contains later updates.
 
-Current FR status is **40 complete, 7 partial, 14 unimplemented**, including badge acceptance pending the frontend execution-policy issue. Use all 61 rows in Appendix A before planning work. Accepted weekly mood, manual progress and controlled resubmission differences are not automatic requests for extra features. Formal teaching content and entrepreneur stories will be supplied by users; do not fabricate them to mark requirements complete.
+Current FR status is **41 complete, 6 partial, 14 unimplemented**, after the badge Chrome acceptance passed. Use all 61 rows in Appendix A before planning work. Accepted weekly mood, manual progress and controlled resubmission differences are not automatic requests for extra features. Formal teaching content and entrepreneur stories will be supplied by users; do not fabricate them to mark requirements complete.
 
-**FR-26 was authorized on 3 November and its code is implemented.** Three one-time milestones, V18 evidence-based backfill, private student API, the Learning stats panel and inline action messages are present. Backend/API/rollback checks passed; the current cloud Windows blocks esbuild.exe, so normal Vue build, unit tests and browser acceptance still need execution on a suitable destination Windows computer. Follow handbook 4.24 and run `scripts/verify-badges.py --browser`; do not call this frontend already verified. The 2 November transfer ZIP is an immutable older V17 backup. Create a new package for V18 rather than editing its old manifest.
+**FR-26 was authorized on 3 November and its code is implemented.** Three one-time milestones, V18 evidence-based backfill, private student API, the Learning stats panel and inline action messages are present. Backend/API/rollback checks passed. The optional local WASM mode now also passes 129 frontend tests, production build and three-role Chrome acceptance on this cloud Windows. Follow handbook 4.24 and run `scripts/verify-badges.py --browser`; the local source frontend is verified; the destination computer still needs its own startup checks. The 2 November transfer ZIP is an immutable older V17 backup. Create a new package for V18 rather than editing its old manifest.
 
 After an authorized feature change, run appropriate builds/tests, real browser workflows and direct unauthorized requests, verify VS Code startup, and update the maintained handbook/FR row. Report fresh evidence and limitations. Do not push, buy services, upgrade dependencies or deploy unless asked.
 
@@ -401,4 +401,10 @@ After an authorized feature change, run appropriate builds/tests, real browser w
 
 ## 10. Prompt for the next agent
 
-> Read `docs/Windows-Migration-and-Agent-Handoff.md` and the maintained Developer Handbook. UP-SELF itself is the engineering baseline; the old reference project is not needed. Inspect current Git status, real tool versions, configuration, Flyway history and private upload paths. Complete or verify migration without overwriting existing data. Keep current architecture, versions, backend authorization and English inclusive student UI. Do not claim success until this Windows computer actually builds, starts in VS Code and passes browser checks. Some Python verifiers still need a narrow old-path portability fix. FR-26 code is implemented in V18, but its frontend build/browser acceptance is pending; complete those checks before marking it fully accepted. Do not add other features, push, upgrade or deploy unless asked.
+> Read `docs/Windows-Migration-and-Agent-Handoff.md` and the maintained Developer Handbook. UP-SELF itself is the engineering baseline; the old reference project is not needed. Inspect current Git status, real tool versions, configuration, Flyway history and private upload paths. Complete or verify migration without overwriting existing data. Keep current architecture, versions, backend authorization and English inclusive student UI. Do not claim success until this Windows computer actually builds, starts in VS Code and passes browser checks. Some Python verifiers still need a narrow old-path portability fix. FR-26 code is implemented in V18, but its frontend build/browser acceptance has passed through the local WASM mode; verify the destination environment after migration. Do not add other features, push, upgrade or deploy unless asked.
+
+## 11. Platform questionnaires added on 4 November
+
+V19 adds global questionnaire links, without course/enrollment scope. All students can read visible links under My check-in > Questionnaires. Mentors manage only their own links from Home or Students, with default-hidden creation, edit, visibility and delete/version controls. No external responses are stored. This is a teacher-requested addition outside the original numbered FR matrix. Read handbook 4.25/B16 and run scripts/verify-questionnaires.py --browser after frontend tools work on the destination. Backend/API verification passed on the source; frontend acceptance subsequently passed through the local WASM compatibility mode. Sign out/in after applying the new permissions. The dated 2 November transfer ZIP is unchanged V17 and does not contain badge/questionnaire code; export a fresh complete package to move the current V19 state.
+
+WASM compatibility update, 4 November: this cloud Windows now uses the opt-in `.local/esbuild-wasm.enabled` mode with official esbuild-wasm 0.28.2. Other machines retain native startup when the marker is absent. See Developer Handbook 5.16. All 129 frontend tests, production build, actual F5 launch and Chrome three-role badge/questionnaire workflows passed. Earlier pending-acceptance statements describe the initial native compiler restriction and are superseded by this verification. Refresh a migration package to include the current code; existing dated ZIPs are unchanged.

@@ -14,6 +14,8 @@ export const router = createRouter({
       path: "/",
       component: AppLayout,
       children: [
+        { path: "student/questionnaires", component: () => import("../features/questionnaires/pages/StudentQuestionnairesPage.vue"), meta: { roles: ["student"], permission: "questionnaires:read" } },
+        { path: "mentor/questionnaires", component: () => import("../features/questionnaires/pages/MentorQuestionnairesPage.vue"), meta: { roles: ["mentor"], permission: "questionnaires:manage" } },
         {
           path: "student/encouragement",
           component: () =>

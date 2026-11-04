@@ -1,0 +1,36 @@
+export default {
+  title: "Questionnaires",
+  intro: "Choose a questionnaire to open.",
+  external: "Opens on another website in a new tab.",
+  open: "Open questionnaire",
+  empty: "No questionnaires to show yet.",
+  refresh: "Refresh questionnaires",
+  manageIntro: "Your questionnaires are for all students, across the platform.",
+  add: "Add questionnaire",
+  edit: "Edit questionnaire",
+  titleLabel: "Title",
+  linkLabel: "Questionnaire link",
+  linkHelp:
+    "Paste the full HTTPS link, for example from Google Forms or Microsoft Forms.",
+  visibleLabel: "Visible to all students",
+  defaultHelp:
+    "Hidden until you choose to show it. No course or enrollment is required.",
+  visible: "Visible",
+  hidden: "Hidden",
+  show: "Show to students",
+  hide: "Hide from students",
+  delete: "Delete questionnaire",
+  deleteConfirm:
+    "Delete this link from UP-SELF? The questionnaire on the other website will stay unchanged.",
+  emptyManage: "You have not added a questionnaire yet.",
+  saved: "Questionnaire saved.",
+  shown: "Questionnaire is now visible to all students.",
+  hiddenNotice: "Questionnaire is now hidden from students.",
+  deleted: "Questionnaire removed.",
+  requiredTitle: "Enter a title using 1 to 150 characters.",
+  invalidUrl: "Enter a valid HTTPS link without login details.",
+  unavailable: "This link is unavailable.",
+  visibilityHelp:
+    "Hiding removes the link from UP-SELF. Anyone who already copied it may still open it on the other website.",
+  leave: "Leave without saving this questionnaire?",
+};

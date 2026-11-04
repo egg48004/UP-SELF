@@ -35,6 +35,7 @@ const learningPaths = [
   "/student/history",
 ];
 const studentPaths = [
+  "/mentor/questionnaires",
   "/mentor/follow-ups",
   "/mentor/students",
   "/mentor/mood",
@@ -42,6 +43,7 @@ const studentPaths = [
   "/mentor/knowledge",
 ];
 const checkInPaths = [
+  "/student/questionnaires",
   "/student/mood",
   "/student/self-efficacy",
   "/student/knowledge",
@@ -121,6 +123,9 @@ const sectionLinks = computed(() => {
         ...(auth.can("knowledge:own:read")
           ? [link("/student/knowledge", "knowledge.title")]
           : []),
+        ...(auth.can("questionnaires:read")
+          ? [link("/student/questionnaires", "questionnaire.title")]
+          : []),
       ],
     };
   }
@@ -177,6 +182,9 @@ const sectionLinks = computed(() => {
       label: t("navigation.studentSections"),
       items: [
         link("/mentor/students", "progress.overview"),
+        ...(auth.can("questionnaires:manage")
+          ? [link("/mentor/questionnaires", "questionnaire.title")]
+          : []),
         link("/mentor/follow-ups", "followUps.title"),
         link("/mentor/mood", "efficacy.studentCheckIns"),
         ...(auth.can("knowledge:questions:manage")
