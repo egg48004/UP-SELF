@@ -13,6 +13,8 @@ import com.upself.system.mapper.SysAuditMapper;
 import java.time.OffsetDateTime;
 import java.util.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import com.upself.biz.learning.domain.BadgeCode;
+import com.upself.biz.learning.service.IBadgeService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public class AssignmentServiceImpl implements IAssignmentService {
+  @Autowired private IBadgeService badges;
   @Autowired private AssignmentMapper mapper;
   @Autowired private LearningMapper courses;
   @Autowired private AssignmentFileStorage storage;
@@ -223,6 +226,7 @@ public class AssignmentServiceImpl implements IAssignmentService {
     s.setStatus("SUBMITTED");
     save(s);
     record("ASSIGNMENT_SUBMIT", s.getId());
+    s.setEarnedBadgeCode(badges.award(BadgeCode.FIRST_SUBMISSION));
     return hydrate(s, true);
   }
 

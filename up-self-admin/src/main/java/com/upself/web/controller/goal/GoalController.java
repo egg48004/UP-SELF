@@ -39,7 +39,9 @@ public class GoalController extends BaseController {
 
     @PutMapping("/{id}/completion")
     public AjaxResult complete(@PathVariable Long id, @Valid @RequestBody Completion body) {
-        service.complete(id, body); return success();
+        AjaxResult result = success();
+        result.put("earnedBadgeCode", service.complete(id, body));
+        return result;
     }
 
     @DeleteMapping("/{id}")

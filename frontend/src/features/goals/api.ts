@@ -1,3 +1,4 @@
+import type { BadgeActionResult } from "../badges/types";
 import { data, request, table } from "../../shared/http/client";
 import type { GoalFilter, GoalInput, PersonalGoal } from "./types";
 
@@ -10,7 +11,7 @@ export const goalApi = {
   edit: (id: number, body: GoalInput, version: number) =>
     request(`${base}/${id}`, { method: "PUT", data: { ...body, version } }),
   complete: (id: number, completed: boolean, version: number) =>
-    request(`${base}/${id}/completion`, {
+    request<BadgeActionResult>(`${base}/${id}/completion`, {
       method: "PUT",
       data: { completed, version },
     }),

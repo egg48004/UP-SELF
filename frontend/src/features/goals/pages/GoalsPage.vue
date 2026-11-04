@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
+import { withBadgeNotice } from "../../badges/presentation";
 import { goalApi } from "../api";
 import type { GoalFilter, PersonalGoal } from "../types";
 import GoalEditor from "../components/GoalEditor.vue";
@@ -61,8 +62,8 @@ async function complete(goal: PersonalGoal) {
   notice.value = "";
   const completed = goal.status === "ACTIVE";
   try {
-    await goalApi.complete(goal.id, completed, goal.version);
-    notice.value = t(completed ? "goal.completed" : "goal.reopened");
+    const action = await goalApi.complete(goal.id, completed, goal.version);
+    notice.value = withBadgeNotice(t(completed ? "goal.completed" : "goal.reopened"), action.earnedBadgeCode, t);
     await load(current.value);
   } catch (e) {
     actionError.value = (e as Error).message;

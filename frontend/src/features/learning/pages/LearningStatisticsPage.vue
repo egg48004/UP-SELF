@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
+import BadgesPanel from "../../badges/components/BadgesPanel.vue";
 import { statisticsApi } from "../statistics";
 import type { StatisticsTotals, StatisticsCourse } from "../statistics";
 import AsyncState from "../../../shared/ui/AsyncState.vue";
@@ -156,6 +157,7 @@ onMounted(() => load());
         </template>
       </template>
     </AsyncState>
+    <BadgesPanel />
   </section>
 </template>
 <style scoped>

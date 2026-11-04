@@ -4,6 +4,7 @@ import { useI18n } from "vue-i18n";
 import axios from "axios";
 import { assignmentApi } from "../api";
 import type { Assignment, Submission } from "../types";
+import { withBadgeNotice } from "../../badges/presentation";
 import { confirmAction } from "../../../shared/ui/confirm";
 export function useStudentWork(id: Ref<number>) {
   const { t } = useI18n(),
@@ -152,7 +153,7 @@ export function useStudentWork(id: Ref<number>) {
         requestKey,
       );
       savedAnswer.value = answer.value;
-      notice.value = t("assignment.savedWork");
+      notice.value = withBadgeNotice(t("assignment.savedWork"), work.value.earnedBadgeCode, t);
     } catch (e) {
       error.value = (e as Error).message;
     } finally {

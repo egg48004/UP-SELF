@@ -10,6 +10,6 @@ public interface IGoalService {
     PersonalGoal detail(Long id);
     Long create(Create body);
     void edit(Long id, Update body);
-    void complete(Long id, Completion body);
+    String complete(Long id, Completion body);
     void delete(Long id, Integer version);
 }

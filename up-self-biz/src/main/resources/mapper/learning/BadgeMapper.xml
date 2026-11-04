@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.upself.biz.learning.mapper.BadgeMapper">
+ <select id="own" resultType="com.upself.biz.learning.dto.BadgeView">
+  SELECT badge_code AS code,awarded_at FROM student_badge WHERE student_id=#{studentId}
+ </select>
+ <insert id="insert">
+  INSERT INTO student_badge(student_id,badge_code) VALUES(#{studentId},#{code})
+ </insert>
+</mapper>

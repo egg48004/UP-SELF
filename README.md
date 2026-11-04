@@ -10,6 +10,8 @@ Platform administrators can set starting reading defaults from Home. Students ke
 
 ## Windows startup
 
+Moving to another Windows computer? Follow the [Windows migration and developer handoff](docs/Windows-Migration-and-Agent-Handoff.md) before starting the backend. Transfer the database and complete private uploads together. The original reference project is no longer required for development.
+
 Configure the fixed tool paths with scripts/configure-local.ps1, install the locked frontend dependencies and build. Open open-vscode.cmd, which selects the generated .local/up-self.code-workspace. Wait for Java import, then use the existing Backend + Frontend configuration and F5. Do not open another backend or Vite instance on the same ports.
 
 ```powershell
@@ -31,7 +33,7 @@ Current local service settings and original bootstrap credentials are in config/
 
 Public roles are Student, Mentor and Administrator; maintenance uses only the internal login entry. Password login is enabled and TOTP is disabled. The six demo students have course progress, submitted and reviewed work, goals, mood and self-belief history, and course discussion messages. These are synthetic demonstration records.
 
-Current schema is **V17**. Java startup applies missing Flyway migrations. Git transfers code, not live database writes. The local migration snapshot has been refreshed with the current demo accounts, data and referenced learning media. Export it again after making further database or upload changes. See [setup and data migration](docs/UP-SELF-Developer-Handbook.md#5-local-setup-and-data-migration).
+Current schema is **V18**. Java startup applies missing Flyway migrations. Git transfers code, not live database writes. The local migration snapshot has been refreshed with the current demo accounts, data and referenced learning media. Export it again after making further database or upload changes. See [setup and data migration](docs/UP-SELF-Developer-Handbook.md#5-local-setup-and-data-migration).
 
 ## Versions and deployment
 
@@ -42,3 +44,5 @@ Linux production templates are prepared in deploy/linux; actual Linux runtime va
 Course discussions also provide per-group **Hide messages / Show messages** for student peers and a small pre-send text/attachment-name filter. Mentor teaching remains visible. See [discussion safety](docs/UP-SELF-Developer-Handbook.md#422-course-discussions-visibility-and-filtering-fr-28-through-fr-35).
 
 Mentors can send one-way encouragement to one or several currently assigned students from Home or Students. Each student has their own inbox, and the sender has private sent history. See [mentor encouragement](docs/UP-SELF-Developer-Handbook.md#423-mentor-encouragement-fr-59).
+
+FR-26 milestone badges are implemented in V18 and appear within Learning stats. The backend passed its API and transaction checks. Frontend build/browser acceptance is pending: the current Windows policy blocks esbuild.exe. See handbook section 4.24 before treating this delivery as fully accepted. The 2 November transfer ZIP remains an unchanged V17 backup and does not contain this feature; make a fresh complete package when moving the latest code/data.

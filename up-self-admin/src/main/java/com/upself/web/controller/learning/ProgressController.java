@@ -31,8 +31,9 @@ public class ProgressController extends BaseController {
   @PutMapping("/chapters/{id}/completion")
   @PreAuthorize("@ss.hasPermi('learning:progress:own')")
   public AjaxResult complete(@PathVariable Long id, @Valid @RequestBody Completion body) {
-    service.complete(id, body.getCompleted());
-    return AjaxResult.success();
+    AjaxResult result = AjaxResult.success();
+    result.put("earnedBadgeCode", service.complete(id, body.getCompleted()));
+    return result;
   }
 
   @GetMapping("/resume")

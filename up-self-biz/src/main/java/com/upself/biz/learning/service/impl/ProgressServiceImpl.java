@@ -13,12 +13,15 @@ import com.upself.common.utils.SecurityUtils;
 import java.util.Date;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import com.upself.biz.learning.domain.BadgeCode;
+import com.upself.biz.learning.service.IBadgeService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ProgressServiceImpl implements IProgressService {
+  @Autowired private IBadgeService badges;
   @Autowired private LearningMapper learning;
   @Autowired private ProgressMapper mapper;
 
@@ -91,9 +94,10 @@ public class ProgressServiceImpl implements IProgressService {
   }
 
   @Transactional(isolation = Isolation.READ_COMMITTED)
-  public void complete(Long chapterId, boolean completed) {
+  public String complete(Long chapterId, boolean completed) {
     writable(chapterId);
     mapper.complete(userId(), chapterId, completed);
+    return completed ? badges.award(BadgeCode.FIRST_STEP) : null;
   }
 
   public Item resume() {

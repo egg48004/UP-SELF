@@ -2,7 +2,7 @@
 
 Development standards, feature workflows, local setup and deployment operations
 
-Version 1.5 | 30 October 2026 | Database schema V17
+Version 1.7 | 3 November 2026 | Database schema V18
 
 UP-SELF is a learning platform for a small group of students in Malaysia. This handbook explains how the current application works, how to maintain it, and how to run it on another computer. It covers the Java backend, Vue frontend, permissions, private files, database migrations and release preparation.
 
@@ -36,9 +36,9 @@ The initial audience is 10 to 30 students, primarily in Malaysia. Students use a
 | Platform reading defaults | Administrator sets starting size, contrast and reduced motion; personal browser choices take priority |
 | Learning statistics | Student sees current-course chapter completion and assignment totals within My learning |
 
-The original graduation report contains 61 functional requirements. The current comparison records 40 completed, 6 partially completed and 15 not implemented. Appendix A retains all 61 identifiers and explains the differences. These counts measure coverage of the report, not the usability of the MVP or an academic grade.
+The original graduation report contains 61 functional requirements. The current comparison records 40 completed, 7 partially completed and 14 not implemented. Appendix A retains all 61 identifiers and explains the differences. These counts measure coverage of the report, not the usability of the MVP or an academic grade.
 
-Course discussions, private mentor notes, guided business ideas and a saved cost calculator are implemented. AI assistance, badges, daily attendance and full one-to-one appointment scheduling remain outside the implemented scope. A course meeting post is a link announcement, not a booking or conferencing service.
+Course discussions, private mentor notes, guided business ideas and a saved cost calculator are implemented. AI assistance, daily attendance and full one-to-one appointment scheduling remain outside the implemented scope. Personal badge code and backend workflows are implemented, with frontend acceptance pending the Windows execution-policy issue described in section 4.24. A course meeting post is a link announcement, not a booking or conferencing service.
 
 ### 1.2 Runtime model
 
@@ -70,7 +70,7 @@ Paths in this handbook are relative to the repository unless stated otherwise. A
 
 ### 1.4 Fixed versions
 
-The backend baseline comes from the reference project at `C:\Users\eggma\Desktop\project\fts_admin_ac`. Its source is a read-only architecture reference. The independent UP-SELF code and its resolved dependencies define the current implementation. The reference had no Vue frontend; frontend versions were selected and locked separately during UP-SELF development.
+UP-SELF is now the independent engineering baseline. The backend architecture originally came from a separate Java project, but that project is not required for installation or further development and does not need to move to another computer. Maintain this repository using its current source, POMs, configuration and locked dependencies. Its Vue frontend was selected and locked separately. This supersedes older instructions requiring developers to consult the original reference project; it does not authorize unrelated upgrades or architecture changes.
 
 | Runtime or tool | Current baseline |
 |---|---|
@@ -80,7 +80,7 @@ The backend baseline comes from the reference project at `C:\Users\eggma\Desktop
 | Redis on Windows | tporadowski Windows port 5.0.14.1 |
 | Redis for Mac preparation | Upstream 5.0.14 corresponding to the Windows port; target runtime testing pending |
 | Node and npm | 24.22.1 and 11.19.1 |
-| Current Flyway schema | V1 through V17 |
+| Current Flyway schema | V1 through V18 |
 
 The reference Docker image names Amazon Corretto 8u362. That differs from the independent project's installed Oracle 8u231. Do not describe them as the same JDK build or silently switch vendor or update level. The current Linux runtime checks retain the independent project's 8u231 requirement.
 
@@ -631,6 +631,30 @@ The student page uses short English labels, plain text, sender names and timesta
 
 Sources: `EncouragementController`, `EncouragementServiceImpl`, `EncouragementMapper.xml`, V17, and `frontend/src/features/encouragement`. They extend the existing Mentorship package and mapper scan. Run `scripts/verify-encouragement.py --browser` with local F5 services running; the verifier creates and removes disposable accounts, courses and messages.
 
+### 4.24 Personal milestone badges (FR-26)
+
+The student badge panel sits inside **My learning > Learning stats**. No main menu entry, mentor view, administrator award screen, points or ranking was added. Cards use a short English name, emoji with adjacent text, Earned/date or To try/instruction. Existing Aa size, contrast and reduced-motion settings apply. Badge refresh/error handling is independent of the statistics queries.
+
+| Code | Name | Successful action |
+|---|---|---|
+| FIRST_STEP | First step | Mark a currently accessible published chapter complete |
+| FIRST_SUBMISSION | First submission | Formally submit an assignment with text or a permitted attachment/recording; a draft does not count |
+| GOAL_REACHED | Goal reached | Complete an owned goal using the current version |
+
+The award belongs to the authenticated student. It is inserted inside the existing action transaction. The primary key `(student_id, badge_code)` prevents repeat awards under retries or concurrency. Only DuplicateKeyException is treated as an existing award; other database failures propagate so chapter/goal/submission changes roll back. The internal award method requires an existing transaction. There is no public award endpoint or request-supplied owner/code.
+
+Awards persist when a chapter is unmarked, a goal is reopened/deleted, an assignment is returned or the student loses enrollment. They record an earlier milestone, not mastery, watched minutes or emotional wellbeing. Points, attendance streaks and mood-score conditions are outside this feature.
+
+V18 credits only verifiable existing evidence: a non-null chapter completion, a recorded formal assignment attempt, or a currently completed goal with its completion timestamp, for current student-role accounts. Credit uses the migration time, not an invented past award date. Deleted or undone historical evidence cannot be reconstructed. A fresh student receives an unearned three-item catalog until they act.
+
+Successful chapter and goal completion responses preserve AjaxResult and add `earnedBadgeCode` at the top level. A formal submission adds that optional field to its Submission projection. It contains a code only for a new award; null/absent means no new announcement. Existing normal success text remains, with an additional nonblocking inline Badge earned message. A lost response followed by an idempotent retry may show only the normal success text; the stored badge remains visible in Learning stats.
+
+Sources: `BadgeController`, `BadgeServiceImpl`, `BadgeMapper.xml`, V18, the existing Progress/Goal/Assignment service mutations and `frontend/src/features/badges`.
+
+**Acceptance on 3 November:** Maven package and 197 Java tests passed. TypeScript passed; ESLint reported zero errors and the same 48 existing warnings. The real local verifier passed 90 API/database checks including backfill, ownership/channel denial, duplicate and concurrent awards, retained history and all three transaction rollbacks under an account-scoped simulated insert failure. Disposable fixtures/triggers were removed. An early verifier cleanup condition removed old audit rows; they were restored by original ID from the pre-V18 backup and every original audit row was compared exactly. Cleanup now includes an audit-ID floor; a complete rerun passed.
+
+**Frontend verification remains pending.** Windows administrator policy rejects the existing esbuild.exe, so the normal frontend build and Vitest fail before transformations; the F5 Vite process can start but cannot compile main.ts. The owner cannot change that policy, and it was not bypassed. The new six frontend unit tests and `tests/e2e/badges.spec.ts` are prepared, not reported as passing. Run normal install/build/unit tests and `scripts/verify-badges.py --browser` on the destination Windows computer with services running. The verifier normally cleans its fixtures; `--keep-fixture` is for a deliberate manual browser handoff followed by `--cleanup-fixture`. A test-only `--pymysql-path` can point to an existing temporary client where the native MySQL client is blocked; it is not an application dependency.
+
 ## 5 Local setup and data migration
 
 ### 5.1 Choose the correct startup route
@@ -709,6 +733,8 @@ Set the new instance's intended root password through MySQL. Do not run initiali
 
 ### 5.5 Choose empty initialization or full restoration
 
+For a current Windows-to-Windows move including chat and recordings, follow [the complete migration guide](Windows-Migration-and-Agent-Handoff.md). The archived-snapshot commands below only restore the files actually listed in that snapshot; they are not a substitute for the complete transfer.
+
 These are alternative workflows. An empty initialization creates the schema through application startup and starts without old courses or student records. A full restoration imports existing records and their matching private files. Do not start the backend to create tables and then import a full snapshot over them.
 
 For an empty Windows database:
@@ -733,24 +759,15 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\database.ps1 -Acti
 
 Where needed, add `-RootClientFile "D:\private\mysql-root-client.cnf"`. This file contains a `[client]` section with the new computer's actual user, password, host, port and TCP protocol. Keep it private. Existing application-user passwords are not reset by CREATE USER IF NOT EXISTS; resolve a mismatch instead of repeatedly restoring.
 
-### 5.6 Export the latest Windows database and files
+### 5.6 Move the latest Windows database and all private files
 
-The repository's archived snapshot was created on 22 October 2026 and contains V1 through V5 history. It is not the latest live database. New accounts, goals, bookmarks, assessments and later course changes are not recovered merely by pulling Git or running later migrations.
+Follow [Windows Migration and Development Handoff](Windows-Migration-and-Agent-Handoff.md) for the complete current workflow: stop application writes, export every table with mysqldump, copy the complete active upload tree, record hashes, transfer the package, initialize a fresh target and import before first backend startup. The guide also covers new-machine tool paths, VS Code startup, acceptance and the next developer's responsibilities. The old reference project is not required.
 
-Before moving the current state, stop application writes by stopping the frontend and backend. Keep MySQL running. Export only the independent database, not the reference project's database.
+The archived snapshot inspected on 2 November was created on 30 October 2026 and records V1 through V17 with 12 collected upload files. Inspect its actual manifest rather than relying on an earlier V5/V9 description. Git transfers a dated snapshot only when it was exported and included; it does not transfer later live writes.
 
-```powershell
-cd C:\Users\eggma\Desktop\codex\up-self
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\database.ps1 -Action Export -MySqlHome "C:\Users\eggma\Documents\Codex\local-env\up-self\mysql"
-```
+The existing `scripts/database.ps1 -Action Export` takes a logical dump of all tables but its file collector only queries learning_resource and assignment_file. It does not collect chat_file or mood diary recording keys. Its assignment path assumption also does not match assignment audio stored through RecordingStorage. Do not treat this command alone as a complete chat/recording backup. The migration guide uses a separate full dump and complete file copy without changing this script or fabricating manifest entries.
 
-If that MySqlHome differs on the actual machine, use the correct 5.7.44 directory. The export checks that successful migrations match the source, takes a single-transaction logical dump, copies database-referenced learning and assignment files, and writes file sizes and SHA-256 checksums. Missing or changing referenced files cause the export to stop.
-
-After `Snapshot refreshed`, inspect `migration/local-snapshot/manifest.json`. Check its date, database identity and migration versions 1 through 9. The SQL includes every table. The legacy manifest's row-count summary lists only selected tables, so it is not a complete inventory of goals, bookmarks or self-efficacy records.
-
-Move the entire snapshot directory with the matching current application configuration and code. Use a complete Git commit or a private file transfer. Do not copy just `up_self_dev.sql`, manually edit its manifest or combine an older file directory with a new database dump.
-
-After export, Windows development may resume. Any subsequent writes are outside that snapshot. For the latest state at the time of migration, repeat the export at that time.
+Keep database and files from the same stopped application. After the complete package is recorded, source development may resume; later writes require a new package. Do not import over an occupied target or merge two independently changed databases.
 
 ### 5.7 Windows build and daily startup
 
@@ -860,7 +877,7 @@ bash scripts/macos/up-self.sh db-restore \
   --root-client-file "$PWD/.local/macos/mysql-root.cnf"
 ```
 
-Add `--snapshot "/absolute/path/local-snapshot"` if the snapshot is on an external drive. Mac restore requires the snapshot's migration versions to match the source exactly. It deliberately rejects the repository's archived V5 snapshot, rather than presenting it as a current data migration.
+Add `--snapshot "/absolute/path/local-snapshot"` if the snapshot is on an external drive. Mac restore requires the snapshot's migration versions to match the source exactly. Inspect the actual snapshot manifest; older V5 descriptions no longer describe the current archive. For complete chat and recording migration, also account for the full private file tree described in section 5.6.
 
 The tool checks manifest paths, file sizes, hashes, upload count, server version and target emptiness. It creates the separate scoped database users without resetting existing passwords, imports SQL, checks migration history and recorded row-count summaries, then copies and verifies files. Root credentials are passed through the private client file rather than written into the command line.
 
@@ -873,7 +890,7 @@ bash scripts/macos/up-self.sh db-init \
   --root-client-file "$PWD/.local/macos/mysql-root.cnf"
 ```
 
-It creates the empty database and scoped users. The backend then applies V1 through V13 and runs existing bootstrap logic for an empty user table. It does not restore old records. Do not run both alternatives.
+It creates the empty database and scoped users. The backend then applies V1 through V18 and runs existing bootstrap logic for an empty user table. It does not restore old records. Do not run both alternatives.
 
 ### 5.12 Build and start on Mac
 
@@ -927,12 +944,13 @@ Flyway runs as part of Java backend startup. It checks recorded migrations on ea
 | `V15__accessibility_defaults_and_learning_statistics.sql` | One platform-default record and settings/statistics permissions |
 | `V16__chat_visibility_and_content_filter.sql` | Message role-at-send, per-viewer course-group hiding and student hide permission |
 | `V17__mentor_encouragement_messages.sql` | Mentor message, recipient relationships and function permissions |
+| `V18__student_milestone_badges.sql` | One-time student awards, evidence-based credit and own-student permission |
 
 Scripts are in `up-self-admin/src/main/resources/db/draft`. Current configuration enables Flyway, validation and baseline-on-migrate, permits out-of-order migrations and disables placeholder replacement. Migration credentials are separate from application DML credentials.
 
-Add the next migration for a new change; the next integer after V17 is V18. Use `V<number>__<description>.sql`. Never modify an executed migration to adjust an existing installation. Do not hand-create partial business tables before first startup, because baseline behavior can change which versions run.
+Add the next migration for a new change; the next integer after V18 is V19. Use `V<number>__<description>.sql`. Never modify an executed migration to adjust an existing installation. Do not hand-create partial business tables before first startup, because baseline behavior can change which versions run.
 
-An empty database receives V1 through V17. An existing V16 database receives V17. Restoring a valid older snapshot through a supported route preserves its history and allows missing migrations to run, but does not recover later business data. A full current restore should not rerun the schema scripts.
+An empty database receives V1 through V18. An existing V17 database receives V18. Restoring a valid older snapshot through a supported route preserves its history and allows missing migrations to run, but does not recover later business data. A full current restore should not rerun the schema scripts.
 
 On failure, preserve the error, database identity and `flyway_schema_history`. Stop before making further changes. Investigate the failed SQL and migration state before considering a controlled recovery. Do not use clean, blind repair or history deletion as a routine startup fix.
 
@@ -959,7 +977,7 @@ Pulling code is not a request to restore an old snapshot. If both computers have
 | Courses exist but media fails | Restore matching uploads, check live enrollment/publication and refresh the media ticket |
 | Assignments appear but attachments fail | Check the matching uploads/assignments directory and authorization |
 | Restore refuses the target | Keep existing data and use a fresh independent target; do not remove tables to evade the check |
-| Mac restore reports old snapshot | Export current V9 data and files on Windows; do not change manifest metadata manually |
+| Mac restore reports old snapshot | Match the actual source migrations and current data/files; do not change manifest metadata manually |
 | New permissions are absent | Confirm migration success, restart the latest backend and log out and in |
 | Git dubious ownership on Windows | Use the project's existing push helper, which trusts only this path for its commands |
 | No text-to-speech audio | Check target browser and installed English voices; text remains available and errors must be visible |
@@ -1239,19 +1257,19 @@ Linux public deployment and Mac runtime testing are still pending. Cost figures 
 
 The identifiers and requirement names follow the original report's 61 FRs. Completed means the current UI, API and persistence cover the main requirement. Partial means a defined subset exists or an implemented rule differs materially from the report. Not implemented means there is no complete workflow; a generic field, sample title or shared component is not completion.
 
-The current total is 40 completed, 6 partial and 15 not implemented. Authentication and general engineering safeguards are not additional numbered FRs. The report's source is Section 5.4.1, report pages 14 through 22, PDF pages 30 through 38. The original report remains a separate academic source and is not rewritten by this handbook.
+The current total is 40 completed, 7 partial and 14 not implemented. Authentication and general engineering safeguards are not additional numbered FRs. The report's source is Section 5.4.1, report pages 14 through 22, PDF pages 30 through 38. The original report remains a separate academic source and is not rewritten by this handbook.
 
 | Area | Completed | Partial | Not implemented |
 |---|---:|---:|---:|
 | Learning FR 01 to 10 | 9 | 1 | 0 |
 | Assignments FR 11 to 18 | 6 | 2 | 0 |
-| Self-efficacy area FR 19 to 27 | 5 | 1 | 3 |
+| Self-efficacy area FR 19 to 27 | 5 | 2 | 2 |
 | Communication FR 28 to 35 | 8 | 0 | 0 |
 | AI assistance FR 36 to 42 | 0 | 0 | 7 |
 | Entrepreneurship FR 43 to 48 | 2 | 0 | 4 |
 | Administration FR 49 to 55 | 6 | 0 | 1 |
 | Mentor support FR 56 to 61 | 4 | 2 | 0 |
-| Total | 40 | 6 | 15 |
+| Total | 40 | 7 | 14 |
 
 ### A2 Complete requirement matrix
 
@@ -1282,7 +1300,7 @@ The current total is 40 completed, 6 partial and 15 not implemented. Authenticat
 | FR-23 | Create Goal | Completed | Student creates a private title and optional notes, stored in MySQL. |
 | FR-24 | Manage Goal | Completed | Edit, complete, reopen, filter and delete own goals with version checks. Delete/reopen extend management without adding a new FR. |
 | FR-25 | Confidence Assessment | Completed | GSE-3, complete server scoring, 28-day interval, history and trend. Mentors see shared scores, not answers. Target-population validation is separate. |
-| FR-26 | Earn Badge | Not implemented | No badge rules or award records. |
+| FR-26 | Earn Badge | Partial | Three automatic one-time milestones, V18 backfill, own-student API and Vue panel/inline notices are implemented. Backend tests pass; frontend build and browser acceptance are pending because Windows blocks esbuild.exe. |
 | FR-27 | View Learning Analytics | Completed | My learning includes a private statistics page with weighted chapter completion, assignment-state totals and paginated course progress. Reuses current records; no time or mastery estimates. |
 | FR-28 | Send Message | Completed | Students and the responsible mentor send scoped text messages in course discussion groups. |
 | FR-29 | Receive Message | Completed | The visible room receives new messages through five-second polling and loads earlier history by cursor; no private messaging workflow. |
@@ -1621,6 +1639,12 @@ Prefixes: `/encouragement` and `/client/encouragement`. Management tokens use th
 
 Send input is `{body, studentIds, clientKey}`. The key has 16 to 64 letters, digits, underscores or hyphens; the frontend generates a UUID. Duplicate student IDs normalize to one recipient. A successful send returns `{id, body, recipientCount, sentAt}` inside AjaxResult. Sent detail returns `{message, recipients}`; each recipient has id, name and username. Inbox rows contain only id, body, mentorName and sentAt. Unknown received-message IDs and IDs addressed to someone else return the same unavailable response. Audit records contain the author, action and message ID, never the message text.
 
+### B15 Personal badges
+
+`GET /client/learning/badges` requires the student channel, exact student role and `learning:badges:own`. It returns AjaxResult data with three `{code, awardedAt}` objects in milestone order; an unearned date is null. The owner comes only from the session. The fixed three-item catalog is not a paginated table. Other roles cannot read it, even through internal wildcard permissions. There are no grant, edit, delete, mentor or other-student badge endpoints.
+
+The existing chapter/goal completion envelopes add `earnedBadgeCode`; assignment submit places it inside data. Clients may ignore the additive field. Code meanings and transaction rules are in section 4.24.
+
 ## Appendix C Source and maintenance index
 
 ### C1 Backend source map
@@ -1722,3 +1746,12 @@ Keep detailed resolved dependency evidence in the two retained JSON files and th
 The docs index identifies short compatibility files retained for existing scripts and metadata. They are generated or redirect to this handbook, not additional sources to edit. Business code, startup configuration and reference-project files are outside a documentation cleanup.
 
 Regenerate the Word document from this Markdown source after an update, refresh the contents and page fields, and check the rendered pages. Keep the title, heading hierarchy, repeated table headers and readable command blocks. Check local source links after moving or removing a file.
+
+Additional V18 sources:
+
+- [Badge controller](../up-self-admin/src/main/java/com/upself/web/controller/learning/BadgeController.java).
+- [Badge service](../up-self-biz/src/main/java/com/upself/biz/learning/service/impl/BadgeServiceImpl.java).
+- [Badge mapper](../up-self-biz/src/main/resources/mapper/learning/BadgeMapper.xml).
+- [V18 migration](../up-self-admin/src/main/resources/db/draft/V18__student_milestone_badges.sql).
+- [Student badge component](../frontend/src/features/badges/components/BadgesPanel.vue).
+- [Local verifier](../scripts/verify-badges.py).

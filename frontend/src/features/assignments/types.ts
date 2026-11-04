@@ -1,3 +1,4 @@
+import type { BadgeCode } from "../badges/types";
 export interface Assignment {
   id: number;
   courseId: number;
@@ -45,6 +46,7 @@ export interface Attempt {
   files: WorkFile[];
 }
 export interface Submission {
+  earnedBadgeCode?: BadgeCode | null;
   id: number | null;
   assignmentId: number;
   studentId: number;

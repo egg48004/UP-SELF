@@ -6,6 +6,7 @@ import lombok.Data;
 public class Submission {
   private Long id, assignmentId, studentId;
   private String answerText, status, studentName, studentUsername;
+  private String earnedBadgeCode;
   private Integer version, attemptNo;
   private java.util.Date updateTime;
   private java.util.List<SubmissionFile> files;

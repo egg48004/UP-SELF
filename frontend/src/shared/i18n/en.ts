@@ -1,3 +1,4 @@
+import badge from "../../features/badges/messages";
 import encouragement from "../../features/encouragement/messages";
 import readingDefaults from "../../features/preferences/messages";
 import stats from "../../features/learning/statisticsMessages";
@@ -17,6 +18,7 @@ import knowledge from "../../features/knowledge/messages";
 import recording from "../../features/recordings/messages";
 import chat from "../../features/chat/messages";
 export default {
+  badge,
   encouragement,
   readingDefaults,
   stats,

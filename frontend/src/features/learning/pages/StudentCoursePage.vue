@@ -2,6 +2,7 @@
 import { ref, computed, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useI18n } from "vue-i18n";
+import { withBadgeNotice } from "../../badges/presentation";
 import { learningApi } from "../api";
 import type { Course, Chapter, Post } from "../types";
 import CourseFacts from "../components/CourseFacts.vue";
@@ -47,11 +48,11 @@ async function mark() {
   progressError.value = "";
   notice.value = "";
   try {
-    await progressApi.complete(ch, !completed.value);
+    const action = await progressApi.complete(ch, !completed.value);
     const result = await progressApi.summary(id);
     if (sequence === loadSequence) {
       progress.value = result;
-      notice.value = t("progress.saved");
+      notice.value = withBadgeNotice(t("progress.saved"), action.earnedBadgeCode, t);
     }
   } catch (e) {
     if (sequence === loadSequence) progressError.value = (e as Error).message;

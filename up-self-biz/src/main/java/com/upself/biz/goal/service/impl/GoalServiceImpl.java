@@ -8,12 +8,15 @@ import com.upself.common.exception.ServiceException;
 import com.upself.common.utils.SecurityUtils;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import com.upself.biz.learning.domain.BadgeCode;
+import com.upself.biz.learning.service.IBadgeService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class GoalServiceImpl implements IGoalService {
-    @Autowired private GoalMapper mapper;
+    @Autowired private IBadgeService badges;
+  @Autowired private GoalMapper mapper;
 
     private Long studentId() {
         verifyStudent();
@@ -80,9 +83,10 @@ public class GoalServiceImpl implements IGoalService {
     }
 
     @Transactional
-    public void complete(Long id, Completion body) {
+    public String complete(Long id, Completion body) {
         Long owner = studentId();
         changed(mapper.complete(id, owner, body.getVersion(), body.getCompleted()), id, owner);
+        return body.getCompleted() ? badges.award(BadgeCode.GOAL_REACHED) : null;
     }
 
     @Transactional

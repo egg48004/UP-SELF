@@ -1,13 +1,11 @@
 # Local migration snapshot
 
-This directory contains a dated export of the independent UP-SELF development database and its matching private uploads. Inspect manifest.json for the actual creation time, migration versions, file counts and SHA-256 values.
+This directory is a dated logical export of the independent UP-SELF development database plus the upload files collected by the existing snapshot tool. Inspect manifest.json for the actual export date, migration versions, file list and SHA-256 hashes. The inspected archive is dated 30 October 2026 and records V1 through V17 with 12 collected uploads.
 
-The latest export was refreshed on 29 October 2026 after the platform-default and learning-statistics delivery, with migrations V1 through V15 applied. It includes six students, two mentors, one administrator, the unchanged internal maintenance account, and the current synthetic demonstration records, including six business ideas, six cost plans and nine private mentor notes. Current public demo logins are listed in [config/demo-accounts.yml](../../config/demo-accounts.yml). Use manifest.json as the authority for the snapshot's exact contents and export time.
+The current exporter dumps every database table, but its upload collector only queries learning_resource and assignment_file. It does not collect chat files or diary recording keys, and assignment audio uses the shared recordings directory rather than the assumed assignment directory. Therefore this archive must not be treated as a complete chat/recording migration package.
 
-This is an export, not a live database mirror. Later changes appear here only after another export. Applying Flyway migrations creates missing schema and permissions; it does not transfer records created on another computer.
+For another Windows computer, follow [Windows Migration and Development Handoff](../../docs/Windows-Migration-and-Agent-Handoff.md). That workflow exports the latest live database separately and copies the entire active private upload tree while application writes are stopped. Do not edit this archive's manifest to make an incomplete file set appear complete.
 
-For current data migration, pause application writes on the source computer, export the latest database with matching referenced uploads, then transfer the whole directory with the corresponding code and application configuration. Do not restore over an existing populated database or merge upload directories.
+Git is not a live database mirror. Later accounts, submissions and messages move only through another export or a shared deployed backend. Flyway applies schema changes; it does not transfer later records. Redis sessions do not need to move.
 
-The [Developer Handbook](../../docs/UP-SELF-Developer-Handbook.md#5-local-setup-and-data-migration) contains the maintained export and restore procedures. Mac restore deliberately requires a snapshot matching the current source migrations. Redis login sessions do not need to be transferred.
-
-Snapshot credentials and application configuration are currently tracked by the repository owner. Keep actual values in their existing files rather than duplicating them in documentation. Do not substitute reference-project data or credentials.
+The current demo inventory is [config/demo-accounts.yml](../../config/demo-accounts.yml). Actual configuration and migration credentials stay in their established files. Keep the working source until the new computer passes database, private-file, browser and VS Code checks. UP-SELF itself is the development baseline; the old reference project is not required.

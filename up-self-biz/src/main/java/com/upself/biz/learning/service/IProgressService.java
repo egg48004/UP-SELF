@@ -13,7 +13,7 @@ public interface IProgressService {
 
   void visit(Long chapterId);
 
-  void complete(Long chapterId, boolean completed);
+  String complete(Long chapterId, boolean completed);
 
   Item resume();
 

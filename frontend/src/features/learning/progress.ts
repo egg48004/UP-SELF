@@ -1,3 +1,4 @@
+import type { BadgeActionResult } from "../badges/types";
 import { data, request, table } from "../../shared/http/client";
 export interface LearningItem {
   chapterId: number;
@@ -35,7 +36,7 @@ export const progressApi = {
   visit: (id: number) =>
     request(`/client/learning/chapters/${id}/visit`, { method: "POST" }),
   complete: (id: number, completed: boolean) =>
-    request(`/client/learning/chapters/${id}/completion`, {
+    request<BadgeActionResult>(`/client/learning/chapters/${id}/completion`, {
       method: "PUT",
       data: { completed },
     }),
