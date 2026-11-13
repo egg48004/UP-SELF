@@ -1,7 +1,7 @@
 # UP SELF documentation
 For another Windows computer or a new development agent, start with [Windows Migration and Development Handoff](Windows-Migration-and-Agent-Handoff.md). It covers the complete database and private-file transfer, new-machine configuration and acceptance. UP-SELF itself is now the engineering baseline; the original reference project is not needed. The dated snapshot collector does not cover all chat/recording files, so follow the complete migration workflow rather than assuming Git includes them.
 
-The [Developer Handbook](UP-SELF-Developer-Handbook.md) is the maintained documentation source. The [Word edition](UP-SELF-Developer-Handbook.docx) contains a populated contents page, internal navigation and page numbers. It is the published 25 October edition; the Markdown source includes the later V19 changes; badge and questionnaire frontend acceptance passed using the optional local WASM compiler mode.
+The [Developer Handbook](UP-SELF-Developer-Handbook.md) is the maintained documentation source. The [Word edition](UP-SELF-Developer-Handbook.docx) contains a populated contents page, internal navigation and page numbers. It is the published 25 October edition; the Markdown source includes the later V20 changes; badge and questionnaire frontend acceptance passed using the optional local WASM compiler mode.
 
 | Read about | Handbook section |
 |---|---|

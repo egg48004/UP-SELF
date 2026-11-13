@@ -1,3 +1,5 @@
+import dailyCheckIn from "../../features/check-in/messages";
+import peer from "../../features/assignments/peer/messages";
 import questionnaire from "../../features/questionnaires/messages";
 import badge from "../../features/badges/messages";
 import encouragement from "../../features/encouragement/messages";
@@ -19,6 +21,8 @@ import knowledge from "../../features/knowledge/messages";
 import recording from "../../features/recordings/messages";
 import chat from "../../features/chat/messages";
 export default {
+  dailyCheckIn,
+  peer,
   questionnaire,
   badge,
   encouragement,

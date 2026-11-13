@@ -11,6 +11,7 @@ const props = defineProps<{ assignment?: Assignment; courseId?: number }>();
 const emit = defineEmits<{ saved: [id: number] }>();
 const { t } = useI18n();
 const form = reactive<AssignmentBody>({
+    peerFeedback: false,
     courseId: 0,
     title: "",
     instructions: "",
@@ -60,7 +61,8 @@ watch(
     Object.assign(
       form,
       {
-        courseId: 0,
+        peerFeedback: false,
+    courseId: 0,
         title: "",
         instructions: "",
         status: "DRAFT",
@@ -124,8 +126,7 @@ function beforeClose(done: () => void) {
     <form @submit.prevent="save">
       <fieldset :disabled="busy">
         <div v-if="selected" class="notice">
-          <strong>{{ t("assignment.course") }}: {{ selected.title }}</strong
-          ><el-button
+          <strong>{{ t("assignment.course") }}: {{ selected.title }}</strong><el-button
             v-if="!assignment"
             @click="
               selected = null;
@@ -169,47 +170,45 @@ function beforeClose(done: () => void) {
             "
           />
         </section>
+        <label><input v-model="form.peerFeedback" type="checkbox" /> {{ t("peer.allow") }}</label>
+        <p class="muted">
+          {{ t("peer.disabledHelp") }}
+        </p>
         <label for="assignment-title">{{
           t("assignment.assignmentTitle")
-        }}</label
-        ><input
+        }}</label><input
           id="assignment-title"
           v-model="form.title"
           required
           maxlength="150"
         /><label for="assignment-instructions">{{
           t("assignment.instructions")
-        }}</label
-        ><textarea
+        }}</label><textarea
           id="assignment-instructions"
           v-model="form.instructions"
           required
           maxlength="20000"
           rows="5"
-        /><label for="assignment-due">{{ t("assignment.due") }}</label
-        ><input id="assignment-due" v-model="due" type="datetime-local" />
+        /><label for="assignment-due">{{ t("assignment.due") }}</label><input id="assignment-due" v-model="due" type="datetime-local" />
         <p class="muted">
           {{ t("assignment.lateHelp") }}
         </p>
-        <label for="assignment-max">{{ t("assignment.maxScore") }}</label
-        ><input
+        <label for="assignment-max">{{ t("assignment.maxScore") }}</label><input
           id="assignment-max"
           v-model.number="form.maxScore"
           type="number"
           min="1"
           max="1000"
           required
-        /><label for="assignment-status">{{ t("assignment.status") }}</label
-        ><select id="assignment-status" v-model="form.status">
+        /><label for="assignment-status">{{ t("assignment.status") }}</label><select id="assignment-status" v-model="form.status">
           <option
             v-for="s in ['DRAFT', 'PUBLISHED', 'ARCHIVED']"
             :key="s"
             :value="s"
           >
             {{ t("assignment." + s) }}
-          </option></select
-        ><label for="assignment-language">{{ t("assignment.language") }}</label
-        ><input
+          </option>
+        </select><label for="assignment-language">{{ t("assignment.language") }}</label><input
           id="assignment-language"
           v-model="form.languageCode"
           required
@@ -224,8 +223,8 @@ function beforeClose(done: () => void) {
       </p>
       <div class="button-row">
         <el-button :disabled="busy" @click="visible = false">
-          {{ t("cancel") }} </el-button
-        ><el-button native-type="submit" type="primary" :loading="busy">
+          {{ t("cancel") }}
+        </el-button><el-button native-type="submit" type="primary" :loading="busy">
           {{ t("assignment.save") }}
         </el-button>
       </div>

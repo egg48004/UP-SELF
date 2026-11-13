@@ -2,7 +2,7 @@
 
 Development standards, feature workflows, local setup and deployment operations
 
-Version 1.9 | 4 November 2026 | Database schema V19
+Version 1.10 | 13 November 2026 | Database schema V21
 
 UP-SELF is a learning platform for a small group of students in Malaysia. This handbook explains how the current application works, how to maintain it, and how to run it on another computer. It covers the Java backend, Vue frontend, permissions, private files, database migrations and release preparation.
 
@@ -37,7 +37,7 @@ The initial audience is 10 to 30 students, primarily in Malaysia. Students use a
 | Learning statistics | Student sees current-course chapter completion and assignment totals within My learning |
 | Platform questionnaires | Mentors manage their own external HTTPS links and visibility; all students read visible links without course enrollment |
 
-The original graduation report contains 61 functional requirements. The current comparison records 41 completed, 6 partially completed and 14 not implemented. Appendix A retains all 61 identifiers and explains the differences. These counts measure coverage of the report, not the usability of the MVP or an academic grade.
+The original graduation report contains 61 functional requirements. The current comparison records 44 completed, 6 partially completed and 11 not implemented. Appendix A retains all 61 identifiers and explains the differences. These counts measure coverage of the report, not the usability of the MVP or an academic grade.
 
 Course discussions, private mentor notes, guided business ideas and a saved cost calculator are implemented. AI assistance, daily attendance and full one-to-one appointment scheduling remain outside the implemented scope. Personal badges and global questionnaire workflows have passed frontend acceptance through the optional WASM compatibility mode described in section 5.16. A course meeting post is a link announcement, not a booking or conferencing service.
 
@@ -81,7 +81,7 @@ UP-SELF is now the independent engineering baseline. The backend architecture or
 | Redis on Windows | tporadowski Windows port 5.0.14.1 |
 | Redis for Mac preparation | Upstream 5.0.14 corresponding to the Windows port; target runtime testing pending |
 | Node and npm | 24.22.1 and 11.19.1 |
-| Current Flyway schema | V1 through V19 |
+| Current Flyway schema | V1 through V21 |
 
 The reference Docker image names Amazon Corretto 8u362. That differs from the independent project's installed Oracle 8u231. Do not describe them as the same JDK build or silently switch vendor or update level. The current Linux runtime checks retain the independent project's 8u231 requirement.
 
@@ -676,7 +676,25 @@ Frontend acceptance completed on 4 November with the optional WASM mode: the ful
 
 ## 5 Local setup and data migration
 
-### 5.1 Choose the correct startup route
+#### 4.26 Assignment peer feedback (FR-48)
+
+Students open an existing assignment under My learning or Assignments, then use its Peer feedback section. No main navigation item is added. A mentor opts in with Allow peer feedback before the first submission. Every existing assignment defaults to off. An assignment with historic submissions cannot be enabled for the first time. Once opted in, the sharing notice remains visible on the student answer form even while feedback is closed, because the mentor can reopen it later. Draft text and draft attachments remain private.
+
+A student must have formally submitted their own work before requesting Review a classmate. Allocation runs under the same course-then-assignment transaction lock as submission and editing. It selects another active enrolled student with a current submitted or graded attempt, prefers a submission with fewer allocations, and never selects the reviewer. The unique (assignment_id, reviewer_id) key allows one allocation per student per assignment; repeated requests return the existing allocation. Multiple reviewers may receive the same target when cohort participation is uneven. There is no all-class submission browser.
+
+The allocation stores a submission ID and attempt number. It never reads a revised draft as peer work. Students see only that snapshot and its submitted files; the existing authenticated file endpoint checks the allocation on every download or audio playback. File storage keys, submission IDs and participant identities are not included in student peer responses. Names inside student-written text or uploaded files can still identify someone; this is not a guarantee of anonymity. Membership loss revokes the snapshot and file grant. Published course and assignment checks remain in effect.
+
+Feedback contains One thing that works well (required, 500 characters) and One idea to try (optional, 500 characters). Both use the existing ChatContentFilter. Sending is atomic and version-guarded; feedback can be sent once and does not change grades. Returning and resubmitting work preserves the original feedback and labels it Feedback on an earlier submission. Closing feedback stops allocation and sending while retaining readable sent feedback.
+
+Only the current course mentor sees the reviewer/recipient mapping and paginated allocation history, including pending allocations. They can hide sent feedback with a reason. The student recipient no longer sees hidden feedback; the author sees a hidden status without its text or moderation reason. The audit record and mentor record remain. Other mentors, administrators, internal maintenance and unrelated students cannot use the peer endpoints to read or moderate this content. Course reassignment revokes the former mentor's access. The existing assignment:submit and assignment:review permissions are reused, with exact-role and resource checks in the service.
+
+Sources: PeerFeedbackController (BaseController, AjaxResult and getDataTable); PeerFeedbackService; PeerFeedbackMapper.xml; AssignmentServiceImpl.readFile and update; V20__peer_feedback.sql; frontend/src/features/assignments/peer. No dependency versions, security configuration or reference project files were changed.
+
+Local verification on 13 November 2026: 219 Java tests, 133 frontend tests, the production frontend build and Maven package passed. ESLint reported zero errors and 35 existing warnings outside the new peer components. Chrome exercised separate student, second-student, mentor and administrator sessions, real submission and attachment download, two-way peer feedback, rejected empty/filtered input, mentor hide/cancel, received feedback refresh, unchanged primary menus and 320px layout. The disposable verifier passed 87 checks including its browser workflow, revoked membership and course reassignment. Evidence is in ignored .local/peer-verification. Original rows are checked against the pre-V20 snapshot; test audit records are retained.
+
+The original 61-FR matrix remains for report traceability. AI FR-36 through FR-42 are excluded from the agreed development scope: this leaves 54 in-scope requirements, with 44 completed, 6 partial and 4 not implemented. The six partial requirements retain the previously agreed implementation adjustments; excluding AI does not silently change their acceptance status.
+
+## 5.1 Choose the correct startup route
 
 | Computer | Supported workflow | Current verification |
 |---|---|---|
@@ -909,7 +927,7 @@ bash scripts/macos/up-self.sh db-init \
   --root-client-file "$PWD/.local/macos/mysql-root.cnf"
 ```
 
-It creates the empty database and scoped users. The backend then applies V1 through V19 and runs existing bootstrap logic for an empty user table. It does not restore old records. Do not run both alternatives.
+It creates the empty database and scoped users. The backend then applies V1 through V21 and runs existing bootstrap logic for an empty user table. It does not restore old records. Do not run both alternatives.
 
 ### 5.12 Build and start on Mac
 
@@ -965,12 +983,13 @@ Flyway runs as part of Java backend startup. It checks recorded migrations on ea
 | `V17__mentor_encouragement_messages.sql` | Mentor message, recipient relationships and function permissions |
 | `V18__student_milestone_badges.sql` | One-time student awards, evidence-based credit and own-student permission |
 | `V19__platform_questionnaire_links.sql` | Global external questionnaire links, author/version guards and student/mentor permissions |
+| `V20__peer_feedback.sql` | Assignment sharing flags and version-bound peer feedback; no legacy content backfill |
 
 Scripts are in `up-self-admin/src/main/resources/db/draft`. Current configuration enables Flyway, validation and baseline-on-migrate, permits out-of-order migrations and disables placeholder replacement. Migration credentials are separate from application DML credentials.
 
-Add the next migration for a new change; the next integer after V19 is V20. Use `V<number>__<description>.sql`. Never modify an executed migration to adjust an existing installation. Do not hand-create partial business tables before first startup, because baseline behavior can change which versions run.
+Add the next migration for a new change; the next integer after V21 is V22. Use `V<number>__<description>.sql`. Never modify an executed migration to adjust an existing installation. Do not hand-create partial business tables before first startup, because baseline behavior can change which versions run.
 
-An empty database receives V1 through V19. An existing V18 database receives V19. Restoring a valid older snapshot through a supported route preserves its history and allows missing migrations to run, but does not recover later business data. A full current restore should not rerun the schema scripts.
+An empty database receives V1 through V21. An existing V20 database receives V21. Restoring a valid older snapshot through a supported route preserves its history and allows missing migrations to run, but does not recover later business data. A full current restore should not rerun the schema scripts.
 
 On failure, preserve the error, database identity and `flyway_schema_history`. Stop before making further changes. Investigate the failed SQL and migration state before considering a controlled recovery. Do not use clean, blind repair or history deletion as a routine startup fix.
 
@@ -1289,19 +1308,19 @@ Linux public deployment and Mac runtime testing are still pending. Cost figures 
 
 The identifiers and requirement names follow the original report's 61 FRs. Completed means the current UI, API and persistence cover the main requirement. Partial means a defined subset exists or an implemented rule differs materially from the report. Not implemented means there is no complete workflow; a generic field, sample title or shared component is not completion.
 
-The current total is 41 completed, 6 partial and 14 not implemented. Authentication and general engineering safeguards are not additional numbered FRs. The report's source is Section 5.4.1, report pages 14 through 22, PDF pages 30 through 38. The original report remains a separate academic source and is not rewritten by this handbook.
+The current total is 44 completed, 6 partial and 11 not implemented. Authentication and general engineering safeguards are not additional numbered FRs. The report's source is Section 5.4.1, report pages 14 through 22, PDF pages 30 through 38. The original report remains a separate academic source and is not rewritten by this handbook.
 
 | Area | Completed | Partial | Not implemented |
 |---|---:|---:|---:|
 | Learning FR 01 to 10 | 9 | 1 | 0 |
 | Assignments FR 11 to 18 | 6 | 2 | 0 |
-| Self-efficacy area FR 19 to 27 | 6 | 1 | 2 |
+| Self-efficacy area FR 19 to 27 | 8 | 1 | 0 |
 | Communication FR 28 to 35 | 8 | 0 | 0 |
 | AI assistance FR 36 to 42 | 0 | 0 | 7 |
-| Entrepreneurship FR 43 to 48 | 2 | 0 | 4 |
+| Entrepreneurship FR 43 to 48 | 3 | 0 | 3 |
 | Administration FR 49 to 55 | 6 | 0 | 1 |
 | Mentor support FR 56 to 61 | 4 | 2 | 0 |
-| Total | 41 | 6 | 14 |
+| Total | 44 | 6 | 11 |
 
 ### A2 Complete requirement matrix
 
@@ -1325,8 +1344,8 @@ The current total is 41 completed, 6 partial and 14 not implemented. Authenticat
 | FR-16 | Create Assignment | Completed | Current mentor creates drafts and publishes within assigned courses. |
 | FR-17 | Manage Assignment | Partial | Edit and archive are supported; assignment deletion is not provided. |
 | FR-18 | Grade Assignment | Completed | Mentor grades, gives required feedback or returns work; unsent drafts stay private. |
-| FR-19 | Daily Check-In | Not implemented | Weekly mood is not a daily attendance workflow. |
-| FR-20 | View Check-In Streak | Not implemented | No attendance streak; a trend line is not a streak counter. |
+| FR-19 | Daily Check-In | Completed | Student home daily check-in, Malaysia server date, private 30-day history and gap-aware streaks. |
+| FR-20 | View Check-In Streak | Completed | Student home daily check-in, Malaysia server date, private 30-day history and gap-aware streaks. |
 | FR-21 | Record Daily Mood | Partial | Product rule is voluntary weekly mood, not daily mood; saved entries are immutable. |
 | FR-22 | View Mood History | Completed | Own history and 4/12/26/52-week trend with text table and explicit gaps. |
 | FR-23 | Create Goal | Completed | Student creates a private title and optional notes, stored in MySQL. |
@@ -1354,7 +1373,7 @@ The current total is 41 completed, 6 partial and 14 not implemented. Authenticat
 | FR-45 | View Entrepreneur Stories | Not implemented | No delivered entrepreneur-story collection. |
 | FR-46 | Use Cost Calculator | Completed | Server-side MYR batch cost, expected revenue and estimated profit/loss; one versioned saved plan per student. |
 | FR-47 | Participate in Market Simulation | Not implemented | No market simulation. |
-| FR-48 | Receive Peer Feedback | Not implemented | No peer review of business ideas. |
+| FR-48 | Receive Peer Feedback | Completed | Opt-in assignment peer feedback for business ideas or other work: one versioned classmate submission per reviewer, short anonymous-to-student feedback, current mentor oversight and hiding. No peer grades. |
 | FR-49 | Manage Students | Completed | Create, edit, enable/disable and reset permitted student accounts; disable replaces deletion. |
 | FR-50 | Manage Mentors | Completed | Create, edit, enable/disable and reset permitted mentor accounts. |
 | FR-51 | Manage User Roles | Completed | Assign existing public roles; no custom role-permission editor. |
@@ -1810,3 +1829,11 @@ Additional V19 sources:
 - [V19 migration](../up-self-admin/src/main/resources/db/draft/V19__platform_questionnaire_links.sql).
 - [Questionnaire frontend](../frontend/src/features/questionnaires/README.md).
 - [Local questionnaire verifier](../scripts/verify-questionnaires.py).
+
+## Daily check-in — FR-19 and FR-20
+
+Student Home includes Daily check-in without a new menu item. POST /client/learning/check-in records an explicit action; GET reads the authenticated student's state. Both use learning:checkin:own and an exact student-role guard. No owner or date is accepted from the client. The server calculates the date using Asia/Kuala_Lumpur. V21 creates student_daily_check_in with a (student_id, check_date) primary key and a student-only function permission. Duplicate inserts return the existing state; other database failures propagate. No login, mood entry or page view creates attendance.
+
+A streak ends today when checked in, otherwise yesterday. A missing intervening date breaks the streak. Dates cross month/year and leap-day boundaries normally. The response exposes only that student's last 30 calendar days of recorded dates. Previous records remain in the database. There is no backdating, rank, reward, reminder or mentor overview integration. The card refreshes on window focus and offers an explicit refresh button. Messages use English i18n keys with neutral restart wording and text status.
+
+Sources: DailyCheckInController, DailyCheckInService, DailyCheckInMapper.xml, V21__daily_check_in.sql and frontend/src/features/check-in. Local Maven package and 225 Java tests passed; frontend production build passed. The disposable API/Chrome verifier checks duplicates, concurrent writes, yesterday's streak, history bounds, owner isolation, student interaction and management-role boundaries. Date tests cover missed days, restart, cross-year and leap-day sequences. VS Code F5 started both services for acceptance. Sign out/in after V21 to load the new student permission. The next migration is V22. No existing records are backfilled as attendance.

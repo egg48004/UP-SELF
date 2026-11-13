@@ -7,6 +7,8 @@ import lombok.EqualsAndHashCode;
 public class AssignmentBodies {
   @Data
   public static class AssignmentInput {
+    @NotNull(message = "Choose whether peer feedback is allowed.")
+    private Boolean peerFeedback = false;
     @NotNull(message = "Choose a course.")
     private Long courseId;
 

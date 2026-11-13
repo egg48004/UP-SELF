@@ -33,7 +33,7 @@ Current local service settings and original bootstrap credentials are in config/
 
 Public roles are Student, Mentor and Administrator; maintenance uses only the internal login entry. Password login is enabled and TOTP is disabled. The six demo students have course progress, submitted and reviewed work, goals, mood and self-belief history, and course discussion messages. These are synthetic demonstration records.
 
-Current schema is **V19**. Java startup applies missing Flyway migrations. Git transfers code, not live database writes. The local migration snapshot has been refreshed with the current demo accounts, data and referenced learning media. Export it again after making further database or upload changes. See [setup and data migration](docs/UP-SELF-Developer-Handbook.md#5-local-setup-and-data-migration).
+Current schema is **V21**. Java startup applies missing Flyway migrations. Git transfers code, not live database writes. The included migration snapshot is dated and does not contain later live writes. Export a fresh complete database and all upload directories before moving current data. See [setup and data migration](docs/UP-SELF-Developer-Handbook.md#5-local-setup-and-data-migration).
 
 ## Versions and deployment
 
@@ -50,3 +50,7 @@ FR-26 milestone badges are implemented in V18 and appear within Learning stats. 
 Platform-wide Questionnaires are available in student My check-in. Mentors manage their own links and visibility from Home or Students. Students need no course enrollment. V19/API and Chrome browser checks passed through the optional local WASM compiler mode. See handbook section 4.25.
 
 WASM compatibility update, 4 November: this cloud Windows now uses the opt-in `.local/esbuild-wasm.enabled` mode with official esbuild-wasm 0.28.2. Other machines retain native startup when the marker is absent. See Developer Handbook 5.16. All 129 frontend tests, production build, actual F5 launch and Chrome three-role badge/questionnaire workflows passed. Earlier pending-acceptance statements describe the initial native compiler restriction and are superseded by this verification. Refresh a migration package to include the current code; existing dated ZIPs are unchanged.
+
+FR-48 peer feedback is available inside opt-in assignments. Mentors enable it before the first submission. Students submit their own work, review one allocated classmate and read received feedback; current mentors moderate it. Existing assignments remain private. See handbook section 4.26.
+
+FR-19/20: explicit daily check-in and streaks are available on Student Home. Malaysia server dates, private history and duplicate-safe writes; sign out/in after V21.

@@ -10,4 +10,6 @@ public class Assignment {
   private Integer maxScore, version;
   private Integer pendingCount;
   private String myStatus;
+  private Boolean peerFeedback;
+  private Boolean peerFeedbackConfigured;
 }

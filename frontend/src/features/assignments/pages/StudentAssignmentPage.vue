@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import StudentPeerFeedback from "../peer/StudentPeerFeedback.vue";
 import { computed, ref, watch } from "vue";
 import { useRoute, onBeforeRouteLeave, onBeforeRouteUpdate } from "vue-router";
 import { useI18n } from "vue-i18n";
@@ -95,6 +96,9 @@ function selectFile(e: Event) {
         </section>
         <section v-if="editable" class="panel">
           <h2>{{ t("assignment.yourAnswer") }}</h2>
+          <p v-if="assignment.peerFeedback || assignment.peerFeedbackConfigured" class="notice">
+            {{ t("peer.privacy") }}
+          </p>
           <p>{{ t("assignment.answerHelp") }}</p>
           <p v-if="work.status === 'RETURNED'" class="notice">
             {{ t("assignment.pastWork") }}
@@ -194,6 +198,7 @@ function selectFile(e: Event) {
             {{ t("assignment.refresh") }}
           </el-button>
         </section>
+        <StudentPeerFeedback :key="id" :assignment-id="id" :submitted="work.attemptNo > 0" />
         <SubmissionHistory :attempts="work.attempts" />
       </template>
       <div v-else-if="error">

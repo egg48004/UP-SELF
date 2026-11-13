@@ -24,6 +24,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 public class AssignmentServiceImpl implements IAssignmentService {
   @Autowired private IBadgeService badges;
+  @Autowired private PeerFeedbackService peer;
   @Autowired private AssignmentMapper mapper;
   @Autowired private LearningMapper courses;
   @Autowired private AssignmentFileStorage storage;
@@ -94,6 +95,7 @@ public class AssignmentServiceImpl implements IAssignmentService {
   }
 
   private void copy(Assignment a, AssignmentInput b) {
+    a.setPeerFeedback(b.getPeerFeedback());
     a.setTitle(b.getTitle().trim());
     a.setInstructions(b.getInstructions());
     a.setStatus(b.getStatus());
@@ -129,6 +131,7 @@ public class AssignmentServiceImpl implements IAssignmentService {
     if (!a.getCourseId().equals(b.getCourseId()))
       throw new ServiceException(400, "An assignment cannot be moved to another course.");
     version(a.getVersion(), b.getVersion());
+    peer.checkEnable(a, b.getPeerFeedback());
     copy(a, b);
     if (mapper.updateAssignment(a) != 1) conflict();
     record("ASSIGNMENT_EDIT", id);
@@ -330,7 +333,7 @@ public class AssignmentServiceImpl implements IAssignmentService {
     Submission s = mapper.submissionById(f.getSubmissionId());
     assignment(s.getAssignmentId(), false);
     if (student()) {
-      if (!actor().getUserId().equals(s.getStudentId()))
+      if (!actor().getUserId().equals(s.getStudentId()) && !peer.canReadFile(s, f))
         throw new ServiceException(403, "You can only download your own work.");
     } else if (f.getAttemptNo() == null)
       throw new ServiceException(403, "Draft attachments have not been submitted.");

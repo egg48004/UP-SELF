@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import MentorPeerFeedback from "../peer/MentorPeerFeedback.vue";
 import { computed, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useI18n } from "vue-i18n";
@@ -58,8 +59,8 @@ watch(
 <template>
   <section>
     <RouterLink class="back-link" to="/mentor/assignments">
-      ← {{ t("assignment.back") }} </RouterLink
-    ><AsyncState :loading="loading" :error="error" @retry="load">
+      ← {{ t("assignment.back") }}
+    </RouterLink><AsyncState :loading="loading" :error="error" @retry="load">
       <template v-if="assignment">
         <div class="page-heading">
           <div>
@@ -130,6 +131,7 @@ watch(
           </div>
           <PaginationBar :current="current" :total="total" @change="page" />
         </section>
+        <MentorPeerFeedback :key="id" :assignment-id="id" :readonly="assignment.courseStatus === 'ARCHIVED'" />
         <ReviewPanel
           v-if="selected"
           :key="selected"

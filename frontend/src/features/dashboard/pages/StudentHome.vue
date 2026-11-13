@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import DailyCheckIn from "../../check-in/DailyCheckIn.vue";
 import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { progressApi } from "../../learning/progress";
@@ -46,6 +47,7 @@ onMounted(load);
         <p>{{ t("dashboard.studentIntro") }}</p>
       </div>
     </div>
+    <DailyCheckIn />
     <AsyncState :loading="busy" :error="error" @retry="load">
       <section v-if="resume" class="panel learning-progress">
         <h2>📖 {{ t("progress.resume") }}</h2>

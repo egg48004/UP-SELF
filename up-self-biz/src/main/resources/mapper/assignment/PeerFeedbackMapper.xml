@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.upself.biz.assignment.mapper.PeerFeedbackMapper">
+ <select id="attempts" resultType="int">SELECT COUNT(*) FROM assignment_submission WHERE assignment_id=#{id} AND attempt_no&gt;0</select>
+ <select id="own" resultType="com.upself.biz.assignment.domain.PeerFeedback">SELECT * FROM assignment_peer_feedback WHERE assignment_id=#{id} AND reviewer_id=#{user}</select>
+ <select id="candidate" resultType="com.upself.biz.assignment.domain.Submission">
+ SELECT s.* FROM assignment_submission s JOIN assignment a ON a.id=s.assignment_id
+ JOIN sys_user u ON u.id=s.student_id
+ JOIN learning_enrollment e ON e.course_id=a.course_id AND e.student_id=s.student_id AND e.active=1
+ WHERE s.assignment_id=#{id} AND s.student_id!=#{user} AND s.attempt_no&gt;0 AND s.status IN ('SUBMITTED','GRADED') AND u.status='0' AND u.role_id=10
+ ORDER BY (SELECT COUNT(*) FROM assignment_peer_feedback p WHERE p.submission_id=s.id),s.id LIMIT 1
+ </select>
+ <insert id="insert" useGeneratedKeys="true" keyProperty="id">INSERT INTO assignment_peer_feedback(assignment_id,reviewer_id,submission_id,attempt_no) VALUES(#{assignmentId},#{reviewerId},#{submissionId},#{attemptNo})</insert>
+ <select id="find" resultType="com.upself.biz.assignment.domain.PeerFeedback">SELECT * FROM assignment_peer_feedback WHERE id=#{id}</select>
+ <select id="received" resultType="com.upself.biz.assignment.domain.PeerFeedback">SELECT p.*,(p.attempt_no!=s.attempt_no) AS earlier_submission FROM assignment_peer_feedback p JOIN assignment_submission s ON s.id=p.submission_id WHERE p.assignment_id=#{id} AND s.student_id=#{user} AND p.sent_at IS NOT NULL AND p.hidden=0 ORDER BY p.id DESC</select>
+ <select id="managed" resultType="com.upself.biz.assignment.domain.PeerFeedback">SELECT p.*,r.user_name AS reviewer_name,u.user_name AS student_name,(p.attempt_no!=s.attempt_no) AS earlier_submission FROM assignment_peer_feedback p JOIN assignment_submission s ON s.id=p.submission_id JOIN sys_user r ON r.id=p.reviewer_id JOIN sys_user u ON u.id=s.student_id WHERE p.assignment_id=#{id} ORDER BY p.id DESC</select>
+ <update id="send">UPDATE assignment_peer_feedback SET strength=#{strength},suggestion=#{suggestion},sent_at=CURRENT_TIMESTAMP,version=version+1 WHERE id=#{id} AND version=#{version} AND sent_at IS NULL AND hidden=0</update>
+ <update id="hide">UPDATE assignment_peer_feedback SET hidden=1,hide_reason=#{hideReason},version=version+1 WHERE id=#{id} AND version=#{version} AND hidden=0 AND sent_at IS NOT NULL</update>
+ <select id="fileGrant" resultType="int">SELECT COUNT(*) FROM assignment_peer_feedback WHERE assignment_id=#{id} AND reviewer_id=#{user} AND submission_id=#{submission} AND attempt_no=#{attempt}</select>
+</mapper>

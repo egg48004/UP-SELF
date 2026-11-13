@@ -31,6 +31,7 @@ class AssignmentAccessTest {
   void setup() {
     service = new AssignmentServiceImpl();
     mapper = mock(AssignmentMapper.class);
+    ReflectionTestUtils.setField(service, "peer", mock(com.upself.biz.assignment.service.PeerFeedbackService.class));
     courses = mock(LearningMapper.class);
     ReflectionTestUtils.setField(service, "mapper", mapper);
     ReflectionTestUtils.setField(service, "courses", courses);

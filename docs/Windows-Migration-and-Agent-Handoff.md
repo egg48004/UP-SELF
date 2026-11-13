@@ -1,6 +1,6 @@
 # Windows Migration and Development Handoff
 
-Updated: 4 November 2026 · schema V19 · inspected committed baseline `96181b1` plus local questionnaire changes
+Updated: 13 November 2026 · schema V20 · current working tree includes FR-48 peer feedback
 
 This guide moves UP-SELF and its data to another Windows computer and gives the next developer a starting point. It covers local development and demonstration, not public deployment. Writing this guide has not exported data, installed software or tested the destination.
 
@@ -264,7 +264,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\database.ps1 -Acti
 if ($LASTEXITCODE -ne 0) { throw 'Post-restore check failed.' }
 ```
 
-Successful history should match `source-state.txt`; the current code baseline is V1–V19; match the actual package history. Keep SQL and files from the same package. If import fails, preserve the error and partial target, determine the cause, then prepare a fresh independent target as appropriate. Do not repeatedly import into partial tables or delete Flyway history.
+Successful history should match `source-state.txt`; the current code baseline is V1–V20; match the actual package history. Keep SQL and files from the same package. If import fails, preserve the error and partial target, determine the cause, then prepare a fresh independent target as appropriate. Do not repeatedly import into partial tables or delete Flyway history.
 
 Actual app/migration credentials stay in their established files. Investigate mismatches instead of resetting every password. Editing `config/demo-accounts.yml` does not change password hashes in MySQL.
 
@@ -371,7 +371,7 @@ Calls follow Controller → Service → Mapper/XML. Reuse BaseController, AjaxRe
 
 ### Schema and remaining scope
 
-The inspected code has V1–V19. **V20 is next only if the current tree still ends at V19.** Never edit executed migrations, delete history or run clean/blind repair to make startup pass. Keep schema changes with their Java/Mapper implementation.
+The current code has V1–V20. **V21 is next only if the current tree still ends at V20.** Never edit executed migrations, delete history or run clean/blind repair to make startup pass. Keep schema changes with their Java/Mapper implementation.
 
 `environment/versions.json` contains tool baselines but still has historical `flywaySchemaVersion: 9` and an incomplete feature list. Do not use it as schema/feature-status authority. Use actual migration files, successful database history and the handbook matrix. The published Word edition is dated 25 October; Markdown contains later updates.
 
@@ -408,3 +408,15 @@ After an authorized feature change, run appropriate builds/tests, real browser w
 V19 adds global questionnaire links, without course/enrollment scope. All students can read visible links under My check-in > Questionnaires. Mentors manage only their own links from Home or Students, with default-hidden creation, edit, visibility and delete/version controls. No external responses are stored. This is a teacher-requested addition outside the original numbered FR matrix. Read handbook 4.25/B16 and run scripts/verify-questionnaires.py --browser after frontend tools work on the destination. Backend/API verification passed on the source; frontend acceptance subsequently passed through the local WASM compatibility mode. Sign out/in after applying the new permissions. The dated 2 November transfer ZIP is unchanged V17 and does not contain badge/questionnaire code; export a fresh complete package to move the current V19 state.
 
 WASM compatibility update, 4 November: this cloud Windows now uses the opt-in `.local/esbuild-wasm.enabled` mode with official esbuild-wasm 0.28.2. Other machines retain native startup when the marker is absent. See Developer Handbook 5.16. All 129 frontend tests, production build, actual F5 launch and Chrome three-role badge/questionnaire workflows passed. Earlier pending-acceptance statements describe the initial native compiler restriction and are superseded by this verification. Refresh a migration package to include the current code; existing dated ZIPs are unchanged.
+
+
+## FR-48 update — 13 November 2026
+
+Current schema is V20; the next migration is V21. Peer feedback is implemented inside existing assignments. Pull current code, retain each machine’s local settings, run the existing build and F5 startup. Flyway applies V20 automatically to a valid V19 database. Existing assignments remain private. Create a new assignment with Allow peer feedback enabled for demonstrations; two enrolled students must submit before reviewing. Do not replay old seed scripts or alter old migrations.
+
+The archived transfer ZIP and local-snapshot remain dated backups and do not contain this delivery’s live data. A fresh full database export plus all upload directories is needed to transfer current records. No reference project is required. Use scripts/verify-peer-feedback.py --browser for optional disposable acceptance tests (Chrome and local Python database client required).
+
+
+## Daily check-in delivery — V21
+
+FR-19/20 now live on Student Home. V21 adds student_daily_check_in and a student-only function permission; no existing records are backfilled. Sign out/in after migrating to reload permissions. Current schema V21, next migration V22. Use scripts/verify-daily-check-in.py --browser for disposable API and Chrome acceptance. Existing transfer archives remain dated and must be refreshed separately to move live data.

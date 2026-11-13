@@ -13,6 +13,8 @@ export interface Assignment {
   languageCode: string;
   myStatus: string | null;
   pendingCount: number | null;
+  peerFeedback: boolean;
+  peerFeedbackConfigured: boolean;
 }
 export type AssignmentBody = Pick<
   Assignment,
@@ -24,6 +26,7 @@ export type AssignmentBody = Pick<
   | "maxScore"
   | "version"
   | "languageCode"
+  | "peerFeedback"
 >;
 export interface WorkFile {
   id: number;
