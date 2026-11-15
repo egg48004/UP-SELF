@@ -132,7 +132,12 @@ watch(id, load, { immediate: true });
     </p>
     <AsyncState :loading="loading" :error="course ? '' : error" @retry="load">
       <template v-if="course">
-        <RouterLink v-if="auth.isMentor && course.status==='PUBLISHED' && auth.can('chat:read')" class="button-link" :to="'/manage/courses/'+course.id+'/discussions'">{{t('chat.title')}}</RouterLink>
+        <RouterLink v-if="auth.isMentor && course.status==='PUBLISHED' && auth.can('chat:read')" class="button-link" :to="'/manage/courses/'+course.id+'/discussions'">
+          {{ t('chat.title') }}
+        </RouterLink>
+        <RouterLink v-if="auth.isMentor" class="button-link" :to="{path:'/mentor/market',query:{courseId:course.id}}">
+          {{ t('market.title') }} →
+        </RouterLink>
         <div class="page-heading">
           <div>
             <p class="eyebrow">

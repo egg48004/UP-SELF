@@ -1,3 +1,4 @@
+import market from "../../features/market/messages";
 import dailyCheckIn from "../../features/check-in/messages";
 import peer from "../../features/assignments/peer/messages";
 import questionnaire from "../../features/questionnaires/messages";
@@ -21,6 +22,7 @@ import knowledge from "../../features/knowledge/messages";
 import recording from "../../features/recordings/messages";
 import chat from "../../features/chat/messages";
 export default {
+  market,
   dailyCheckIn,
   peer,
   questionnaire,

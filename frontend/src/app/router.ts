@@ -14,6 +14,10 @@ export const router = createRouter({
       path: "/",
       component: AppLayout,
       children: [
+        {path:"student/market",component:()=>import("../features/market/pages/MarketTasksPage.vue"),meta:{roles:["student"],permission:"market:own"}},
+        {path:"student/market/:id",component:()=>import("../features/market/pages/MarketTaskPage.vue"),meta:{roles:["student"],permission:"market:own"}},
+        {path:"mentor/market",component:()=>import("../features/market/pages/MarketTasksPage.vue"),meta:{roles:["mentor"],permission:"market:manage"}},
+        {path:"mentor/market/:id",component:()=>import("../features/market/pages/MarketTaskPage.vue"),meta:{roles:["mentor"],permission:"market:manage"}},
         { path: "student/questionnaires", component: () => import("../features/questionnaires/pages/StudentQuestionnairesPage.vue"), meta: { roles: ["student"], permission: "questionnaires:read" } },
         { path: "mentor/questionnaires", component: () => import("../features/questionnaires/pages/MentorQuestionnairesPage.vue"), meta: { roles: ["mentor"], permission: "questionnaires:manage" } },
         {

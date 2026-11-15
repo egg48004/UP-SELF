@@ -1,6 +1,6 @@
 # Windows Migration and Development Handoff
 
-Updated: 13 November 2026 · schema V20 · current working tree includes FR-48 peer feedback
+Updated: 15 November 2026 · schema V22 · current working tree includes market tasks, daily check-in and peer feedback
 
 This guide moves UP-SELF and its data to another Windows computer and gives the next developer a starting point. It covers local development and demonstration, not public deployment. Writing this guide has not exported data, installed software or tested the destination.
 
@@ -264,7 +264,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\database.ps1 -Acti
 if ($LASTEXITCODE -ne 0) { throw 'Post-restore check failed.' }
 ```
 
-Successful history should match `source-state.txt`; the current code baseline is V1–V20; match the actual package history. Keep SQL and files from the same package. If import fails, preserve the error and partial target, determine the cause, then prepare a fresh independent target as appropriate. Do not repeatedly import into partial tables or delete Flyway history.
+Successful history should match `source-state.txt`; the current code baseline is V1–V22; match the actual package history. Keep SQL and files from the same package. If import fails, preserve the error and partial target, determine the cause, then prepare a fresh independent target as appropriate. Do not repeatedly import into partial tables or delete Flyway history.
 
 Actual app/migration credentials stay in their established files. Investigate mismatches instead of resetting every password. Editing `config/demo-accounts.yml` does not change password hashes in MySQL.
 
@@ -371,7 +371,7 @@ Calls follow Controller → Service → Mapper/XML. Reuse BaseController, AjaxRe
 
 ### Schema and remaining scope
 
-The current code has V1–V20. **V21 is next only if the current tree still ends at V20.** Never edit executed migrations, delete history or run clean/blind repair to make startup pass. Keep schema changes with their Java/Mapper implementation.
+The current code has V1–V22. **V23 is next only if the current tree still ends at V22.** Never edit executed migrations, delete history or run clean/blind repair to make startup pass. Keep schema changes with their Java/Mapper implementation.
 
 `environment/versions.json` contains tool baselines but still has historical `flywaySchemaVersion: 9` and an incomplete feature list. Do not use it as schema/feature-status authority. Use actual migration files, successful database history and the handbook matrix. The published Word edition is dated 25 October; Markdown contains later updates.
 
@@ -420,3 +420,10 @@ The archived transfer ZIP and local-snapshot remain dated backups and do not con
 ## Daily check-in delivery — V21
 
 FR-19/20 now live on Student Home. V21 adds student_daily_check_in and a student-only function permission; no existing records are backfilled. Sign out/in after migrating to reload permissions. Current schema V21, next migration V22. Use scripts/verify-daily-check-in.py --browser for disposable API and Chrome acceptance. Existing transfer archives remain dated and must be refreshed separately to move live data.
+
+
+## Market scenario delivery — V22
+
+FR-47 is implemented as mentor-authored course decision tasks. Current schema V22; next migration V23. No additional runtime dependency or service is required. Existing startup applies V22 to a valid V21 database. Sign out/in afterward for market:own or market:manage permissions. Use Course details > Market practice; mentors create a draft and publish it, enrolled students respond and reflect, mentors read Student responses. Content locks after participation; copy a task to change it. No actual market prices, trades or simulation data are seeded. scripts/verify-market.py --browser provides disposable acceptance checks with local Chrome and optional test-only database client.
+
+Historical ZIPs and migration/local-snapshot remain dated. Export a fresh complete database and all upload directories before moving current records; Git alone does not transfer live writes. See the current Developer Handbook market section for boundaries and source paths.

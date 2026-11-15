@@ -11,6 +11,11 @@ const { t } = useI18n();
     <p>{{ t("business.intro") }}</p>
     <div class="dashboard-grid">
       <section class="panel">
+        <h2>{{ t("market.title") }}</h2><p>{{ t("market.intro") }}</p><RouterLink class="button-link" to="/student/market">
+          {{ t("market.title") }} →
+        </RouterLink>
+      </section>
+      <section class="panel">
         <h2><span aria-hidden="true">🌱 </span>{{ t("business.ideas") }}</h2>
         <p>{{ t("business.ideasHelp") }}</p>
         <RouterLink class="button-link" to="/student/business/ideas">

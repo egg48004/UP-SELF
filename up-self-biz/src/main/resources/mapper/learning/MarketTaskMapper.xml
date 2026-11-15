@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.upself.biz.learning.mapper.MarketTaskMapper">
+ <select id="list" resultType="com.upself.biz.learning.domain.MarketTask">
+ SELECT t.id,t.course_id,t.title,t.objective,t.status,t.version,c.status AS course_status,c.title AS course_title,
+ EXISTS(SELECT 1 FROM market_attempt x WHERE x.task_id=t.id) AS locked,
+ (SELECT COUNT(*) FROM market_attempt x WHERE x.task_id=t.id AND x.student_id=#{user}) AS attempt_count
+ FROM market_task t JOIN learning_course c ON c.id=t.course_id WHERE c.deleted=0
+ <if test="course != null">AND c.id=#{course}</if>
+ <choose><when test="role == 'student'">AND c.status='PUBLISHED' AND t.status IN ('PUBLISHED','CLOSED') AND EXISTS(SELECT 1 FROM learning_enrollment e WHERE e.course_id=c.id AND e.student_id=#{user} AND e.active=1)</when>
+ <otherwise>AND #{role}='mentor' AND c.mentor_id=#{user}</otherwise></choose>
+ ORDER BY t.id DESC
+ </select>
+ <select id="find" resultType="com.upself.biz.learning.domain.MarketTask">SELECT t.*,c.status AS course_status,c.title AS course_title FROM market_task t JOIN learning_course c ON c.id=t.course_id WHERE t.id=#{id} AND c.deleted=0</select>
+ <select id="lock" resultType="com.upself.biz.learning.domain.MarketTask">SELECT * FROM market_task WHERE id=#{id} FOR UPDATE</select>
+ <select id="options" resultType="com.upself.biz.learning.domain.MarketOption">SELECT * FROM market_option WHERE task_id=#{id} ORDER BY position</select>
+ <insert id="insert" useGeneratedKeys="true" keyProperty="id">INSERT INTO market_task(course_id,title,objective,situation,question,reflection_prompt,created_by) VALUES(#{courseId},#{title},#{objective},#{situation},#{question},#{reflectionPrompt},#{createdBy})</insert>
+ <update id="update">UPDATE market_task SET title=#{title},objective=#{objective},situation=#{situation},question=#{question},reflection_prompt=#{reflectionPrompt},version=version+1 WHERE id=#{id} AND version=#{version}</update>
+ <update id="state">UPDATE market_task SET status=#{status},version=version+1 WHERE id=#{id} AND version=#{version}</update>
+ <delete id="deleteOptions">DELETE FROM market_option WHERE task_id=#{id}</delete>
+ <insert id="insertOption" useGeneratedKeys="true" keyProperty="id">INSERT INTO market_option(task_id,position,label,outcome,explanation) VALUES(#{taskId},#{position},#{label},#{outcome},#{explanation})</insert>
+ <select id="attemptCount" resultType="int">SELECT COUNT(*) FROM market_attempt WHERE task_id=#{id}</select>
+ <sql id="attemptView">a.*,o.label,o.outcome,o.explanation,NOT EXISTS(SELECT 1 FROM market_attempt older WHERE older.task_id=a.task_id AND older.student_id=a.student_id AND older.id&lt;a.id) AS first_attempt</sql>
+ <select id="byKey" resultType="com.upself.biz.learning.domain.MarketAttempt">SELECT <include refid="attemptView"/> FROM market_attempt a JOIN market_option o ON o.id=a.option_id WHERE a.task_id=#{id} AND a.student_id=#{user} AND a.request_key=#{key}</select>
+ <select id="attempt" resultType="com.upself.biz.learning.domain.MarketAttempt">SELECT <include refid="attemptView"/> FROM market_attempt a JOIN market_option o ON o.id=a.option_id WHERE a.id=#{id}</select>
+ <select id="attempts" resultType="com.upself.biz.learning.domain.MarketAttempt">SELECT <include refid="attemptView"/> FROM market_attempt a JOIN market_option o ON o.id=a.option_id WHERE a.task_id=#{id} AND a.student_id=#{user} ORDER BY a.id DESC</select>
+ <insert id="insertAttempt" useGeneratedKeys="true" keyProperty="id">INSERT INTO market_attempt(task_id,student_id,option_id,request_key) VALUES(#{taskId},#{studentId},#{optionId},#{requestKey})</insert>
+ <update id="reflect">UPDATE market_attempt SET reflection=#{reflection},version=version+1 WHERE id=#{id} AND student_id=#{studentId} AND version=#{version}</update>
+ <select id="participants" resultType="map">
+ SELECT u.id AS studentId,u.user_name AS username,u.nick_name AS studentName,
+ EXISTS(SELECT 1 FROM learning_enrollment e WHERE e.course_id=t.course_id AND e.student_id=u.id AND e.active=1) AS enrolled,
+ (SELECT COUNT(*) FROM market_attempt a WHERE a.task_id=t.id AND a.student_id=u.id) AS attemptCount,
+ (SELECT o.label FROM market_attempt a JOIN market_option o ON o.id=a.option_id WHERE a.task_id=t.id AND a.student_id=u.id ORDER BY a.id LIMIT 1) AS firstChoice,
+ (SELECT MAX(a.create_time) FROM market_attempt a WHERE a.task_id=t.id AND a.student_id=u.id) AS lastAttemptAt
+ FROM market_task t JOIN sys_user u ON (EXISTS(SELECT 1 FROM learning_enrollment e WHERE e.course_id=t.course_id AND e.student_id=u.id AND e.active=1) OR EXISTS(SELECT 1 FROM market_attempt a WHERE a.task_id=t.id AND a.student_id=u.id))
+ WHERE t.id=#{id} ORDER BY u.id
+ </select>
+</mapper>

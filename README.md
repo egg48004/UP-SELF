@@ -33,7 +33,7 @@ Current local service settings and original bootstrap credentials are in config/
 
 Public roles are Student, Mentor and Administrator; maintenance uses only the internal login entry. Password login is enabled and TOTP is disabled. The six demo students have course progress, submitted and reviewed work, goals, mood and self-belief history, and course discussion messages. These are synthetic demonstration records.
 
-Current schema is **V21**. Java startup applies missing Flyway migrations. Git transfers code, not live database writes. The included migration snapshot is dated and does not contain later live writes. Export a fresh complete database and all upload directories before moving current data. See [setup and data migration](docs/UP-SELF-Developer-Handbook.md#5-local-setup-and-data-migration).
+Current schema is **V22**. Java startup applies missing Flyway migrations. Git transfers code, not live database writes. The included migration snapshot is dated and does not contain later live writes. Export a fresh complete database and all upload directories before moving current data. See [setup and data migration](docs/UP-SELF-Developer-Handbook.md#5-local-setup-and-data-migration).
 
 ## Versions and deployment
 
@@ -54,3 +54,5 @@ WASM compatibility update, 4 November: this cloud Windows now uses the opt-in `.
 FR-48 peer feedback is available inside opt-in assignments. Mentors enable it before the first submission. Students submit their own work, review one allocated classmate and read received feedback; current mentors moderate it. Existing assignments remain private. See handbook section 4.26.
 
 FR-19/20: explicit daily check-in and streaks are available on Student Home. Malaysia server dates, private history and duplicate-safe writes; sign out/in after V21.
+
+FR-47: course mentors author market scenarios under Course details > Market practice. Students choose responses, read consequences, retry and reflect; current mentors view participation. Sign out/in after V22 to load permissions. Existing primary menus are unchanged.

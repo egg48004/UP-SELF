@@ -2,7 +2,7 @@
 
 Development standards, feature workflows, local setup and deployment operations
 
-Version 1.10 | 13 November 2026 | Database schema V21
+Version 1.11 | 15 November 2026 | Database schema V22
 
 UP-SELF is a learning platform for a small group of students in Malaysia. This handbook explains how the current application works, how to maintain it, and how to run it on another computer. It covers the Java backend, Vue frontend, permissions, private files, database migrations and release preparation.
 
@@ -37,7 +37,7 @@ The initial audience is 10 to 30 students, primarily in Malaysia. Students use a
 | Learning statistics | Student sees current-course chapter completion and assignment totals within My learning |
 | Platform questionnaires | Mentors manage their own external HTTPS links and visibility; all students read visible links without course enrollment |
 
-The original graduation report contains 61 functional requirements. The current comparison records 44 completed, 6 partially completed and 11 not implemented. Appendix A retains all 61 identifiers and explains the differences. These counts measure coverage of the report, not the usability of the MVP or an academic grade.
+The original graduation report contains 61 functional requirements. The current comparison records 45 completed, 6 partially completed and 10 not implemented. Appendix A retains all 61 identifiers and explains the differences. These counts measure coverage of the report, not the usability of the MVP or an academic grade.
 
 Course discussions, private mentor notes, guided business ideas and a saved cost calculator are implemented. AI assistance, daily attendance and full one-to-one appointment scheduling remain outside the implemented scope. Personal badges and global questionnaire workflows have passed frontend acceptance through the optional WASM compatibility mode described in section 5.16. A course meeting post is a link announcement, not a booking or conferencing service.
 
@@ -81,7 +81,7 @@ UP-SELF is now the independent engineering baseline. The backend architecture or
 | Redis on Windows | tporadowski Windows port 5.0.14.1 |
 | Redis for Mac preparation | Upstream 5.0.14 corresponding to the Windows port; target runtime testing pending |
 | Node and npm | 24.22.1 and 11.19.1 |
-| Current Flyway schema | V1 through V21 |
+| Current Flyway schema | V1 through V22 |
 
 The reference Docker image names Amazon Corretto 8u362. That differs from the independent project's installed Oracle 8u231. Do not describe them as the same JDK build or silently switch vendor or update level. The current Linux runtime checks retain the independent project's 8u231 requirement.
 
@@ -692,7 +692,7 @@ Sources: PeerFeedbackController (BaseController, AjaxResult and getDataTable); P
 
 Local verification on 13 November 2026: 219 Java tests, 133 frontend tests, the production frontend build and Maven package passed. ESLint reported zero errors and 35 existing warnings outside the new peer components. Chrome exercised separate student, second-student, mentor and administrator sessions, real submission and attachment download, two-way peer feedback, rejected empty/filtered input, mentor hide/cancel, received feedback refresh, unchanged primary menus and 320px layout. The disposable verifier passed 87 checks including its browser workflow, revoked membership and course reassignment. Evidence is in ignored .local/peer-verification. Original rows are checked against the pre-V20 snapshot; test audit records are retained.
 
-The original 61-FR matrix remains for report traceability. AI FR-36 through FR-42 are excluded from the agreed development scope: this leaves 54 in-scope requirements, with 44 completed, 6 partial and 4 not implemented. The six partial requirements retain the previously agreed implementation adjustments; excluding AI does not silently change their acceptance status.
+The original 61-FR matrix remains for report traceability. AI FR-36 through FR-42 are excluded from the agreed development scope: this leaves 54 in-scope requirements, with 45 completed, 6 partial and 3 not implemented. The six partial requirements retain the previously agreed implementation adjustments; excluding AI does not silently change their acceptance status.
 
 ## 5.1 Choose the correct startup route
 
@@ -927,7 +927,7 @@ bash scripts/macos/up-self.sh db-init \
   --root-client-file "$PWD/.local/macos/mysql-root.cnf"
 ```
 
-It creates the empty database and scoped users. The backend then applies V1 through V21 and runs existing bootstrap logic for an empty user table. It does not restore old records. Do not run both alternatives.
+It creates the empty database and scoped users. The backend then applies V1 through V22 and runs existing bootstrap logic for an empty user table. It does not restore old records. Do not run both alternatives.
 
 ### 5.12 Build and start on Mac
 
@@ -987,9 +987,9 @@ Flyway runs as part of Java backend startup. It checks recorded migrations on ea
 
 Scripts are in `up-self-admin/src/main/resources/db/draft`. Current configuration enables Flyway, validation and baseline-on-migrate, permits out-of-order migrations and disables placeholder replacement. Migration credentials are separate from application DML credentials.
 
-Add the next migration for a new change; the next integer after V21 is V22. Use `V<number>__<description>.sql`. Never modify an executed migration to adjust an existing installation. Do not hand-create partial business tables before first startup, because baseline behavior can change which versions run.
+Add the next migration for a new change; the next integer after V22 is V23. Use `V<number>__<description>.sql`. Never modify an executed migration to adjust an existing installation. Do not hand-create partial business tables before first startup, because baseline behavior can change which versions run.
 
-An empty database receives V1 through V21. An existing V20 database receives V21. Restoring a valid older snapshot through a supported route preserves its history and allows missing migrations to run, but does not recover later business data. A full current restore should not rerun the schema scripts.
+An empty database receives V1 through V22. An existing V21 database receives V22. Restoring a valid older snapshot through a supported route preserves its history and allows missing migrations to run, but does not recover later business data. A full current restore should not rerun the schema scripts.
 
 On failure, preserve the error, database identity and `flyway_schema_history`. Stop before making further changes. Investigate the failed SQL and migration state before considering a controlled recovery. Do not use clean, blind repair or history deletion as a routine startup fix.
 
@@ -1308,7 +1308,7 @@ Linux public deployment and Mac runtime testing are still pending. Cost figures 
 
 The identifiers and requirement names follow the original report's 61 FRs. Completed means the current UI, API and persistence cover the main requirement. Partial means a defined subset exists or an implemented rule differs materially from the report. Not implemented means there is no complete workflow; a generic field, sample title or shared component is not completion.
 
-The current total is 44 completed, 6 partial and 11 not implemented. Authentication and general engineering safeguards are not additional numbered FRs. The report's source is Section 5.4.1, report pages 14 through 22, PDF pages 30 through 38. The original report remains a separate academic source and is not rewritten by this handbook.
+The current total is 45 completed, 6 partial and 10 not implemented. Authentication and general engineering safeguards are not additional numbered FRs. The report's source is Section 5.4.1, report pages 14 through 22, PDF pages 30 through 38. The original report remains a separate academic source and is not rewritten by this handbook.
 
 | Area | Completed | Partial | Not implemented |
 |---|---:|---:|---:|
@@ -1317,10 +1317,10 @@ The current total is 44 completed, 6 partial and 11 not implemented. Authenticat
 | Self-efficacy area FR 19 to 27 | 8 | 1 | 0 |
 | Communication FR 28 to 35 | 8 | 0 | 0 |
 | AI assistance FR 36 to 42 | 0 | 0 | 7 |
-| Entrepreneurship FR 43 to 48 | 3 | 0 | 3 |
+| Entrepreneurship FR 43 to 48 | 4 | 0 | 2 |
 | Administration FR 49 to 55 | 6 | 0 | 1 |
 | Mentor support FR 56 to 61 | 4 | 2 | 0 |
-| Total | 44 | 6 | 11 |
+| Total | 45 | 6 | 10 |
 
 ### A2 Complete requirement matrix
 
@@ -1372,7 +1372,7 @@ The current total is 44 completed, 6 partial and 11 not implemented. Authenticat
 | FR-44 | Use Business Idea Template | Completed | Student-owned guided idea name, offer, audience, resources and next step; partial answers persist and can be edited. |
 | FR-45 | View Entrepreneur Stories | Not implemented | No delivered entrepreneur-story collection. |
 | FR-46 | Use Cost Calculator | Completed | Server-side MYR batch cost, expected revenue and estimated profit/loss; one versioned saved plan per student. |
-| FR-47 | Participate in Market Simulation | Not implemented | No market simulation. |
+| FR-47 | Participate in Market Simulation | Completed | Agreed implementation: course mentors author a market situation with two or three responses and consequences. Students decide, retry and reflect; mentors read participation. No random demand, trading, scores or market prediction. |
 | FR-48 | Receive Peer Feedback | Completed | Opt-in assignment peer feedback for business ideas or other work: one versioned classmate submission per reviewer, short anonymous-to-student feedback, current mentor oversight and hiding. No peer grades. |
 | FR-49 | Manage Students | Completed | Create, edit, enable/disable and reset permitted student accounts; disable replaces deletion. |
 | FR-50 | Manage Mentors | Completed | Create, edit, enable/disable and reset permitted mentor accounts. |
@@ -1837,3 +1837,31 @@ Student Home includes Daily check-in without a new menu item. POST /client/learn
 A streak ends today when checked in, otherwise yesterday. A missing intervening date breaks the streak. Dates cross month/year and leap-day boundaries normally. The response exposes only that student's last 30 calendar days of recorded dates. Previous records remain in the database. There is no backdating, rank, reward, reminder or mentor overview integration. The card refreshes on window focus and offers an explicit refresh button. Messages use English i18n keys with neutral restart wording and text status.
 
 Sources: DailyCheckInController, DailyCheckInService, DailyCheckInMapper.xml, V21__daily_check_in.sql and frontend/src/features/check-in. Local Maven package and 225 Java tests passed; frontend production build passed. The disposable API/Chrome verifier checks duplicates, concurrent writes, yesterday's streak, history bounds, owner isolation, student interaction and management-role boundaries. Date tests cover missed days, restart, cross-year and leap-day sequences. VS Code F5 started both services for acceptance. Sign out/in after V21 to load the new student permission. The next migration is V22. No existing records are backfilled as attendance.
+
+## Market scenarios — FR-47
+
+The agreed implementation is a teacher-authored decision exercise, not a financial forecast. Cost calculator remains the separate FR-46 tool. A market task belongs to a course and contains a title, learning goal, short text situation, decision question, reflection prompt and two or three distinct responses. Each response has a possible outcome and explanation written by the mentor. There is one decision point per task. No timer, price algorithm, score, rank, payment or AI is added.
+
+### Entry points and teaching workflow
+
+Current mentors open Course details > Market practice. Students open the same section in an enrolled published course, or Business practice > Market practice to list tasks from their accessible courses. Primary menus are unchanged. Create market task saves a draft; Edit market task changes unused content; Publish task makes it available when the course is published. Close task stops new attempts and reflection edits while preserving history. An unused task can return to draft. After any student participates it can only stay published or closed. Archived courses are read-only.
+
+Task content is locked after the first attempt. Copy task creates an independent editable draft with new option IDs and no participation history. Closing or reopening does not change the underlying situation or previous choices. Concurrent content editing, status changes and attempts use the existing course-then-task row-lock order. Students submit the task version they read; stale versions must refresh.
+
+Students read the situation and choose one response before selecting See what happens. Student task detail responses contain labels but no outcome or explanation values. The selected outcome is returned only from the attempt endpoint and the student's own attempt history. The page explains that the current course mentor can read responses and reflections. Each optional reflection is limited to 1000 characters and uses the existing content filter. Reflection updates check owner, task, expected attempt version and published status. Unsaved reflection changes have a leave confirmation.
+
+Try another response creates another attempt. A unique task/student/request key makes retries of the same HTTP operation idempotent. New request keys represent explicit new attempts. The first choice is derived from the earliest attempt ID and is never overwritten by later decisions. Completing a choice indicates participation, not mastery or a grade. Histories are paginated; students may revisit an earlier attempt and its reflection. User dates are displayed in Malaysia time.
+
+### Mentor records and access boundaries
+
+The task's Student responses section lists enrolled students and historical participants, including not-started status, attempt count, first response and last participation time. Selecting View responses opens that student's attempts and reflections read-only. Former participants are labelled as no longer enrolled; their records remain available to the current course mentor. Students only read their own attempts. Unenrollment revokes student access; course reassignment revokes the former mentor and grants access to the new mentor. Administrators and internal maintenance do not gain access to this teaching workflow through wildcard permissions. All resource checks run on the server.
+
+### Implementation and migration
+
+V22__market_scenarios.sql creates market_task, market_option and market_attempt and function permissions market:own (student) and market:manage (mentor). There is no invented teaching-content seed. Existing records, dependencies, authentication, application configuration and reference-project code are unchanged. After applying V22, sign out/in to load the new permissions. A valid V21 installation migrates on backend startup; the next migration is V23. Dated migration packages still require a fresh full export to include current data.
+
+Sources: MarketTaskController extends BaseController and uses AjaxResult/getDataTable; IMarketTaskService and MarketTaskServiceImpl implement the permission and transaction rules; MarketTaskMapper.xml contains the SQL. Frontend code is isolated in frontend/src/features/market: api/types/messages, a task editor, participant viewer and separate list/detail pages. Existing course and business-practice pages only link to the feature. Plain text is rendered through escaped Vue interpolation.
+
+### Local acceptance — 15 November 2026
+
+Maven package and 236 Java tests passed, including 11 market access/locking tests. 136 frontend tests and the production build passed. ESLint reported zero errors and 27 existing warnings outside the market feature. scripts/verify-market.py --browser uses disposable accounts and a disposable course; it retains audit records and removes only its own teaching fixtures. The real API and Chrome workflow covers three public roles, mentor draft/edit/publish/close/copy, student choice/outcome/retry/reflection, first-choice preservation, content filtering, stale writes, duplicate requests, 320px layout, owner boundaries, unenrollment, course reassignment and archived-course denial. Evidence is under ignored .local/market-verification. All 5280 original rows across 41 pre-V22 tables were retained and compared with a consistent snapshot. The verifier passed 84 checks including Chrome; student choice and result flows also ran at 320px. VS Code F5 starts the backend and frontend used by these checks.

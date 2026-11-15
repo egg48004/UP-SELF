@@ -126,6 +126,9 @@ watch(() => route.params.id, load, { immediate: true });
             <BookmarkButton :course-id="course.id" :saved="course.bookmarked" :title="course.title" @changed="course.bookmarked = $event" />
           </div>
         </div>
+        <RouterLink class="button-link" :to="{path:'/student/market',query:{courseId:course.id}}">
+          {{ t('market.title') }} →
+        </RouterLink>
         <section
           v-if="progress"
           class="panel learning-progress"
@@ -155,7 +158,9 @@ watch(() => route.params.id, load, { immediate: true });
         >
           📝 {{ t("assignment.myWork") }}
         </RouterLink>
-        <RouterLink class="button-link" :to="'/student/courses/'+course.id+'/discussions'"><span aria-hidden="true">💬 </span>{{t('chat.title')}}</RouterLink>
+        <RouterLink class="button-link" :to="'/student/courses/'+course.id+'/discussions'">
+          <span aria-hidden="true">💬 </span>{{ t('chat.title') }}
+        </RouterLink>
         <div class="learning-tabs">
           <el-button
             :type="tab === 'chapters' ? 'primary' : 'default'"
